@@ -1,0 +1,87 @@
+<project>
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>org.atlasapi</groupId>
+  <artifactId>atlas</artifactId>
+  <version>7.0-SNAPSHOT</version>
+  <packaging>pom</packaging>
+
+  <modules>
+    <module>atlas-core</module>
+    <module>atlas-cassandra</module>
+    <module>atlas-elasticsearch</module>
+    <module>atlas-processing</module>
+    <module>atlas-api</module>
+  </modules>
+
+  <build>
+    <finalName>atlas</finalName>
+    <plugins>
+      <plugin>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <version>3.1</version>
+        <configuration>
+          <source>1.7</source>
+          <target>1.7</target>
+          <fork>true</fork>
+          <compilerArguments>
+            <J>-Xss1M</J>
+          </compilerArguments>
+        </configuration>
+      </plugin>
+    </plugins>
+    <extensions>
+      <extension>
+        <groupId>org.apache.maven.wagon</groupId>
+        <artifactId>wagon-webdav-jackrabbit</artifactId>
+        <version>2.3</version>
+      </extension>
+    </extensions>
+  </build>
+
+  <dependencyManagement>
+    <dependencies>
+      <dependency>
+        <groupId>com.google.guava</groupId>
+        <artifactId>guava</artifactId>
+        <version>${guava.version}</version>
+      </dependency>
+    </dependencies>
+  </dependencyManagement>
+
+  <properties>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <atlas.version>${project.version}</atlas.version>
+    <guava.version>15.0</guava.version>
+    <jetty.version>9.0.6.v20130930</jetty.version>
+    <common.version>1.0-SNAPSHOT</common.version>
+  </properties>
+
+  <scm>
+    <connection>scm:git:git://github.com/atlasapi/atlas-deer.git</connection>
+    <developerConnection>scm:git:git://github.com/atlasapi/atlas-deer.git</developerConnection>
+  </scm>
+
+  <distributionManagement>
+    <repository>
+      <id>metabroadcast-mvn</id>
+      <name>Public Releases MetaBroadcast Repo</name>
+      <url>dav:http://mvn.metabroadcast.com:80/public-releases-local</url>
+    </repository>
+    <snapshotRepository>
+      <id>metabroadcast-mvn</id>
+      <name>Public Snapshots MetaBroadcast Repo</name>
+      <url>dav:http://mvn.metabroadcast.com:80/public-snapshots-local</url>
+      <uniqueVersion>false</uniqueVersion>
+    </snapshotRepository>
+  </distributionManagement>
+
+  <repositories>
+    <repository>
+      <id>metabroadcast-mvn</id>
+      <name>Metabroadcast</name>
+      <url>http://mvn.metabroadcast.com/all</url>
+      <layout>default</layout>
+    </repository>
+  </repositories>
+
+</project>
