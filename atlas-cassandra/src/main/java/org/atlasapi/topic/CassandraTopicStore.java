@@ -1,0 +1,234 @@
+package org.atlasapi.topic;
+
+import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.base.Preconditions.checkNotNull;
+
+import java.util.Set;
+import java.util.concurrent.TimeUnit;
+
+import javax.annotation.Nullable;
+
+import org.atlasapi.content.CassandraPersistenceException;
+import org.atlasapi.entity.Alias;
+import org.atlasapi.entity.AliasIndex;
+import org.atlasapi.entity.Id;
+import org.atlasapi.entity.util.Resolved;
+import org.atlasapi.media.entity.Publisher;
+import org.atlasapi.topic.AbstractTopicStore;
+import org.atlasapi.topic.Topic;
+import org.atlasapi.util.CassandraUtil;
+
+import com.google.common.base.Equivalence;
+import com.google.common.base.Function;
+import com.google.common.base.Joiner;
+import com.google.common.base.Optional;
+import com.google.common.base.Predicates;
+import com.google.common.base.Throwables;
+import com.google.common.collect.FluentIterable;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Iterables;
+import com.google.common.util.concurrent.Futures;
+import com.google.common.util.concurrent.ListenableFuture;
+import com.metabroadcast.common.collect.ImmutableOptionalMap;
+import com.metabroadcast.common.collect.OptionalMap;
+import com.metabroadcast.common.ids.IdGenerator;
+import com.metabroadcast.common.time.Clock;
+import com.metabroadcast.common.time.SystemClock;
+import com.netflix.astyanax.AstyanaxContext;
+import com.netflix.astyanax.Keyspace;
+import com.netflix.astyanax.MutationBatch;
+import com.netflix.astyanax.connectionpool.exceptions.ConnectionException;
+import com.netflix.astyanax.connectionpool.exceptions.NotFoundException;
+import com.netflix.astyanax.model.Column;
+import com.netflix.astyanax.model.ColumnFamily;
+import com.netflix.astyanax.model.ColumnList;
+import com.netflix.astyanax.model.ConsistencyLevel;
+import com.netflix.astyanax.model.Row;
+import com.netflix.astyanax.model.Rows;
+import com.netflix.astyanax.query.ColumnQuery;
+import com.netflix.astyanax.serializers.LongSerializer;
+import com.netflix.astyanax.serializers.StringSerializer;
+
+
+public class CassandraTopicStore extends AbstractTopicStore {
+
+    public static final Builder builder(AstyanaxContext<Keyspace> context, 
+            String name, Equivalence<? super Topic> equivalence, IdGenerator idGenerator) {
+        return new Builder(context, name, equivalence, idGenerator);
+    }
+    
+    public static final class Builder {
+
+        private final AstyanaxContext<Keyspace> context;
+        private final String name;
+        private final Equivalence<? super Topic> equivalence;
+        private final IdGenerator idGenerator;
+        
+        private ConsistencyLevel readCl = ConsistencyLevel.CL_QUORUM;
+        private ConsistencyLevel writeCl = ConsistencyLevel.CL_QUORUM;
+        private Clock clock = new SystemClock();
+
+        public Builder(AstyanaxContext<Keyspace> context, String name,
+            Equivalence<? super Topic> equivalence, IdGenerator idGenerator) {
+                this.context = context;
+                this.name = name;
+                this.equivalence = equivalence;
+                this.idGenerator = idGenerator;
+        }
+        
+        public Builder withReadConsistency(ConsistencyLevel readCl) {
+            this.readCl = readCl;
+            return this;
+        }
+        
+        public Builder withWriteConsistency(ConsistencyLevel writeCl) {
+            this.writeCl = writeCl;
+            return this;
+        }
+        
+        public Builder withClock(Clock clock) {
+            this.clock = clock;
+            return this;
+        }
+        
+        public CassandraTopicStore build() {
+            return new CassandraTopicStore(context, name, readCl, writeCl, 
+                equivalence, idGenerator, clock);
+        }
+        
+    }
+    
+    private final Keyspace keyspace;
+    private final ConsistencyLevel readConsistency;
+    private final ConsistencyLevel writeConsistency;
+    private final ColumnFamily<Long, String> mainCf;
+    private final AliasIndex<Topic> aliasIndex;
+    
+    private final String valueColumn = "topic";
+    private final TopicSerializer topicSerializer = new TopicSerializer();
+    private final Function<Row<Long, String>, Topic> rowToTopic =
+        new Function<Row<Long, String>, Topic>() {
+            @Override
+            public Topic apply(Row<Long, String> input) {
+                ColumnList<String> cols = input.getColumns();
+                Column<String> col = cols.getColumnByName(valueColumn);
+                if (col == null) {
+                    return null;
+                }
+                return topicSerializer.deserialize(col.getByteArrayValue());
+            }
+        };
+    private final Function<Rows<Long, String>, Resolved<Topic>> toResolved = 
+        new Function<Rows<Long, String>, Resolved<Topic>>() {
+            @Override
+            public Resolved<Topic> apply(Rows<Long, String> rows) {
+                return Resolved.valueOf(FluentIterable.from(rows).transform(rowToTopic).filter(Predicates.notNull()));
+            }
+        };
+
+    public CassandraTopicStore(AstyanaxContext<Keyspace> context, String cfName,
+        ConsistencyLevel readCl, ConsistencyLevel writeCl, Equivalence<? super Topic> equivalence,
+        IdGenerator idGenerator, Clock clock) {
+        super(idGenerator, equivalence, clock);
+        this.keyspace = checkNotNull(context.getClient());
+        this.readConsistency = checkNotNull(readCl);
+        this.writeConsistency = checkNotNull(writeCl);
+        this.mainCf = ColumnFamily.newColumnFamily(checkNotNull(cfName),
+            LongSerializer.get(), StringSerializer.get());
+        this.aliasIndex = AliasIndex.create(keyspace, cfName+"_aliases");
+    }
+
+    @Override
+    public ListenableFuture<Resolved<Topic>> resolveIds(Iterable<Id> ids) {
+        try {
+            Iterable<Long> longIds = Iterables.transform(ids, Id.toLongValue());
+            return Futures.transform(resolveLongs(longIds), toResolved);
+        } catch (Exception e) {
+            throw new CassandraPersistenceException(Joiner.on(", ").join(ids), e);
+        }
+    }
+
+    private ListenableFuture<Rows<Long, String>> resolveLongs(Iterable<Long> longIds) throws ConnectionException {
+        return Futures.transform(keyspace
+            .prepareQuery(mainCf)
+            .setConsistencyLevel(readConsistency)
+            .getKeySlice(longIds)
+            .executeAsync(), CassandraUtil.<Rows<Long, String>>toResult());
+    }
+
+    @Override
+    public OptionalMap<Alias, Topic> resolveAliases(Iterable<Alias> aliases, Publisher source) {
+        try {
+            Set<Alias> uniqueAliases = ImmutableSet.copyOf(aliases);
+            Set<Long> ids = aliasIndex.readAliases(source, uniqueAliases);
+            // TODO: move timeout to config
+            Rows<Long,String> resolved = resolveLongs(ids).get(1, TimeUnit.MINUTES);
+            Iterable<Topic> topics = Iterables.transform(resolved, rowToTopic);
+            ImmutableMap.Builder<Alias, Optional<Topic>> aliasMap = ImmutableMap.builder();
+            for (Topic topic : topics) {
+                for (Alias alias : topic.getAliases()) {
+                    if (uniqueAliases.contains(alias)) {
+                        aliasMap.put(alias, Optional.of(topic));
+                    }
+                }
+            }
+            return ImmutableOptionalMap.copyOf(aliasMap.build());
+        } catch (Exception e) {
+            throw Throwables.propagate(e);
+        }
+    }
+    
+    @Override
+    protected void doWrite(Topic topic, @Nullable Topic previous) {
+        checkArgument(previous == null || topic.getPublisher().equals(previous.getPublisher()));
+        try {
+            long id = topic.getId().longValue();
+            MutationBatch batch = keyspace.prepareMutationBatch();
+            batch.setConsistencyLevel(writeConsistency);
+            batch.withRow(mainCf, id)
+                .putColumn(valueColumn, topicSerializer.serialize(topic));
+            batch.mergeShallow(aliasIndex.mutateAliases(topic, previous));
+            batch.execute();
+        } catch (Exception e) {
+            throw new CassandraPersistenceException(topic.toString(), e);
+        }
+    }
+
+    @Override
+    @Nullable
+    protected Topic resolvePrevious(@Nullable Id id, Publisher source, Set<Alias> aliases) {
+        Topic previous = null;
+        if (id != null) {
+            previous = resolve(id.longValue());
+        }
+        
+        if (previous == null) {
+            try {
+                Set<Long> ids = aliasIndex.readAliases(source, aliases);
+                Long aliasId = Iterables.getFirst(ids, null);
+                if (aliasId != null) {
+                    previous = resolve(aliasId);
+                }
+            } catch (ConnectionException e) {
+                throw Throwables.propagate(e);
+            }
+        }
+        return previous;
+    }
+
+    private Topic resolve(long longId) {
+        try {
+            ColumnQuery<String> query = keyspace.prepareQuery(mainCf)
+                .getKey(longId).getColumn(valueColumn);
+            Column<String> col = query.execute().getResult();
+            
+            return topicSerializer.deserialize(col.getByteArrayValue());
+        } catch (NotFoundException e) {
+            return null;
+        } catch (Exception e) {
+            throw Throwables.propagate(e);
+        }
+    }
+    
+}

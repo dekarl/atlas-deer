@@ -1,4 +1,5 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <parent>
     <groupId>org.atlasapi</groupId>
@@ -7,6 +8,46 @@
   </parent>
   <artifactId>atlas-cassandra</artifactId>
   <packaging>jar</packaging>
+
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>exec-maven-plugin</artifactId>
+        <version>1.1.1</version>
+        <executions>
+          <execution>
+            <id>compile-protos</id>
+            <phase>generate-sources</phase>
+            <goals>
+              <goal>exec</goal>
+            </goals>
+            <configuration>
+              <executable>sh</executable>
+              <commandlineArgs>-c "mkdir -p ${project.build.directory}/generated-sources/protoc &amp;&amp;\
+               protoc -I ./ -I /usr/local/include --java_out=${project.build.directory}/generated-sources/protoc *.proto"</commandlineArgs>
+              <sourceRoot>${project.build.directory}/generated-sources/protoc</sourceRoot> 
+              <workingDirectory>${basedir}/src/main/protobuf</workingDirectory>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>failsafe-maven-plugin</artifactId>
+        <version>2.4.3-alpha-1</version>
+        <executions>
+          <execution>
+            <goals>
+              <goal>integration-test</goal>
+              <goal>verify</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+  </build>
+
   <dependencies>
     <dependency>
       <groupId>org.atlasapi</groupId>
@@ -14,8 +55,21 @@
       <artifactId>atlas-core</artifactId>
     </dependency>
     <dependency>
-      <groupId>com.google.guava</groupId>
-      <artifactId>guava</artifactId>
+      <groupId>com.google.protobuf</groupId>
+      <artifactId>protobuf-java</artifactId>
+      <version>2.5.0</version>
+    </dependency>
+    <dependency>
+      <groupId>com.netflix.astyanax</groupId>
+      <artifactId>astyanax-core</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>com.netflix.astyanax</groupId>
+      <artifactId>astyanax-thrift</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>com.netflix.astyanax</groupId>
+      <artifactId>astyanax-cassandra</artifactId>
     </dependency>
   </dependencies>
 </project>

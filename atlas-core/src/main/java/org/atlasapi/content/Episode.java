@@ -1,0 +1,112 @@
+/* Copyright 2009 British Broadcasting Corporation
+   Copyright 2009 Meta Broadcast Ltd
+
+Licensed under the Apache License, Version 2.0 (the "License"); you
+may not use this file except in compliance with the License. You may
+obtain a copy of the License at
+
+http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or
+implied. See the License for the specific language governing
+permissions and limitations under the License. */
+
+package org.atlasapi.content;
+
+import java.util.Set;
+
+import org.atlasapi.entity.Id;
+import org.atlasapi.media.entity.Publisher;
+
+import com.google.common.collect.Iterables;
+import com.google.common.collect.Sets;
+
+/**
+ * @author Robert Chatley (robert@metabroadcast.com)
+ * @author Lee Denison (lee@metabroadcast.com)
+ */
+public class Episode extends Item {
+
+    private Integer seriesNumber;
+	private Integer episodeNumber;
+	private Integer partNumber;
+	private Boolean special = null;
+	
+    private ParentRef seriesRef;
+
+	public Episode(String uri, String curie, Publisher publisher) {
+		super(uri, curie, publisher);
+	}
+	   
+    public Episode(Id id, Publisher source) {
+        super(id, source);
+    }
+	
+	public Episode() { }
+	
+	public Integer getPartNumber() {
+	    return this.partNumber;
+	}
+
+	public Integer getEpisodeNumber() {
+		return episodeNumber;
+	}
+	
+	public Integer getSeriesNumber() {
+		return seriesNumber;
+	}
+	
+	public Boolean getSpecial() {
+	    return special;
+	}
+	
+	public void setSpecial(Boolean special) {
+	    this.special = special;
+	}
+
+    public void setPartNumber(Integer partNumber) {
+        this.partNumber = partNumber;
+    }
+	
+	public void setEpisodeNumber(Integer position) {
+		this.episodeNumber = position;
+	}
+	
+	public void setSeriesNumber(Integer position) {
+		this.seriesNumber = position;
+	}
+	
+    public void setSeriesRef(ParentRef seriesRef) {
+        this.seriesRef = seriesRef;
+    }
+    
+    public void setSeries(Series series) {
+        setSeriesRef(ParentRef.parentRefFrom(series));
+    }
+
+	public ParentRef getSeriesRef() {
+		return seriesRef;
+	}
+	
+	@Override
+	public Episode copy() {
+	    return copyWithVersions(Sets.newHashSet(Iterables.transform(this.getVersions(), Version.COPY)));
+	}
+
+	public Episode copyWithVersions(Set<Version> versions) {
+	    Episode episode = new Episode();
+	    Item.copyToWithVersions(this, episode, versions);
+	    episode.episodeNumber = episodeNumber;
+	    episode.seriesNumber = seriesNumber;
+	    episode.seriesRef = seriesRef;
+	    episode.special = special;
+	    return episode;
+	}
+
+    public <V> V accept(ItemVisitor<V> visitor) {
+        return visitor.visit(this);
+    }
+    
+}
