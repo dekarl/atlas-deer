@@ -11,8 +11,8 @@ import java.util.LinkedList;
 import java.util.List;
 
 import org.atlasapi.EsSchema;
-import org.atlasapi.search.model.SearchQuery;
-import org.atlasapi.search.model.SearchResults;
+import org.atlasapi.search.SearchQuery;
+import org.atlasapi.search.SearchResults;
 import org.atlasapi.util.FiltersBuilder;
 import org.elasticsearch.action.ActionListener;
 import org.elasticsearch.action.search.SearchResponse;

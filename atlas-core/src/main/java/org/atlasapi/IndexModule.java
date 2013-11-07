@@ -13,6 +13,6 @@ public interface IndexModule {
 
     PopularTopicIndex topicSearcher();
     
-    ContentTitleSearcher contentSearcher();
+    ContentTitleSearcher contentTitleSearcher();
     
 }

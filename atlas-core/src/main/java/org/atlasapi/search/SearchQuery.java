@@ -1,4 +1,4 @@
-package org.atlasapi.search.model;
+package org.atlasapi.search;
 
 import java.util.Set;
 
