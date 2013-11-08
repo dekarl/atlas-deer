@@ -4,8 +4,8 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.io.IOException;
 
-import org.atlasapi.media.content.Content;
-import org.atlasapi.media.entity.Item;
+import org.atlasapi.content.Content;
+import org.atlasapi.content.Item;
 import org.atlasapi.output.FieldWriter;
 import org.atlasapi.output.OutputContext;
 

@@ -4,12 +4,12 @@ package org.atlasapi.output.annotation;
 import java.io.IOException;
 import java.util.Set;
 
-import org.atlasapi.media.content.Content;
-import org.atlasapi.media.entity.Encoding;
-import org.atlasapi.media.entity.Item;
-import org.atlasapi.media.entity.Location;
-import org.atlasapi.media.entity.Policy;
-import org.atlasapi.media.entity.Version;
+import org.atlasapi.content.Content;
+import org.atlasapi.content.Encoding;
+import org.atlasapi.content.Item;
+import org.atlasapi.content.Location;
+import org.atlasapi.content.Policy;
+import org.atlasapi.content.Version;
 import org.atlasapi.output.EntityListWriter;
 import org.atlasapi.output.FieldWriter;
 import org.atlasapi.output.OutputContext;

@@ -2,7 +2,7 @@ package org.atlasapi.output.writers;
 
 import java.io.IOException;
 
-import org.atlasapi.media.entity.Certificate;
+import org.atlasapi.content.Certificate;
 import org.atlasapi.output.EntityListWriter;
 import org.atlasapi.output.FieldWriter;
 import org.atlasapi.output.OutputContext;

@@ -4,16 +4,15 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.io.IOException;
 
-import org.atlasapi.media.content.Content;
-import org.atlasapi.media.entity.Item;
-import org.atlasapi.media.entity.Item.ContainerSummary;
-import org.atlasapi.media.entity.ParentRef;
+import org.atlasapi.content.Content;
+import org.atlasapi.content.Item;
+import org.atlasapi.content.Item.ContainerSummary;
+import org.atlasapi.content.ParentRef;
 import org.atlasapi.output.EntityWriter;
 import org.atlasapi.output.FieldWriter;
 import org.atlasapi.output.OutputContext;
 import org.atlasapi.persistence.output.ContainerSummaryResolver;
 
-import com.google.common.base.Optional;
 import com.metabroadcast.common.ids.NumberToShortStringCodec;
 
 

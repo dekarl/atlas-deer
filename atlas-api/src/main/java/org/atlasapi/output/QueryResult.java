@@ -4,7 +4,7 @@ import java.util.Iterator;
 
 import javax.annotation.Nullable;
 
-import org.atlasapi.media.entity.Identified;
+import org.atlasapi.content.Identified;
 
 import com.google.common.base.Optional;
 import com.metabroadcast.common.query.Selection;

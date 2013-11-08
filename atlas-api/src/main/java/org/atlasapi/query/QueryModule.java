@@ -14,14 +14,12 @@ permissions and limitations under the License. */
 
 package org.atlasapi.query;
 
+import org.atlasapi.content.Content;
 import org.atlasapi.equiv.DefaultMergingEquivalentsResolver;
 import org.atlasapi.equiv.MergingEquivalentsResolver;
 import org.atlasapi.equiv.OutputContentMerger;
 import org.atlasapi.equiv.StrategyBackedEquivalentsMerger;
-import org.atlasapi.media.content.Content;
-import org.atlasapi.media.topic.Topic;
 import org.atlasapi.persistence.AtlasPersistenceModule;
-import org.atlasapi.persistence.content.SearchResolver;
 import org.atlasapi.query.common.ContextualQueryExecutor;
 import org.atlasapi.query.common.QueryExecutor;
 import org.atlasapi.query.v4.content.IndexBackedEquivalentContentQueryExecutor;
@@ -31,6 +29,8 @@ import org.atlasapi.query.v4.schedule.ScheduleResolverBackedScheduleQueryExecuto
 import org.atlasapi.query.v4.search.support.ContentResolvingSearcher;
 import org.atlasapi.query.v4.topic.IndexBackedTopicQueryExecutor;
 import org.atlasapi.query.v4.topic.TopicContentQueryExecutor;
+import org.atlasapi.search.SearchResolver;
+import org.atlasapi.topic.Topic;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;

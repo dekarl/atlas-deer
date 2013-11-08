@@ -4,10 +4,10 @@ package org.atlasapi.output.annotation;
 import java.io.IOException;
 import java.util.List;
 
-import org.atlasapi.media.common.Id;
-import org.atlasapi.media.content.Content;
-import org.atlasapi.media.entity.ContentGroup;
-import org.atlasapi.media.entity.ContentGroupRef;
+import org.atlasapi.content.Content;
+import org.atlasapi.content.ContentGroup;
+import org.atlasapi.content.ContentGroupRef;
+import org.atlasapi.entity.Id;
 import org.atlasapi.output.EntityListWriter;
 import org.atlasapi.output.FieldWriter;
 import org.atlasapi.output.OutputContext;
@@ -67,7 +67,7 @@ public class ContentGroupsAnnotation extends OutputAnnotation<Content> {
         if (contentGroups.isEmpty()) {
             return ImmutableList.of();
         }
-        ResolvedContent resolved = contentGroupResolver.findByIds(contentGroups);
+        ResolvedContent resolved = contentGroupResolver.findByIds(Lists.transform(contentGroups, Id.toLongValue()));
         return Iterables.filter(resolved.asResolvedMap().values(), ContentGroup.class);
     }
 

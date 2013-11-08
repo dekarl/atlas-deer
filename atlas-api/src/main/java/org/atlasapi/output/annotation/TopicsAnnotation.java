@@ -5,15 +5,15 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
-import org.atlasapi.media.common.Id;
-import org.atlasapi.media.content.Content;
-import org.atlasapi.media.entity.TopicRef;
-import org.atlasapi.media.topic.Topic;
-import org.atlasapi.media.topic.TopicResolver;
+import org.atlasapi.content.Content;
+import org.atlasapi.content.TopicRef;
+import org.atlasapi.entity.Id;
 import org.atlasapi.output.EntityListWriter;
 import org.atlasapi.output.EntityWriter;
 import org.atlasapi.output.FieldWriter;
 import org.atlasapi.output.OutputContext;
+import org.atlasapi.topic.Topic;
+import org.atlasapi.topic.TopicResolver;
 
 import com.google.common.base.Function;
 import com.google.common.collect.ImmutableList;

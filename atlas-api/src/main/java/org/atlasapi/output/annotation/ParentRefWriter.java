@@ -7,7 +7,7 @@ import java.math.BigInteger;
 
 import javax.annotation.Nonnull;
 
-import org.atlasapi.media.entity.ParentRef;
+import org.atlasapi.content.ParentRef;
 import org.atlasapi.output.EntityWriter;
 import org.atlasapi.output.FieldWriter;
 import org.atlasapi.output.OutputContext;

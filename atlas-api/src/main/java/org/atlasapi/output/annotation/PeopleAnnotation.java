@@ -3,9 +3,9 @@ package org.atlasapi.output.annotation;
 
 import java.io.IOException;
 
-import org.atlasapi.media.content.Content;
-import org.atlasapi.media.entity.Actor;
-import org.atlasapi.media.entity.CrewMember;
+import org.atlasapi.content.Content;
+import org.atlasapi.content.Actor;
+import org.atlasapi.content.CrewMember;
 import org.atlasapi.output.EntityListWriter;
 import org.atlasapi.output.FieldWriter;
 import org.atlasapi.output.OutputContext;

@@ -1,15 +1,12 @@
 package org.atlasapi.output.annotation;
 
-import static org.atlasapi.media.entity.Broadcast.ACTIVELY_PUBLISHED;
-import static org.atlasapi.media.entity.Version.TO_BROADCASTS;
-
 import java.io.IOException;
 import java.util.Set;
 
-import org.atlasapi.media.content.Content;
-import org.atlasapi.media.entity.Broadcast;
-import org.atlasapi.media.entity.Item;
-import org.atlasapi.media.entity.Version;
+import org.atlasapi.content.Content;
+import org.atlasapi.content.Broadcast;
+import org.atlasapi.content.Item;
+import org.atlasapi.content.Version;
 import org.atlasapi.output.FieldWriter;
 import org.atlasapi.output.OutputContext;
 import org.atlasapi.output.writers.BroadcastWriter;
@@ -40,8 +37,8 @@ public class NextBroadcastAnnotation extends OutputAnnotation<Content> {
 
     private void writeBroadcasts(FieldWriter writer, Item item, OutputContext ctxt) throws IOException {
         Set<Version> versions = item.getVersions();
-        Iterable<Broadcast> broadcasts = Iterables.concat(Iterables.transform(versions, TO_BROADCASTS));
-        writer.writeList(broadcastWriter, nextBroadcast(Iterables.filter(broadcasts, ACTIVELY_PUBLISHED)), ctxt);
+        Iterable<Broadcast> broadcasts = Iterables.concat(Iterables.transform(versions, Version.TO_BROADCASTS));
+        writer.writeList(broadcastWriter, nextBroadcast(Iterables.filter(broadcasts, Broadcast.ACTIVELY_PUBLISHED)), ctxt);
     }
 
     private Iterable<Broadcast> nextBroadcast(Iterable<Broadcast> broadcasts) {

@@ -30,16 +30,12 @@ import static org.atlasapi.output.Annotation.UPCOMING;
 
 import org.atlasapi.application.auth.ApplicationSourcesFetcher;
 import org.atlasapi.application.auth.UserFetcher;
-import org.atlasapi.content.criteria.attribute.Attributes;
+import org.atlasapi.content.Content;
+import org.atlasapi.content.ContentType;
+import org.atlasapi.criteria.attribute.Attributes;
 import org.atlasapi.media.channel.Channel;
 import org.atlasapi.media.channel.ChannelResolver;
-import org.atlasapi.media.content.Content;
-import org.atlasapi.media.content.ContentType;
-import org.atlasapi.media.content.schedule.ScheduleIndex;
 import org.atlasapi.media.entity.Publisher;
-import org.atlasapi.media.topic.PopularTopicIndex;
-import org.atlasapi.media.topic.Topic;
-import org.atlasapi.media.topic.TopicResolver;
 import org.atlasapi.output.Annotation;
 import org.atlasapi.output.AnnotationRegistry;
 import org.atlasapi.output.EntityListWriter;
@@ -63,19 +59,17 @@ import org.atlasapi.output.annotation.LocationsAnnotation;
 import org.atlasapi.output.annotation.NextBroadcastAnnotation;
 import org.atlasapi.output.annotation.NullWriter;
 import org.atlasapi.output.annotation.PeopleAnnotation;
-import org.atlasapi.output.annotation.RecentlyBroadcastAnnotation;
 import org.atlasapi.output.annotation.RelatedLinksAnnotation;
 import org.atlasapi.output.annotation.SeriesReferenceAnnotation;
 import org.atlasapi.output.annotation.SeriesSummaryAnnotation;
 import org.atlasapi.output.annotation.SubItemAnnotation;
 import org.atlasapi.output.annotation.TopicsAnnotation;
-import org.atlasapi.output.annotation.UpcomingAnnotation;
-import org.atlasapi.persistence.content.SearchResolver;
+import org.atlasapi.search.SearchResolver;
 import org.atlasapi.persistence.output.MongoContainerSummaryResolver;
 import org.atlasapi.persistence.output.MongoRecentlyBroadcastChildrenResolver;
-import org.atlasapi.persistence.output.MongoUpcomingChildrenResolver;
+import org.atlasapi.persistence.output.MongoUpcomingItemsResolver;
 import org.atlasapi.persistence.output.RecentlyBroadcastChildrenResolver;
-import org.atlasapi.persistence.output.UpcomingChildrenResolver;
+import org.atlasapi.persistence.output.UpcomingItemsResolver;
 import org.atlasapi.query.annotation.ResourceAnnotationIndex;
 import org.atlasapi.query.common.AttributeCoercers;
 import org.atlasapi.query.common.ContextualQueryContextParser;
@@ -101,6 +95,10 @@ import org.atlasapi.query.v4.topic.TopicContentResultWriter;
 import org.atlasapi.query.v4.topic.TopicController;
 import org.atlasapi.query.v4.topic.TopicListWriter;
 import org.atlasapi.query.v4.topic.TopicQueryResultWriter;
+import org.atlasapi.schedule.ScheduleIndex;
+import org.atlasapi.topic.PopularTopicIndex;
+import org.atlasapi.topic.Topic;
+import org.atlasapi.topic.TopicResolver;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -257,7 +255,7 @@ public class QueryWebModule {
     EntityListWriter<Content> contentListWriter() {
         ImmutableSet<Annotation> commonImplied = ImmutableSet.of(ID_SUMMARY);
         RecentlyBroadcastChildrenResolver recentlyBroadcastResolver = new MongoRecentlyBroadcastChildrenResolver(mongo);
-        UpcomingChildrenResolver upcomingChildrenResolver = new MongoUpcomingChildrenResolver(mongo);
+        UpcomingItemsResolver upcomingChildrenResolver = new MongoUpcomingItemsResolver(mongo);
         MongoContainerSummaryResolver containerSummaryResolver = new MongoContainerSummaryResolver(mongo, idCodec());
         return new ContentListWriter(AnnotationRegistry.<Content>builder()
             .registerDefault(ID_SUMMARY, new IdentificationSummaryAnnotation(idCodec()))
@@ -282,9 +280,9 @@ public class QueryWebModule {
             .register(FIRST_BROADCASTS, new FirstBroadcastAnnotation(), commonImplied)
             .register(NEXT_BROADCASTS, new NextBroadcastAnnotation(new SystemClock()), commonImplied)
             .register(AVAILABLE_LOCATIONS, new AvailableLocationsAnnotation(), commonImplied)
-            .register(UPCOMING, new UpcomingAnnotation(idCodec(), upcomingChildrenResolver), commonImplied)
+            //.register(UPCOMING, new UpcomingAnnotation(idCodec(), upcomingChildrenResolver), commonImplied)
             //.register(PRODUCTS, new ProductsAnnotation(productResolver), commonImplied)
-            .register(RECENTLY_BROADCAST, new RecentlyBroadcastAnnotation(idCodec(), recentlyBroadcastResolver), commonImplied)
+            //.register(RECENTLY_BROADCAST, new RecentlyBroadcastAnnotation(idCodec(), recentlyBroadcastResolver), commonImplied)
             .register(CHANNELS, new ChannelsAnnotation(), commonImplied)
             .register(CONTENT_SUMMARY, NullWriter.create(Content.class), ImmutableSet.of(DESCRIPTION, BRAND_SUMMARY, 
                 SERIES_SUMMARY, BROADCASTS, LOCATIONS))
@@ -306,10 +304,10 @@ public class QueryWebModule {
     @Bean
     protected EntityListWriter<Channel> channelListWriter() {
         return new ChannelListWriter(AnnotationRegistry.<Channel>builder()
-            .registerDefault(ID_SUMMARY, new IdentificationSummaryAnnotation(idCodec()))
-            .register(ID, new IdentificationAnnotation(), ID_SUMMARY)
-            .register(EXTENDED_ID, new ExtendedIdentificationAnnotation(idCodec()), ImmutableSet.of(ID))
-            .register(CHANNEL_SUMMARY, new ChannelSummaryWriter(), ImmutableSet.of(ID))
+//            .registerDefault(ID_SUMMARY, new IdentificationSummaryAnnotation(idCodec()))
+//            .register(ID, new IdentificationAnnotation(), ID_SUMMARY)
+//            .register(EXTENDED_ID, new ExtendedIdentificationAnnotation(idCodec()), ImmutableSet.of(ID))
+            .registerDefault(CHANNEL_SUMMARY, new ChannelSummaryWriter(idCodec()))
             .register(CHANNEL, new ChannelAnnotation(), ImmutableSet.of(CHANNEL_SUMMARY))
             .build());
     }

@@ -3,8 +3,6 @@ package org.atlasapi.persistence.application;
 import org.atlasapi.application.CacheBackedApplicationStore;
 import org.atlasapi.application.LegacyApplicationStore;
 import org.atlasapi.application.SourceRequestStore;
-import org.atlasapi.persistence.application.MongoApplicationStore;
-import org.atlasapi.persistence.application.MongoSourceRequestStore;
 import org.atlasapi.persistence.ids.MongoSequentialIdGenerator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;

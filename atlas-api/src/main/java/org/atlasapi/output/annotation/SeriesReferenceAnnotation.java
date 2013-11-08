@@ -4,8 +4,8 @@ package org.atlasapi.output.annotation;
 
 import java.io.IOException;
 
-import org.atlasapi.media.content.Content;
-import org.atlasapi.media.entity.Episode;
+import org.atlasapi.content.Content;
+import org.atlasapi.content.Episode;
 import org.atlasapi.output.FieldWriter;
 import org.atlasapi.output.OutputContext;
 

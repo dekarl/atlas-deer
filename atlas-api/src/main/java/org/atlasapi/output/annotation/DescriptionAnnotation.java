@@ -2,13 +2,13 @@ package org.atlasapi.output.annotation;
 
 import java.io.IOException;
 
-import org.atlasapi.media.entity.Described;
+import org.atlasapi.content.Described;
 import org.atlasapi.media.entity.Publisher;
 import org.atlasapi.output.EntityWriter;
 import org.atlasapi.output.FieldWriter;
 import org.atlasapi.output.OutputContext;
 import org.atlasapi.output.writers.SourceWriter;
-import org.atlasapi.media.topic.Topic;
+import org.atlasapi.topic.Topic;
 
 public class DescriptionAnnotation<T extends Described> extends
         OutputAnnotation<T> {

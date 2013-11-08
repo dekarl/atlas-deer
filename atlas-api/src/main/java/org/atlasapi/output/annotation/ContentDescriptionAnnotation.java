@@ -2,15 +2,15 @@ package org.atlasapi.output.annotation;
 
 import java.io.IOException;
 
-import org.atlasapi.media.content.Content;
-import org.atlasapi.media.content.ContentVisitor;
-import org.atlasapi.media.entity.Brand;
-import org.atlasapi.media.entity.Clip;
-import org.atlasapi.media.entity.Episode;
-import org.atlasapi.media.entity.Film;
-import org.atlasapi.media.entity.Item;
-import org.atlasapi.media.entity.Series;
-import org.atlasapi.media.entity.Song;
+import org.atlasapi.content.Content;
+import org.atlasapi.content.ContentVisitor;
+import org.atlasapi.content.Brand;
+import org.atlasapi.content.Clip;
+import org.atlasapi.content.Episode;
+import org.atlasapi.content.Film;
+import org.atlasapi.content.Item;
+import org.atlasapi.content.Series;
+import org.atlasapi.content.Song;
 import org.atlasapi.output.EntityWriter;
 import org.atlasapi.output.FieldWriter;
 import org.atlasapi.output.OutputContext;

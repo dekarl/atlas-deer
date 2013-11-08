@@ -4,7 +4,7 @@ import java.io.IOException;
 
 import javax.annotation.Nonnull;
 
-import org.atlasapi.media.entity.Alias;
+import org.atlasapi.entity.Alias;
 import org.atlasapi.output.EntityListWriter;
 import org.atlasapi.output.FieldWriter;
 import org.atlasapi.output.OutputContext;

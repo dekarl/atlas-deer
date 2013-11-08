@@ -2,8 +2,8 @@ package org.atlasapi.output.annotation;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
-import org.atlasapi.media.entity.Encoding;
-import org.atlasapi.media.entity.Location;
+import org.atlasapi.content.Encoding;
+import org.atlasapi.content.Location;
 
 
 public class EncodedLocation {

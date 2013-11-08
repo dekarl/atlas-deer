@@ -2,9 +2,9 @@ package org.atlasapi.output.writers;
 
 import java.io.IOException;
 
-import org.atlasapi.media.entity.EntityType;
-import org.atlasapi.media.entity.Item;
-import org.atlasapi.media.entity.Item.ContainerSummary;
+import org.atlasapi.content.EntityType;
+import org.atlasapi.content.Item;
+import org.atlasapi.content.Item.ContainerSummary;
 import org.atlasapi.output.EntityWriter;
 import org.atlasapi.output.FieldWriter;
 import org.atlasapi.output.OutputContext;
