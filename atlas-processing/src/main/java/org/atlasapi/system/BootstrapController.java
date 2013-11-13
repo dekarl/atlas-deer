@@ -17,7 +17,7 @@ import org.atlasapi.content.ContentStore;
 import org.atlasapi.topic.TopicStore;
 import org.atlasapi.persistence.lookup.entry.LookupEntryStore;
 import org.atlasapi.system.bootstrap.ChangeListener;
-import org.atlasapi.system.bootstrap.ContentBootstrapper;
+import org.atlasapi.system.bootstrap.ResourceBootstrapper;
 import org.atlasapi.system.bootstrap.ContentIndexingChangeListener;
 import org.atlasapi.system.bootstrap.ContentWritingChangeListener;
 import org.atlasapi.system.bootstrap.LookupEntryChangeListener;
@@ -35,15 +35,15 @@ public class BootstrapController {
     private static final Log log = LogFactory.getLog(BootstrapController.class);
     private final ExecutorService scheduler = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors() * 10);
     private final ObjectMapper jsonMapper = new ObjectMapper();
-    private ContentBootstrapper cassandraContentBootstrapper;
-    private ContentBootstrapper cassandraLookupEntryBootstrapper;
-    private ContentBootstrapper esContentBootstrapper;
+    private ResourceBootstrapper cassandraContentBootstrapper;
+    private ResourceBootstrapper cassandraLookupEntryBootstrapper;
+    private ResourceBootstrapper esContentBootstrapper;
     private ContentStore cassandraContentStore;
     private EquivalenceRecordStore equivRecordStore;
     private LookupEntryStore lookupStore;
     private TopicStore cassandraTopicStore;
     private ContentIndex contentIndex;
-    private ContentBootstrapper cassandraTopicBootstrapper;
+    private ResourceBootstrapper cassandraTopicBootstrapper;
 
     public void setCassandraContentStore(ContentStore cassandraContentStore) {
         this.cassandraContentStore = cassandraContentStore;
@@ -66,19 +66,19 @@ public class BootstrapController {
         this.contentIndex = contentIndex;
     }
 
-    public void setCassandraContentBootstrapper(ContentBootstrapper cassandraContentBootstrapper) {
+    public void setCassandraContentBootstrapper(ResourceBootstrapper cassandraContentBootstrapper) {
         this.cassandraContentBootstrapper = cassandraContentBootstrapper;
     }
 
-    public void setCassandraLookupEntryBootstrapper(ContentBootstrapper cassandraLookupEntryBootstrapper) {
+    public void setCassandraLookupEntryBootstrapper(ResourceBootstrapper cassandraLookupEntryBootstrapper) {
         this.cassandraLookupEntryBootstrapper = cassandraLookupEntryBootstrapper;
     }
 
-    public void setCassandraTopicBootstrapper(ContentBootstrapper cassandraTopicBootstrapper) {
+    public void setCassandraTopicBootstrapper(ResourceBootstrapper cassandraTopicBootstrapper) {
         this.cassandraTopicBootstrapper = cassandraTopicBootstrapper;
     }
 
-    public void setEsContentBootstrapper(ContentBootstrapper esContentBootstrapper) {
+    public void setEsContentBootstrapper(ResourceBootstrapper esContentBootstrapper) {
         this.esContentBootstrapper = esContentBootstrapper;
     }
 
@@ -126,7 +126,7 @@ public class BootstrapController {
         writeBootstrapStatus(esContentBootstrapper, response);
     }
 
-    private void doBootstrap(final ContentBootstrapper contentBootstrapper, final ChangeListener<?> changeListener, HttpServletResponse response) throws IOException {
+    private void doBootstrap(final ResourceBootstrapper contentBootstrapper, final ChangeListener<?> changeListener, HttpServletResponse response) throws IOException {
         try {
             scheduler.submit(new Runnable() {
 
@@ -143,7 +143,7 @@ public class BootstrapController {
         }
     }
 
-    public void writeBootstrapStatus(ContentBootstrapper contentBootstrapper, HttpServletResponse response) throws IOException {
+    public void writeBootstrapStatus(ResourceBootstrapper contentBootstrapper, HttpServletResponse response) throws IOException {
         Map<String, Object> result = Maps.newHashMap();
         result.put("bootstrapping", contentBootstrapper.isBootstrapping());
         result.put("lastStatus", contentBootstrapper.getLastStatus());

@@ -4,7 +4,7 @@ package org.atlasapi.persistence.application;
 import org.atlasapi.application.SourceRequest;
 import org.atlasapi.application.UsageType;
 import org.atlasapi.entity.Id;
-import org.atlasapi.media.entity.Publisher;
+import org.atlasapi.source.Sources;
 
 import com.metabroadcast.common.persistence.mongo.MongoConstants;
 import com.metabroadcast.common.persistence.translator.TranslatorUtils;
@@ -42,7 +42,7 @@ public class SourceRequestTranslator {
         return SourceRequest.builder()
                 .withId(Id.valueOf(TranslatorUtils.toLong(dbo, MongoConstants.ID)))                
                 .withAppId(Id.valueOf(TranslatorUtils.toLong(dbo, APPID_KEY)))
-                .withSource(Publisher.fromKey(TranslatorUtils.toString(dbo, SOURCE_KEY)).requireValue())
+                .withSource(Sources.fromPossibleKey(TranslatorUtils.toString(dbo, SOURCE_KEY)).get())
                 .withUsageType(UsageType.valueOf(TranslatorUtils.toString(dbo, USAGE_TYPE_KEY)))
                 .withEmail(TranslatorUtils.toString(dbo, EMAIL_KEY))
                 .withAppUrl(TranslatorUtils.toString(dbo, APPURL_KEY))

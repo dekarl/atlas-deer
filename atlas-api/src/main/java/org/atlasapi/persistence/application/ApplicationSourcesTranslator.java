@@ -8,6 +8,7 @@ import org.atlasapi.application.SourceReadEntry;
 import org.atlasapi.application.SourceStatus;
 import org.atlasapi.application.SourceStatus.SourceState;
 import org.atlasapi.media.entity.Publisher;
+import org.atlasapi.source.Sources;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
@@ -89,7 +90,7 @@ public class ApplicationSourcesTranslator {
         Map<Publisher, SourceStatus> readsBuilder = Maps.newHashMap();
         for (DBObject dbo : list) {
             readsBuilder.put(
-                Publisher.fromKey(TranslatorUtils.toString(dbo, PUBLISHER_KEY)).requireValue(),
+                Sources.fromPossibleKey(TranslatorUtils.toString(dbo, PUBLISHER_KEY)).get(),
                 sourceStatusFrom(dbo)
             );
         }

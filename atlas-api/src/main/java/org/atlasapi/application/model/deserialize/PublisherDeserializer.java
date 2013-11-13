@@ -3,6 +3,7 @@ package org.atlasapi.application.model.deserialize;
 import java.lang.reflect.Type;
 
 import org.atlasapi.media.entity.Publisher;
+import org.atlasapi.source.Sources;
 
 import com.google.common.base.Optional;
 import com.google.gson.JsonDeserializationContext;
@@ -22,7 +23,7 @@ public class PublisherDeserializer implements JsonDeserializer<Publisher> {
         } else {
             key = json.getAsJsonPrimitive().getAsString();
         }
-        Optional<Publisher> publisher = Optional.fromNullable(Publisher.fromKey(key).valueOrNull());
+        Optional<Publisher> publisher = Sources.fromPossibleKey(key);
         return publisher.get();
     }
 }

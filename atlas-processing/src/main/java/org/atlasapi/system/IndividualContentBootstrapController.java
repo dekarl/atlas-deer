@@ -3,32 +3,33 @@ package org.atlasapi.system;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.io.IOException;
-import java.util.List;
 
 import javax.servlet.http.HttpServletResponse;
 
-import org.atlasapi.media.common.Id;
-import org.atlasapi.media.content.Container;
-import org.atlasapi.media.content.Content;
-import org.atlasapi.media.content.ContentVisitorAdapter;
-import org.atlasapi.media.content.ContentWriter;
-import org.atlasapi.media.entity.Brand;
-import org.atlasapi.media.entity.ChildRef;
-import org.atlasapi.media.entity.Identified;
-import org.atlasapi.media.entity.Item;
-import org.atlasapi.media.entity.Series;
-import org.atlasapi.media.util.Identifiables;
-import org.atlasapi.media.util.WriteResult;
-import org.atlasapi.persistence.content.ContentResolver;
-import org.atlasapi.persistence.content.ResolvedContent;
+import org.atlasapi.content.Brand;
+import org.atlasapi.content.Container;
+import org.atlasapi.content.Content;
+import org.atlasapi.content.ContentResolver;
+import org.atlasapi.content.ContentVisitorAdapter;
+import org.atlasapi.content.ContentWriter;
+import org.atlasapi.content.Identified;
+import org.atlasapi.content.Item;
+import org.atlasapi.content.Series;
+import org.atlasapi.entity.Id;
+import org.atlasapi.entity.Identifiables;
+import org.atlasapi.entity.util.Resolved;
+import org.atlasapi.entity.util.WriteResult;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 
+import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
+import com.google.common.util.concurrent.Futures;
+import com.google.common.util.concurrent.ListenableFuture;
 
 @Controller
 public class IndividualContentBootstrapController {
@@ -42,9 +43,8 @@ public class IndividualContentBootstrapController {
     }
  
     @RequestMapping(value="/system/bootstrap/content", method=RequestMethod.POST)
-    public void bootstrapContent(@RequestParam("uri") String uri, HttpServletResponse resp) throws IOException {
-        ResolvedContent resolved = read.findByCanonicalUris(ImmutableList.of(uri));
-        Identified identified = Iterables.getOnlyElement(resolved.getAllResolvedResults());
+    public void bootstrapContent(@RequestParam("id") String id, HttpServletResponse resp) throws IOException {
+        Identified identified = Iterables.getOnlyElement(resolve(ImmutableList.of(Id.valueOf(id))));
         if (!(identified instanceof Content)) {
             resp.sendError(500, "Resolved not content");
             return;
@@ -68,7 +68,7 @@ public class IndividualContentBootstrapController {
             }
 
             private int resolveAndWrite(Iterable<Id> ids) {
-                List<Identified> resolved = read.findByIds(ids).getAllResolvedResults();
+                FluentIterable<Content> resolved = resolve(ids);
                 int i = 0;
                 for (Content content : Iterables.filter(resolved, Content.class)) {
                     write(content);
@@ -92,6 +92,15 @@ public class IndividualContentBootstrapController {
         resp.setContentLength(result.length());
         resp.getWriter().println(result);
         resp.getWriter().flush();
+    }
+
+    private FluentIterable<Content> resolve(Iterable<Id> ids) {
+        try {
+            ListenableFuture<Resolved<Content>> resolved = read.resolveIds(ids);
+            return Futures.get(resolved, IOException.class).getResources();
+        } catch (IOException e) {
+            throw new RuntimeException();
+        }
     }
     
 }

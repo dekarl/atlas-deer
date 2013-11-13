@@ -5,10 +5,10 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
+import org.atlasapi.entity.Id;
 import org.atlasapi.equiv.EquivalenceRecord;
 import org.atlasapi.equiv.EquivalenceRecordStore;
 import org.atlasapi.equiv.EquivalenceRef;
-import org.atlasapi.media.common.Id;
 import org.atlasapi.media.entity.LookupRef;
 import org.atlasapi.persistence.lookup.entry.LookupEntry;
 import org.atlasapi.persistence.lookup.entry.LookupEntryStore;
@@ -32,9 +32,9 @@ public class LookupEntryChangeListener extends AbstractMultiThreadedChangeListen
                 @Override
                 public Id load(LookupRef key) throws Exception {
                     Iterable<LookupEntry> entries = lookupStore.entriesForCanonicalUris(
-                            ImmutableList.of(key.id()));
+                            ImmutableList.of(key.uri()));
                     LookupEntry entry = Iterables.getOnlyElement(entries, null);
-                    return checkNotNull(entry, "no entry for " + key.id()).id();
+                    return Id.valueOf(checkNotNull(entry, "no entry for " + key.id()).id());
                 }
             });
 
@@ -47,13 +47,13 @@ public class LookupEntryChangeListener extends AbstractMultiThreadedChangeListen
 
     @Override
     protected void onChange(LookupEntry change) {
-        idCache.put(change.lookupRef(), change.id());
+        idCache.put(change.lookupRef(), Id.valueOf(change.id()));
         equivStore.writeRecords(ImmutableList.of(translate(change)));
     }
 
     private EquivalenceRecord translate(LookupEntry change) {
         return new EquivalenceRecord(
-            new EquivalenceRef(change.id(), change.lookupRef().publisher()),
+            new EquivalenceRef(Id.valueOf(change.id()), change.lookupRef().publisher()),
             translate(change.directEquivalents()),
             translate(change.explicitEquivalents()),
             translate(change.equivalents()),

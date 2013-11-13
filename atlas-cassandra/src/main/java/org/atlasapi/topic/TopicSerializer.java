@@ -2,10 +2,9 @@ package org.atlasapi.topic;
 
 import org.atlasapi.entity.Alias;
 import org.atlasapi.entity.Serializer;
-import org.atlasapi.media.entity.Publisher;
 import org.atlasapi.serialization.protobuf.TopicProtos;
 import org.atlasapi.serialization.protobuf.TopicProtos.Topic.Builder;
-import org.atlasapi.topic.Topic;
+import org.atlasapi.source.Sources;
 import org.atlasapi.topic.Topic.Type;
 
 import com.google.common.base.Throwables;
@@ -48,7 +47,7 @@ public class TopicSerializer implements Serializer<Topic, byte[]> {
             TopicProtos.Topic msg;
             msg = TopicProtos.Topic.parseFrom(bytes);
             Topic topic = new Topic(msg.getId());
-            topic.setPublisher(Publisher.fromKey(msg.getSource()).requireValue());
+            topic.setPublisher(Sources.fromPossibleKey(msg.getSource()).get());
             if (msg.hasType()) {
                 topic.setType(Type.fromKey(msg.getType()));
             }

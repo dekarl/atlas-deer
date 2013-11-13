@@ -6,19 +6,20 @@ import java.io.IOException;
 
 import javax.servlet.http.HttpServletResponse;
 
-import org.atlasapi.media.common.Id;
-import org.atlasapi.media.topic.Topic;
-import org.atlasapi.media.topic.TopicStore;
-import org.atlasapi.media.topic.TopicWriter;
-import org.atlasapi.persistence.topic.TopicLookupResolver;
-import org.atlasapi.persistence.topic.TopicQueryResolver;
+import org.atlasapi.entity.Id;
+import org.atlasapi.entity.util.Resolved;
+import org.atlasapi.topic.Topic;
+import org.atlasapi.topic.TopicResolver;
+import org.atlasapi.topic.TopicWriter;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 
-import com.metabroadcast.common.base.Maybe;
+import com.google.common.collect.ImmutableList;
+import com.google.common.util.concurrent.Futures;
+import com.google.common.util.concurrent.ListenableFuture;
 import com.metabroadcast.common.http.HttpStatusCode;
 import com.metabroadcast.common.ids.NumberToShortStringCodec;
 import com.metabroadcast.common.ids.SubstitutionTableNumberCodec;
@@ -26,27 +27,29 @@ import com.metabroadcast.common.ids.SubstitutionTableNumberCodec;
 @Controller
 public class IndividualTopicBootstrapController {
 
-    private final TopicQueryResolver read;
-    private final TopicWriter write;
+    private final TopicResolver resolver;
+    private final TopicWriter writer;
     private final NumberToShortStringCodec idCodec = SubstitutionTableNumberCodec.lowerCaseOnly();
 
-    public IndividualTopicBootstrapController(TopicQueryResolver read, TopicWriter write) {
-        this.read = checkNotNull(read);
-        this.write = checkNotNull(write);
+    public IndividualTopicBootstrapController(TopicResolver read, TopicWriter write) {
+        this.resolver = checkNotNull(read);
+        this.writer = checkNotNull(write);
     }
     
     @RequestMapping(value="/system/bootstrap/content/{id}", method=RequestMethod.POST)
     public void bootstrapTopic(@PathVariable("id") String encodedId,
             HttpServletResponse resp) throws IOException {
-        Id id = Id.valueOf(idCodec.decode(encodedId));
-        Maybe<Topic> possibleTopic = read.topicForId(id);
+        Id id = Id.valueOf(idCodec.decode(encodedId).longValue());
+        ListenableFuture<Resolved<Topic>> possibleTopic = resolver.resolveIds(ImmutableList.of(id));
         
-        if (possibleTopic.isNothing()) {
+        Resolved<Topic> resolved = Futures.get(possibleTopic, IOException.class);
+        if (resolved.getResources().isEmpty()) {
             resp.sendError(HttpStatusCode.NOT_FOUND.code());
             return;
         }
-        
-        write.writeTopic(possibleTopic.requireValue());
+        for (Topic topic : resolved.getResources()) {
+            writer.writeTopic(topic);
+        }
         resp.setStatus(HttpStatus.OK.value());
         resp.setContentLength(0);
     }

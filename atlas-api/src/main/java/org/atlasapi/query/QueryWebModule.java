@@ -20,13 +20,11 @@ import static org.atlasapi.output.Annotation.KEY_PHRASES;
 import static org.atlasapi.output.Annotation.LOCATIONS;
 import static org.atlasapi.output.Annotation.NEXT_BROADCASTS;
 import static org.atlasapi.output.Annotation.PEOPLE;
-import static org.atlasapi.output.Annotation.RECENTLY_BROADCAST;
 import static org.atlasapi.output.Annotation.RELATED_LINKS;
 import static org.atlasapi.output.Annotation.SERIES_REFERENCE;
 import static org.atlasapi.output.Annotation.SERIES_SUMMARY;
 import static org.atlasapi.output.Annotation.SUB_ITEMS;
 import static org.atlasapi.output.Annotation.TOPICS;
-import static org.atlasapi.output.Annotation.UPCOMING;
 
 import org.atlasapi.application.auth.ApplicationSourcesFetcher;
 import org.atlasapi.application.auth.UserFetcher;
@@ -35,7 +33,6 @@ import org.atlasapi.content.ContentType;
 import org.atlasapi.criteria.attribute.Attributes;
 import org.atlasapi.media.channel.Channel;
 import org.atlasapi.media.channel.ChannelResolver;
-import org.atlasapi.media.entity.Publisher;
 import org.atlasapi.output.Annotation;
 import org.atlasapi.output.AnnotationRegistry;
 import org.atlasapi.output.EntityListWriter;
@@ -64,7 +61,6 @@ import org.atlasapi.output.annotation.SeriesReferenceAnnotation;
 import org.atlasapi.output.annotation.SeriesSummaryAnnotation;
 import org.atlasapi.output.annotation.SubItemAnnotation;
 import org.atlasapi.output.annotation.TopicsAnnotation;
-import org.atlasapi.search.SearchResolver;
 import org.atlasapi.persistence.output.MongoContainerSummaryResolver;
 import org.atlasapi.persistence.output.MongoRecentlyBroadcastChildrenResolver;
 import org.atlasapi.persistence.output.MongoUpcomingItemsResolver;
@@ -96,6 +92,8 @@ import org.atlasapi.query.v4.topic.TopicController;
 import org.atlasapi.query.v4.topic.TopicListWriter;
 import org.atlasapi.query.v4.topic.TopicQueryResultWriter;
 import org.atlasapi.schedule.ScheduleIndex;
+import org.atlasapi.search.SearchResolver;
+import org.atlasapi.source.Sources;
 import org.atlasapi.topic.PopularTopicIndex;
 import org.atlasapi.topic.Topic;
 import org.atlasapi.topic.TopicResolver;
@@ -188,7 +186,7 @@ public class QueryWebModule {
         return new QueryAttributeParser(ImmutableList.of(
             QueryAtomParser.valueOf(Attributes.ID, AttributeCoercers.idCoercer(idCodec())),
             QueryAtomParser.valueOf(Attributes.CONTENT_TYPE, AttributeCoercers.enumCoercer(ContentType.fromKey())),
-            QueryAtomParser.valueOf(Attributes.SOURCE, AttributeCoercers.enumCoercer(Publisher.fromKey())),
+            QueryAtomParser.valueOf(Attributes.SOURCE, AttributeCoercers.enumCoercer(Sources.fromKey())),
             QueryAtomParser.valueOf(Attributes.ALIASES_NAMESPACE, AttributeCoercers.stringCoercer()),
             QueryAtomParser.valueOf(Attributes.ALIASES_VALUE, AttributeCoercers.stringCoercer()),
             QueryAtomParser.valueOf(Attributes.TOPIC_ID, AttributeCoercers.idCoercer(idCodec())),
@@ -216,7 +214,7 @@ public class QueryWebModule {
             new QueryAttributeParser(ImmutableList.of(
                 QueryAtomParser.valueOf(Attributes.ID, AttributeCoercers.idCoercer(idCodec())),
                 QueryAtomParser.valueOf(Attributes.TOPIC_TYPE, AttributeCoercers.enumCoercer(Topic.Type.fromKey())),
-                QueryAtomParser.valueOf(Attributes.SOURCE, AttributeCoercers.enumCoercer(Publisher.fromKey())),
+                QueryAtomParser.valueOf(Attributes.SOURCE, AttributeCoercers.enumCoercer(Sources.fromKey())),
                 QueryAtomParser.valueOf(Attributes.ALIASES_NAMESPACE, AttributeCoercers.stringCoercer()),
                 QueryAtomParser.valueOf(Attributes.ALIASES_VALUE, AttributeCoercers.stringCoercer())
             )),

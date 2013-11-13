@@ -4,9 +4,9 @@ import static org.atlasapi.entity.ProtoBufUtils.deserializeDateTime;
 
 import org.atlasapi.content.Identified;
 import org.atlasapi.equiv.EquivalenceRef;
-import org.atlasapi.media.entity.Publisher;
 import org.atlasapi.serialization.protobuf.CommonProtos;
 import org.atlasapi.serialization.protobuf.CommonProtos.Reference;
+import org.atlasapi.source.Sources;
 import org.joda.time.DateTime;
 
 import com.google.common.collect.ImmutableSet;
@@ -62,7 +62,7 @@ public class IdentifiedSerializer {
         ImmutableSet.Builder<EquivalenceRef> equivRefs = ImmutableSet.builder();
         for (Reference equivRef : msg.getEquivsList()) {
             equivRefs.add(new EquivalenceRef(Id.valueOf(equivRef.getId()),
-                Publisher.fromKey(equivRef.getSource()).requireValue()
+                Sources.fromPossibleKey(equivRef.getSource()).get()
             ));
         }
         identified.setEquivalentTo(equivRefs.build());

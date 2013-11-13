@@ -4,7 +4,7 @@ public interface ChangeListener<T> {
 
     void beforeChange();
     
-    void onChange(Iterable<T> changed);
+    void onChange(Iterable<? extends T> changed);
         
     void afterChange();
 }

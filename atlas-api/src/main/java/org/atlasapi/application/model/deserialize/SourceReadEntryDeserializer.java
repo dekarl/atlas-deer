@@ -5,6 +5,7 @@ import java.lang.reflect.Type;
 import org.atlasapi.application.SourceReadEntry;
 import org.atlasapi.application.SourceStatus;
 import org.atlasapi.media.entity.Publisher;
+import org.atlasapi.source.Sources;
 
 import com.google.common.base.Optional;
 import com.google.gson.JsonDeserializationContext;
@@ -20,7 +21,7 @@ public class SourceReadEntryDeserializer implements JsonDeserializer<SourceReadE
             JsonDeserializationContext context) throws JsonParseException {
             JsonObject obj = json.getAsJsonObject();
             String srcKey = obj.getAsJsonPrimitive("key").getAsString();
-            Optional<Publisher> publisher = Optional.fromNullable(Publisher.fromKey(srcKey).valueOrNull());
+            Optional<Publisher> publisher = Sources.fromPossibleKey(srcKey);
             SourceStatus.SourceState sourceState = SourceStatus.SourceState.valueOf(obj.getAsJsonPrimitive("state")
                     .getAsString()
                     .toUpperCase());

@@ -2,31 +2,50 @@ package org.atlasapi.system.bootstrap;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
-import org.atlasapi.topic.Topic;
-import org.atlasapi.topic.TopicWriter;
+import org.atlasapi.entity.Id;
+import org.atlasapi.entity.util.Resolved;
 import org.atlasapi.messaging.AbstractWorker;
 import org.atlasapi.messaging.EntityUpdatedMessage;
-import org.atlasapi.persistence.topic.TopicQueryResolver;
+import org.atlasapi.topic.Topic;
+import org.atlasapi.topic.TopicResolver;
+import org.atlasapi.topic.TopicWriter;
 
-import com.metabroadcast.common.base.Maybe;
+import com.google.common.base.Throwables;
+import com.google.common.collect.ImmutableList;
+import com.google.common.util.concurrent.FutureCallback;
+import com.google.common.util.concurrent.Futures;
+import com.google.common.util.concurrent.ListenableFuture;
 
 
 public class TopicReadWriter extends AbstractWorker {
 
-    private final TopicQueryResolver reader;
+    private final TopicResolver resolver;
     private final TopicWriter writer;
 
-    public TopicReadWriter(TopicQueryResolver reader, TopicWriter writer) {
-        this.reader = checkNotNull(reader);
+    public TopicReadWriter(TopicResolver resolver, TopicWriter writer) {
+        this.resolver = checkNotNull(resolver);
         this.writer = checkNotNull(writer);
     }
     
     @Override
     public void process(EntityUpdatedMessage message) {
-        Maybe<org.atlasapi.media.entity.Topic> read = reader.topicForId(Long.valueOf(message.getEntityId()));
-        if (read.hasValue()) {
-            writer.writeTopic(read.requireValue());
-        }
+        ImmutableList<Id> ids = ImmutableList.of(Id.valueOf(message.getEntityId()));
+        ListenableFuture<Resolved<Topic>> read = resolver.resolveIds(ids);
+        Futures.addCallback(read, new FutureCallback<Resolved<Topic>>() {
+
+            @Override
+            public void onSuccess(Resolved<Topic> result) {
+                for (Topic topic : result.getResources()) {
+                    writer.writeTopic(topic);
+                }
+            }
+
+            @Override
+            public void onFailure(Throwable t) {
+                throw Throwables.propagate(t);
+            }
+
+        });
     }
 
 }

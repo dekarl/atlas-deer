@@ -7,10 +7,10 @@ import java.lang.reflect.Type;
 
 import javax.servlet.http.HttpServletResponse;
 
-import org.atlasapi.media.common.Id;
-import org.atlasapi.media.content.Content;
-import org.atlasapi.media.content.ContentResolver;
-import org.atlasapi.media.util.Resolved;
+import org.atlasapi.entity.Id;
+import org.atlasapi.content.Content;
+import org.atlasapi.content.ContentResolver;
+import org.atlasapi.entity.util.Resolved;
 import org.joda.time.DateTime;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;

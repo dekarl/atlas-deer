@@ -4,9 +4,9 @@ import java.util.concurrent.ThreadPoolExecutor;
 
 import javax.annotation.Nullable;
 
-import org.atlasapi.media.entity.Alias;
-import org.atlasapi.media.topic.Topic;
-import org.atlasapi.media.topic.TopicStore;
+import org.atlasapi.entity.Alias;
+import org.atlasapi.topic.Topic;
+import org.atlasapi.topic.TopicStore;
 
 import com.google.common.base.Function;
 import com.google.common.collect.ImmutableSet;

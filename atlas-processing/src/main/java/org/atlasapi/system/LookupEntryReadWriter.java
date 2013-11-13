@@ -1,7 +1,6 @@
 package org.atlasapi.system;
 
 import org.atlasapi.equiv.EquivalenceRecordStore;
-import org.atlasapi.media.common.Id;
 import org.atlasapi.messaging.EntityUpdatedMessage;
 import org.atlasapi.messaging.workers.AbstractWorker;
 import org.atlasapi.persistence.lookup.entry.LookupEntry;
@@ -24,7 +23,7 @@ public class LookupEntryReadWriter extends AbstractWorker {
 
     @Override
     public void process(EntityUpdatedMessage message) {
-        Iterable<LookupEntry> entries = lookupStore.entriesForIds(ImmutableSet.of(Id.valueOf(message.getEntityId())));
+        Iterable<LookupEntry> entries = lookupStore.entriesForIds(ImmutableSet.of(Long.valueOf(message.getEntityId())));
         changeListener.onChange(entries);
     }
     

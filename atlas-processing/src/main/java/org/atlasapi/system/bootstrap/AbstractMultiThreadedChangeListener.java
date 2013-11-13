@@ -39,7 +39,7 @@ public abstract class AbstractMultiThreadedChangeListener<T> implements ChangeLi
     }
 
     @Override
-    public void onChange(Iterable<T> changed) {
+    public void onChange(Iterable<? extends T> changed) {
         for (final T change : changed) {
             executor.submit(new Runnable() {
 

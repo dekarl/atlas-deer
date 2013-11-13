@@ -5,11 +5,11 @@ import java.util.List;
 
 import org.atlasapi.entity.Id;
 import org.atlasapi.entity.Serializer;
-import org.atlasapi.media.entity.Publisher;
 import org.atlasapi.serialization.protobuf.CommonProtos;
 import org.atlasapi.serialization.protobuf.CommonProtos.Reference;
 import org.atlasapi.serialization.protobuf.EquivProtos;
 import org.atlasapi.serialization.protobuf.EquivProtos.EquivRecord;
+import org.atlasapi.source.Sources;
 import org.joda.time.DateTime;
 
 import com.google.common.base.Throwables;
@@ -61,7 +61,7 @@ public class EquivalenceRecordSerializer implements Serializer<EquivalenceRecord
 
     private EquivalenceRecord deserailize(EquivRecord rec) {
         EquivalenceRef selfRef = new EquivalenceRef(Id.valueOf(rec.getId()), 
-                Publisher.fromKey(rec.getSource()).requireValue());
+                Sources.fromPossibleKey(rec.getSource()).get());
         return new EquivalenceRecord(selfRef, deserialize(rec.getGeneratedList()), 
                 deserialize(rec.getExplicitList()), deserialize(rec.getEquivalentsList()), 
                 deserialize(rec.getCreated()), deserialize(rec.getUpdated()));
@@ -75,7 +75,7 @@ public class EquivalenceRecordSerializer implements Serializer<EquivalenceRecord
         ImmutableSet.Builder<EquivalenceRef> equivRefs = ImmutableSet.builder();
         for (Reference ref : refs) {
             equivRefs.add(new EquivalenceRef(Id.valueOf(ref.getId()), 
-                    Publisher.fromKey(ref.getSource()).requireValue()));
+                    Sources.fromPossibleKey(ref.getSource()).get()));
         }
         return equivRefs.build();
     }

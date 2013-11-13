@@ -22,6 +22,7 @@ import org.atlasapi.query.annotation.ContextualAnnotationsExtractor;
 import org.atlasapi.query.common.QueryContext;
 import org.atlasapi.query.common.QueryParseException;
 import org.atlasapi.query.common.SetBasedRequestParameterValidator;
+import org.atlasapi.source.Sources;
 import org.elasticsearch.common.collect.ImmutableList;
 import org.joda.time.DateTime;
 import org.joda.time.Duration;
@@ -137,7 +138,7 @@ class ScheduleRequestParser {
 
     private Publisher extractPublisher(HttpServletRequest request) {
         String pubKey = getParameter(request, "source");
-        Optional<Publisher> publisher = Optional.fromNullable(Publisher.fromKey(pubKey).valueOrNull());
+        Optional<Publisher> publisher = Sources.fromPossibleKey(pubKey);
         checkArgument(publisher.isPresent(), "Unknown source %s", pubKey);
         return publisher.get();
     }

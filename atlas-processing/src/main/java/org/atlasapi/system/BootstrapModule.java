@@ -5,21 +5,31 @@ import java.util.List;
 
 import javax.jms.ConnectionFactory;
 
+import org.atlasapi.media.entity.Content;
+import org.atlasapi.media.entity.Topic;
 import org.atlasapi.messaging.AtlasMessagingModule;
-import org.atlasapi.messaging.workers.ContentReadWriter;
-import org.atlasapi.messaging.workers.TopicReadWriter;
+import org.atlasapi.system.bootstrap.ContentReadWriter;
+import org.atlasapi.system.bootstrap.TopicReadWriter;
 import org.atlasapi.persistence.AtlasPersistenceModule;
-import org.atlasapi.persistence.content.ContentResolver;
+import org.atlasapi.content.ContentResolver;
 import org.atlasapi.persistence.content.KnownTypeContentResolver;
 import org.atlasapi.persistence.content.LookupResolvingContentResolver;
-import org.atlasapi.persistence.content.NullContentResolver;
+import org.atlasapi.content.NullContentResolver;
+import org.atlasapi.entity.ResourceLister;
 import org.atlasapi.persistence.content.mongo.MongoContentLister;
 import org.atlasapi.persistence.content.mongo.MongoContentResolver;
 import org.atlasapi.persistence.content.mongo.MongoTopicStore;
+import org.atlasapi.persistence.lookup.entry.LookupEntry;
 import org.atlasapi.persistence.lookup.mongo.MongoLookupEntryStore;
 import org.atlasapi.persistence.topic.TopicQueryResolver;
 import org.atlasapi.persistence.topic.TopicStore;
-import org.atlasapi.system.bootstrap.ContentBootstrapper;
+import org.atlasapi.system.bootstrap.ResourceBootstrapper;
+import org.atlasapi.system.legacy.ContentListerResourceListerAdapter;
+import org.atlasapi.system.legacy.LegacyContentResolver;
+import org.atlasapi.system.legacy.LegacyTopicLister;
+import org.atlasapi.system.legacy.LegacyTopicResolver;
+import org.atlasapi.system.legacy.LookupEntryLister;
+import org.atlasapi.topic.TopicResolver;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
@@ -36,7 +46,9 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import com.metabroadcast.common.persistence.mongo.DatabasedMongo;
 import com.metabroadcast.common.properties.Configurer;
+import com.mongodb.DBCollection;
 import com.mongodb.Mongo;
+import com.mongodb.MongoClient;
 import com.mongodb.ServerAddress;
 
 @Configuration
@@ -65,7 +77,7 @@ public class BootstrapModule {
         bootstrapController.setCassandraTopicBootstrapper(cassandraTopicBootstrapper());
         
         bootstrapController.setCassandraEquivalenceRecordStore(persistence.equivalenceRecordStore());
-        bootstrapController.setLookupEntryStore(new MongoLookupEntryStore(readOnlyMongo()));
+        bootstrapController.setLookupEntryStore(new MongoLookupEntryStore(readOnlyMongo().collection("lookup")));
         bootstrapController.setCassandraLookupEntryBootstrapper(cassandraEquivalenceRecordBootstrapper());
         
         return bootstrapController;
@@ -73,37 +85,43 @@ public class BootstrapModule {
 
     @Bean
     IndividualContentBootstrapController contentBootstrapController() {
-        return new IndividualContentBootstrapController(bootstrapContentResolver(), persistence.contentStore());
+        return new IndividualContentBootstrapController(legacyContentResolver(), persistence.contentStore());
     }
 
-    private ContentBootstrapper cassandraTopicBootstrapper() {
-        ContentBootstrapper contentBootstrapper = new ContentBootstrapper();
-        contentBootstrapper.withTopicListers(bootstrapTopicStore());
-        return contentBootstrapper;
+    @Bean
+    IndividualTopicBootstrapController topicBootstrapController() {
+        MongoTopicStore legacyTopicStore = legacyTopicStore();
+        LegacyTopicResolver resolver = new LegacyTopicResolver(legacyTopicStore);
+        return new IndividualTopicBootstrapController(resolver, persistence.topicStore());
     }
 
-    private ContentBootstrapper cassandraContentBootstrapper() {
-        ContentBootstrapper contentBootstrapper = new ContentBootstrapper();
-        contentBootstrapper.withContentListers(new MongoContentLister(readOnlyMongo()));
-        return contentBootstrapper;
+    private ResourceBootstrapper<Topic> cassandraTopicBootstrapper() {
+        ResourceLister<Topic> topicLister = new LegacyTopicLister(legacyTopicStore());
+        return new ResourceBootstrapper<Topic>(topicLister );
+    }
+
+    private ResourceBootstrapper<Content> cassandraContentBootstrapper() {
+        MongoContentLister contentLister = new MongoContentLister(readOnlyMongo());
+        ResourceLister<Content> resources = new ContentListerResourceListerAdapter(contentLister);
+        return new ResourceBootstrapper<Content>(resources);
     }  
     
-    private ContentBootstrapper cassandraEquivalenceRecordBootstrapper() {
-        ContentBootstrapper contentBootstrapper = new ContentBootstrapper();
-        contentBootstrapper.withLookupEntryListers(bootstrapLookupStore());
-        return contentBootstrapper;
+    private ResourceBootstrapper<LookupEntry> cassandraEquivalenceRecordBootstrapper() {
+        return new ResourceBootstrapper<LookupEntry>(new LookupEntryLister(bootstrapLookupStore()));
     }
     
     @Bean
     @Lazy(true)
     DefaultMessageListenerContainer contentReadWriter() {
-        return makeContainer(new ContentReadWriter(bootstrapContentResolver(), persistence.contentStore()), contentReadDestination, 1, 1);
+        return makeContainer(new ContentReadWriter(legacyContentResolver(), persistence.contentStore()), contentReadDestination, 1, 1);
     }
 
     @Bean
     @Lazy(true)
     DefaultMessageListenerContainer topicReadWriter() {
-        return makeContainer(new TopicReadWriter(bootstrapTopicStore(), persistence.topicStore()), topicReadDestination, 1, 1);
+        org.atlasapi.topic.TopicWriter writer = persistence.topicStore();
+        TopicResolver resolver = new LegacyTopicResolver(legacyTopicStore());
+        return makeContainer(new TopicReadWriter(resolver, writer), topicReadDestination, 1, 1);
     }
     
     @Bean
@@ -113,28 +131,28 @@ public class BootstrapModule {
     }
     
     @Bean @Qualifier("readOnly")
-    protected ContentResolver bootstrapContentResolver() {
+    protected ContentResolver legacyContentResolver() {
         DatabasedMongo mongoDb = readOnlyMongo();
         if (mongoDb == null) {
             return NullContentResolver.get();
         }
-        KnownTypeContentResolver contentResolver = new MongoContentResolver(mongoDb);
-        return new LookupResolvingContentResolver(contentResolver, bootstrapLookupStore());
+        KnownTypeContentResolver contentResolver = new MongoContentResolver(mongoDb, bootstrapLookupStore());
+        return new LegacyContentResolver(bootstrapLookupStore(), contentResolver);
     }
     
     @Bean @Qualifier("readOnly")
-    protected TopicStore bootstrapTopicStore() {
+    protected MongoTopicStore legacyTopicStore() {
         return new MongoTopicStore(readOnlyMongo());
     }
     
     @Bean @Qualifier("readOnly")
     protected MongoLookupEntryStore bootstrapLookupStore() {
-        return new MongoLookupEntryStore(readOnlyMongo());
+        return new MongoLookupEntryStore(readOnlyMongo().collection("lookup"));
     }
     
     @Bean
     public DatabasedMongo readOnlyMongo() {
-        Mongo mongo = new Mongo(mongoHosts());
+        Mongo mongo = new MongoClient(mongoHosts());
         //mongo.setReadPreference(ReadPreference.secondary());
         return new DatabasedMongo(mongo, contentReadMongoName);
     }
