@@ -3,20 +3,23 @@ package org.atlasapi.system.legacy;
 import java.util.Iterator;
 
 import org.atlasapi.entity.ResourceLister;
-import org.atlasapi.media.entity.Content;
+import org.atlasapi.content.Content;
 import org.atlasapi.persistence.content.ContentCategory;
 import org.atlasapi.persistence.content.listing.ContentLister;
 import org.atlasapi.persistence.content.listing.ContentListingCriteria;
 import org.atlasapi.source.Sources;
 
 import com.google.common.collect.FluentIterable;
+import com.google.common.collect.Iterators;
 
 public class ContentListerResourceListerAdapter implements ResourceLister<Content> {
 
     private final ContentLister contentLister;
+	private final LegacyContentTransformer transformer;
 
     public ContentListerResourceListerAdapter(ContentLister contentLister) {
         this.contentLister = contentLister;
+        this.transformer = new LegacyContentTransformer();
     }
 
     @Override
@@ -24,7 +27,7 @@ public class ContentListerResourceListerAdapter implements ResourceLister<Conten
         return new FluentIterable<Content>() {
             @Override
             public Iterator<Content> iterator() {
-                return contentLister.listContent(ContentListingCriteria.defaultCriteria()
+                return Iterators.transform(contentLister.listContent(ContentListingCriteria.defaultCriteria()
                     .forPublishers(Sources.all().asList())
                     .forContent(
                         ContentCategory.CONTAINER,
@@ -32,7 +35,7 @@ public class ContentListerResourceListerAdapter implements ResourceLister<Conten
                         ContentCategory.TOP_LEVEL_ITEM,
                         ContentCategory.CHILD_ITEM
                     )
-                    .build());
+                    .build()), transformer);
             }
         };
     }

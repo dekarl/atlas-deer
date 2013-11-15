@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.ReentrantLock;
 
+import org.atlasapi.entity.Identifiable;
 import org.atlasapi.entity.ResourceLister;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -13,7 +14,7 @@ import org.slf4j.LoggerFactory;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 
-public class ResourceBootstrapper<T> {
+public class ResourceBootstrapper<T extends Identifiable> {
 
     private static final String NONE = "NONE";
     private static final String SUCCESS = "SUCCESS";
@@ -34,7 +35,7 @@ public class ResourceBootstrapper<T> {
         batchSize = 100;
     }
     
-    public boolean loadAllIntoListener(ChangeListener<? super T> listener) {
+    public boolean loadAllIntoListener(BootstrapListener<? super T> listener) {
         if (bootstrapLock.tryLock()) {
             try {
                 Exception error = null;
@@ -79,7 +80,7 @@ public class ResourceBootstrapper<T> {
         return lastStatus.get();
     }
     
-    private int bootstrapResource(final ChangeListener<? super T> listener) {
+    private int bootstrapResource(final BootstrapListener<? super T> listener) {
         int processed = 0;
         Iterable<List<T>> partitioned = Iterables.partition(lister.list(), batchSize);
         for (List<T> partition : partitioned) {

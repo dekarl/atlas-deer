@@ -13,15 +13,17 @@ import org.springframework.jms.core.JmsTemplate;
 @Configuration
 public class AtlasMessagingModule {
     
-    @Value("${messaging.broker.url}")
-    private String brokerUrl;
-    @Value("${messaging.destination.content.changes}")
-    private String contentChangesDestination;
-    @Value("${messaging.destination.topics.changes}")
-    private String topicChangesDestination;
-//    @Autowired
-//    private MessageStore messageStore;
+    @Value("${messaging.broker.url}") private String brokerUrl;
+    @Value("${messaging.system}") private String messagingSystem;
+    
+    @Value("${messaging.destination.content.changes}") public String contentChanges;
+    @Value("${messaging.destination.topics.changes}") public String topicChanges;
 
+    @Bean
+    public QueueHelper queueHelper() {
+        return new QueueHelper(activemqConnectionFactory(), messagingSystem);
+    }
+    
     @Bean
     @Lazy(true)
     public ConnectionFactory activemqConnectionFactory() {
@@ -33,19 +35,13 @@ public class AtlasMessagingModule {
     @Bean
     @Lazy(true)
     public JmsTemplate contentChanges() {
-        JmsTemplate jmsTemplate = new JmsTemplate(activemqConnectionFactory());
-        jmsTemplate.setPubSubDomain(true);
-        jmsTemplate.setDefaultDestinationName(contentChangesDestination);
-        return jmsTemplate;
+        return queueHelper().makeVirtualTopicProducer(contentChanges);
     }
     
     @Bean
     @Lazy(true)
     public JmsTemplate topicChanges() {
-        JmsTemplate jmsTemplate = new JmsTemplate(activemqConnectionFactory());
-        jmsTemplate.setPubSubDomain(true);
-        jmsTemplate.setDefaultDestinationName(topicChangesDestination);
-        return jmsTemplate;
+        return queueHelper().makeVirtualTopicProducer(topicChanges);
     }
     
 //    @Bean 

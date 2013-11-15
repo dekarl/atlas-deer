@@ -4,7 +4,6 @@ import java.net.UnknownHostException;
 import java.util.List;
 
 import javax.annotation.PostConstruct;
-import javax.annotation.Resource;
 
 import org.atlasapi.CassandraPersistenceModule;
 import org.atlasapi.ElasticSearchContentIndexModule;
@@ -22,6 +21,7 @@ import org.atlasapi.media.channel.ChannelGroupStore;
 import org.atlasapi.media.channel.ChannelStore;
 import org.atlasapi.media.channel.MongoChannelGroupStore;
 import org.atlasapi.media.channel.MongoChannelStore;
+import org.atlasapi.messaging.AtlasMessagingModule;
 import org.atlasapi.messaging.MessageQueueingContentStore;
 import org.atlasapi.messaging.MessageQueueingTopicStore;
 import org.atlasapi.persistence.ids.MongoSequentialIdGenerator;
@@ -30,11 +30,12 @@ import org.atlasapi.schedule.ScheduleStore;
 import org.atlasapi.topic.EsPopularTopicIndex;
 import org.atlasapi.topic.EsTopicIndex;
 import org.atlasapi.topic.TopicStore;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.Primary;
-import org.springframework.jms.core.JmsTemplate;
 
 import com.google.common.base.Function;
 import com.google.common.base.Preconditions;
@@ -48,11 +49,12 @@ import com.metabroadcast.common.persistence.mongo.DatabasedMongo;
 import com.metabroadcast.common.properties.Configurer;
 import com.metabroadcast.common.properties.Parameter;
 import com.mongodb.Mongo;
+import com.mongodb.MongoClient;
 import com.mongodb.ReadPreference;
 import com.mongodb.ServerAddress;
 
-
 @Configuration
+@Import({AtlasMessagingModule.class})
 public class AtlasPersistenceModule {
 
     private final String mongoHost = Configurer.get("mongo.host").get();
@@ -74,8 +76,7 @@ public class AtlasPersistenceModule {
     private final String adminDbPort = Configurer.get("admin.db.port").get();
     private final String adminDbName = Configurer.get("admin.db.name").get();    
 
-    @Resource(name = "contentChanges") private JmsTemplate contentChanges;
-    @Resource(name = "topicChanges") private JmsTemplate topicChanges;
+    @Autowired AtlasMessagingModule messaging;
 
     @PostConstruct
     public void init() {
@@ -99,13 +100,12 @@ public class AtlasPersistenceModule {
     public ContentStore contentStore() {
         ContentStore store = persistenceModule().contentStore();
         store = new EquivalenceWritingContentStore(store, equivalenceRecordStore());
-        return new MessageQueueingContentStore(contentChanges, store);
+        return new MessageQueueingContentStore(messaging.contentChanges(), store);
     }
     
     @Bean
     public TopicStore topicStore() {
-        return new MessageQueueingTopicStore(topicChanges,
-            persistenceModule().topicStore());
+        return new MessageQueueingTopicStore(messaging.topicChanges(), persistenceModule().topicStore());
     }
     
     @Bean
@@ -138,7 +138,7 @@ public class AtlasPersistenceModule {
 
     @Bean @Primary
     public Mongo mongo() {
-        Mongo mongo = new Mongo(mongoHosts());
+        Mongo mongo = new MongoClient(mongoHosts());
         if (processingConfig == null || !processingConfig.toBoolean()) {
             mongo.setReadPreference(ReadPreference.secondaryPreferred());
         }
@@ -151,7 +151,7 @@ public class AtlasPersistenceModule {
         ServerAddress adminAddress = null;
         try {
             adminAddress = new ServerAddress(adminDbHost, Integer.parseInt(adminDbPort));
-            Mongo adminMongoDb = new Mongo(adminAddress);
+            Mongo adminMongoDb = new MongoClient(adminAddress);
             adminMongoDb.setReadPreference(ReadPreference.primary());
             DatabasedMongo adminMongo = new DatabasedMongo(adminMongoDb, adminDbName);
             return adminMongo;

@@ -8,6 +8,78 @@
   </parent>
   <artifactId>atlas-api</artifactId>
   <packaging>war</packaging>
+
+  <build>
+    <finalName>atlas-api</finalName>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-dependency-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>unpack-embedded-jetty</id>
+            <phase>compile</phase>
+            <goals>
+              <goal>unpack-dependencies</goal>
+            </goals>
+            <configuration>
+              <includeGroupIds>javax.servlet,org.eclipse.jetty,com.codahale.metrics,com.google.guava</includeGroupIds>
+              <outputDirectory>target/${project.artifactId}</outputDirectory>
+              <!-- See https://bugs.eclipse.org/bugs/show_bug.cgi?id=371954 
+                and https://bugs.eclipse.org/bugs/show_bug.cgi?id=406753 for why we exclude 
+                some files -->
+              <excludes>META-INF/*.RSA,META-INF/*.DSA,META-INF/*.SF</excludes>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <artifactId>maven-antrun-plugin</artifactId>
+        <executions>
+          <execution>
+            <phase>compile</phase>
+            <configuration>
+              <tasks>
+                <copy
+                  todir="${project.build.directory}/${project.artifactId}/org/atlasapi/">
+                  <fileset
+                    dir="${project.build.directory}/classes/org/atlasapi/">
+                    <filename name="*.class" />
+                  </fileset>
+                </copy>
+                <copy
+                  todir="${project.build.directory}/${project.artifactId}/org/atlasapi/util/jetty">
+                  <fileset
+                    dir="${project.build.directory}/classes/org/atlasapi/util/jetty/" />
+                </copy>
+              </tasks>
+            </configuration>
+            <goals>
+              <goal>run</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <artifactId>maven-war-plugin</artifactId>
+        <version>2.4</version>
+        <configuration>
+          <attachClasses>true</attachClasses>
+          <archive>
+            <manifest>
+              <addClasspath>true</addClasspath>
+              <classpathPrefix>/WEB-INF/lib</classpathPrefix>
+              <mainClass>org.atlasapi.AtlasMain</mainClass>
+            </manifest>
+            <manifestEntries>
+              <Class-Path>ks</Class-Path>
+            </manifestEntries>
+          </archive>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
+
   <dependencies>
     <dependency>
       <groupId>org.atlasapi</groupId>
@@ -100,4 +172,5 @@
       <version>1.5.0</version>
     </dependency>
   </dependencies>
+
 </project>
