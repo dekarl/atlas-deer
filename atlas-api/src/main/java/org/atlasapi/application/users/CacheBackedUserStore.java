@@ -1,16 +1,16 @@
 package org.atlasapi.application.users;
 
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
 import org.atlasapi.entity.Id;
 import org.atlasapi.entity.util.Resolved;
 
-import com.google.common.base.Function;
 import com.google.common.base.Optional;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
-import com.google.common.collect.Iterables;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.metabroadcast.common.social.model.UserRef;
@@ -59,28 +59,19 @@ public class CacheBackedUserStore implements UserStore {
     }
 
     @Override
-    public Iterable<User> usersFor(Iterable<Id> ids) {
-        return Iterables.transform(ids, new Function<Id, User>() {
-            @Override
-            public User apply(Id input) {
-                return idCache.getUnchecked(input).get();
-            }
-        });
-    }
-
-    @Override
     public Iterable<User> allUsers() {
         return delegate.allUsers();
     }
 
     @Override
     public ListenableFuture<Resolved<User>> resolveIds(Iterable<Id> ids) {
-        return Futures.immediateFuture(Resolved.valueOf(Iterables.transform(ids, new Function<Id, User>() {
-
-            @Override
-            public User apply(Id input) {
-                return userForId(input).get();
-            }})));
+        try {
+            ImmutableMap<Id, Optional<User>> userIndex = idCache.getAll(ids);
+            Iterable<User> users = Optional.presentInstances(userIndex.values());
+            return Futures.immediateFuture(Resolved.valueOf(users));
+        } catch (ExecutionException e) {
+            throw new RuntimeException(e);
+        }
     }
 
 }

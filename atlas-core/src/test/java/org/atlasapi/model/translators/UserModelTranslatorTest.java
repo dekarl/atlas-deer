@@ -2,7 +2,8 @@ package org.atlasapi.model.translators;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 import java.util.Set;
 
@@ -11,12 +12,14 @@ import org.atlasapi.application.LegacyApplicationStore;
 import org.atlasapi.application.users.Role;
 import org.atlasapi.application.users.User;
 import org.atlasapi.entity.Id;
+import org.atlasapi.entity.util.Resolved;
 import org.atlasapi.media.entity.Publisher;
 import org.junit.Before;
 import org.junit.Test;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.util.concurrent.Futures;
 import com.metabroadcast.common.social.model.UserRef;
 import com.metabroadcast.common.social.model.UserRef.UserNamespace;
 
@@ -43,28 +46,29 @@ public class UserModelTranslatorTest {
     	when(store.applicationIdsForSlugs(APP_SLUGS)).thenReturn(APP_IDS);
     	Application app1 = Application.builder().withSlug("app1").withId(Id.valueOf(7000)).build();
     	Application app2 = Application.builder().withSlug("app2").withId(Id.valueOf(8000)).build();
-    	when(store.applicationsFor(APP_IDS)).thenReturn(ImmutableList.of(app1, app2));
+    	ImmutableList<Application> apps = ImmutableList.of(app1, app2);
+        when(store.resolveIds(APP_IDS)).thenReturn(Futures.immediateFuture(Resolved.valueOf(apps)));
     }
 	
 	@Test
 	public void test3To4UserTranslation() {
 		org.atlasapi.application.users.v3.User user = org.atlasapi.application.users.v3.User.builder()
-        .withId(USER_ID.longValue())
-        .withUserRef(USER_REF)
-        .withScreenName(SCREEN_NAME)
-        .withFullName(FULL_NAME)
-        .withCompany(COMPANY)
-        .withEmail(EMAIL)
-        .withWebsite(WEBSITE)
-        .withProfileImage(PROFILE_IMAGE)
-        .withRole(ROLE)
-        .withApplicationSlugs(APP_SLUGS)
-        .withSources(SOURCES)
-        .withProfileComplete(PROFILE_COMPLETE)
+            .withId(USER_ID.longValue())
+            .withUserRef(USER_REF)
+            .withScreenName(SCREEN_NAME)
+            .withFullName(FULL_NAME)
+            .withCompany(COMPANY)
+            .withEmail(EMAIL)
+            .withWebsite(WEBSITE)
+            .withProfileImage(PROFILE_IMAGE)
+            .withRole(org.atlasapi.application.users.v3.Role.ADMIN)
+            .withApplicationSlugs(APP_SLUGS)
+            .withSources(SOURCES)
+            .withProfileComplete(PROFILE_COMPLETE)
         .build();
 		
 		UserModelTranslator translator = new UserModelTranslator(store);
-		User result = translator.transform3to4(user);
+		User result = translator.apply(user);
 		assertEquals(USER_ID, result.getId());
 		assertEquals(USER_REF, result.getUserRef());
 		assertEquals(SCREEN_NAME, result.getScreenName());
@@ -83,18 +87,18 @@ public class UserModelTranslatorTest {
 	@Test
 	public void test4To3UserTranslation() {
 		User user = User.builder()
-        .withId(USER_ID)
-        .withUserRef(USER_REF)
-        .withScreenName(SCREEN_NAME)
-        .withFullName(FULL_NAME)
-        .withCompany(COMPANY)
-        .withEmail(EMAIL)
-        .withWebsite(WEBSITE)
-        .withProfileImage(PROFILE_IMAGE)
-        .withApplicationIds(APP_IDS)
-        .withSources(SOURCES)
-        .withRole(ROLE)
-        .withProfileComplete(PROFILE_COMPLETE)
+            .withId(USER_ID)
+            .withUserRef(USER_REF)
+            .withScreenName(SCREEN_NAME)
+            .withFullName(FULL_NAME)
+            .withCompany(COMPANY)
+            .withEmail(EMAIL)
+            .withWebsite(WEBSITE)
+            .withProfileImage(PROFILE_IMAGE)
+            .withApplicationIds(APP_IDS)
+            .withSources(SOURCES)
+            .withRole(ROLE)
+            .withProfileComplete(PROFILE_COMPLETE)
         .build();
 		
 		UserModelTranslator translator = new UserModelTranslator(store);

@@ -38,13 +38,6 @@ public interface ApplicationStore extends IdResolver<Application> {
     Application updateApplication(Application application);
 
     /**
-     * Returns applications corresponding to Ids given
-     * @param ids
-     * @return Applications corresponding to Ids given
-     */
-    Iterable<Application> applicationsFor(Iterable<Id> ids);
-    
-    /**
      * Returns all applications that can read data published
      * under this source
      * @param source

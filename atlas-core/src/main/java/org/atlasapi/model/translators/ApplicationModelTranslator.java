@@ -14,11 +14,12 @@ import org.atlasapi.media.entity.Publisher;
 
 import com.google.common.base.Function;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 
 
-public class ApplicationModelTranslator {
+public class ApplicationModelTranslator implements Function<org.atlasapi.application.v3.Application, Application> {
     public static final Function<SourceReadEntry, Publisher> SOURCEREADENTRY_TO_PUBLISHER = new Function<SourceReadEntry, Publisher>() {
 
         @Override
@@ -28,7 +29,11 @@ public class ApplicationModelTranslator {
         
     };
     
-    public Application transform3to4(org.atlasapi.application.v3.Application input) {
+    public Iterable<Application> transform(Iterable<org.atlasapi.application.v3.Application> inputs) {
+        return Iterables.transform(inputs,this);
+    }
+    
+    public Application apply(org.atlasapi.application.v3.Application input) {
          return Application.builder()
             .withId(Id.valueOf(input.getDeerId().longValue()))
             .withSlug(input.getSlug())

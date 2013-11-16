@@ -7,11 +7,12 @@ import javax.annotation.Nullable;
 import org.atlasapi.application.users.Role;
 import org.atlasapi.application.users.User;
 import org.atlasapi.criteria.AttributeQuery;
-import org.atlasapi.criteria.QueryVisitorAdapter;
-import org.atlasapi.criteria.attribute.Attributes;
 import org.atlasapi.criteria.AttributeQuerySet;
 import org.atlasapi.criteria.IdAttributeQuery;
+import org.atlasapi.criteria.QueryVisitorAdapter;
+import org.atlasapi.criteria.attribute.Attributes;
 import org.atlasapi.entity.Id;
+import org.atlasapi.entity.util.Resolved;
 import org.atlasapi.media.entity.Publisher;
 import org.atlasapi.output.NotFoundException;
 import org.atlasapi.output.ResourceForbiddenException;
@@ -22,7 +23,10 @@ import org.atlasapi.query.common.useraware.UserAwareQueryExecutor;
 
 import com.google.common.base.Optional;
 import com.google.common.base.Predicate;
+import com.google.common.collect.FluentIterable;
 import com.google.common.collect.Iterables;
+import com.google.common.util.concurrent.Futures;
+import com.google.common.util.concurrent.ListenableFuture;
 
 public class ApplicationQueryExecutor implements UserAwareQueryExecutor<Application> {
 
@@ -38,7 +42,7 @@ public class ApplicationQueryExecutor implements UserAwareQueryExecutor<Applicat
         return query.isListQuery() ? multipleQuery(query) : singleQuery(query);
     }
 
-    private UserAwareQueryResult<Application> singleQuery(UserAwareQuery<Application> query) throws NotFoundException, ResourceForbiddenException {
+    private UserAwareQueryResult<Application> singleQuery(UserAwareQuery<Application> query) throws QueryExecutionException {
         Id id = query.getOnlyId();
         if (!userCanAccessApplication(id, query)) {
             throw new ResourceForbiddenException();
@@ -53,7 +57,8 @@ public class ApplicationQueryExecutor implements UserAwareQueryExecutor<Applicat
 
     }
 
-    private UserAwareQueryResult<Application> multipleQuery(UserAwareQuery<Application> query) {
+    private UserAwareQueryResult<Application> multipleQuery(UserAwareQuery<Application> query)
+            throws QueryExecutionException {
         AttributeQuerySet operands = query.getOperands();
         User user = query.getContext().getUser().get();
 
@@ -77,7 +82,7 @@ public class ApplicationQueryExecutor implements UserAwareQueryExecutor<Applicat
         Iterable<Application> results = null;
         
         if (!Iterables.isEmpty(ids)) {
-            results = applicationStore.applicationsFor(ids);
+            results = resolve(ids);
         } else if (reads != null) {
             results = applicationStore.allApplications();
         } else if (writes != null) {
@@ -86,7 +91,7 @@ public class ApplicationQueryExecutor implements UserAwareQueryExecutor<Applicat
             if (query.getContext().isAdminUser()) {
                 results = applicationStore.allApplications();
             } else {
-                results = applicationStore.applicationsFor(user.getApplicationIds());
+                results = resolve(user.getApplicationIds());
             }
         }
         
@@ -96,14 +101,16 @@ public class ApplicationQueryExecutor implements UserAwareQueryExecutor<Applicat
             return UserAwareQueryResult.listResult(filterByUserViewable(results, user), query.getContext());
         }
     }
+
+    private FluentIterable<Application> resolve(Iterable<Id> ids) throws QueryExecutionException {
+        ListenableFuture<Resolved<Application>> futureApps = applicationStore.resolveIds(ids);
+        Resolved<Application> resolved = Futures.get(futureApps, QueryExecutionException.class);
+        return resolved.getResources();
+    }
     
     private boolean userCanAccessApplication(Id id, UserAwareQuery<Application> query) {
         Optional<User> user = query.getContext().getUser();
-        if (!user.isPresent()) {
-            return false;
-        } else {
-            return user.get().is(Role.ADMIN) || user.get().getApplicationIds().contains(id);
-        }
+        return user.isPresent() && (user.get().is(Role.ADMIN) || user.get().getApplicationIds().contains(id));
     }
     
     private Iterable<Application> filterByUserViewable(Iterable<Application> applications, final User user) {

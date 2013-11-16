@@ -4,22 +4,26 @@ import java.util.Set;
 
 import org.atlasapi.application.Application;
 import org.atlasapi.application.LegacyApplicationStore;
+import org.atlasapi.application.users.Role;
 import org.atlasapi.application.users.User;
 import org.atlasapi.entity.Id;
+import org.atlasapi.entity.util.Resolved;
 
 import com.google.common.base.Function;
-import com.google.common.collect.Iterables;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
+import com.google.common.util.concurrent.Futures;
+import com.google.common.util.concurrent.ListenableFuture;
 
-
-public class UserModelTranslator {
+public class UserModelTranslator implements Function<org.atlasapi.application.users.v3.User, User> {
+    
     private final LegacyApplicationStore store;
     
     public UserModelTranslator(LegacyApplicationStore store) {
         this.store = store;
     }
 
-    public User transform3to4(org.atlasapi.application.users.v3.User input) {
+    public User apply(org.atlasapi.application.users.v3.User input) {
         return User.builder()
                 .withId(Id.valueOf(input.getId().longValue()))
                 .withUserRef(input.getUserRef())
@@ -31,7 +35,7 @@ public class UserModelTranslator {
                 .withProfileImage(input.getProfileImage())
                 .withApplicationIds(transformApplicationSlugs(input.getApplicationSlugs()))
                 .withSources(input.getSources())
-                .withRole(input.getRole())
+                .withRole(Role.valueOf(input.getRole().name()))
                 .withProfileComplete(input.isProfileComplete())
                 .build();
     }
@@ -50,7 +54,7 @@ public class UserModelTranslator {
                 .withEmail(input.getEmail())
                 .withWebsite(input.getWebsite())
                 .withProfileImage(input.getProfileImage())
-                .withRole(input.getRole())
+                .withRole(org.atlasapi.application.users.v3.Role.valueOf(input.getRole().name()))
                 .withApplicationSlugs(transformApplicationIds(input.getApplicationIds()))
                 .withSources(input.getSources())
                 .withProfileComplete(input.isProfileComplete())
@@ -58,13 +62,13 @@ public class UserModelTranslator {
     }
     
     public Set<String> transformApplicationIds(Set<Id> input) {
-        Iterable<Application> applications = store.applicationsFor(input);
-        
-        return Sets.newHashSet(Iterables.transform(applications, new Function<Application, String>() {
-
+        ListenableFuture<Resolved<Application>> resolved = store.resolveIds(input);
+        return ImmutableSet.copyOf(Futures.getUnchecked(resolved)
+                .getResources().transform(new Function<Application, String>() {
             @Override
             public String apply(Application input) {
                return input.getSlug();
-            }}));
+            }}
+        ));
     }
 }

@@ -55,7 +55,7 @@ public class ApplicationModelTranslatorTest {
 	            .withRevoked(true)
 				.build();
 		 ApplicationModelTranslator translator = new ApplicationModelTranslator();
-		 Application result = translator.transform3to4(application);
+		 Application result = translator.apply(application);
 		 assertEquals(SLUG, result.getSlug());
 		 assertEquals(Id.valueOf(5000), result.getId());
 		 assertEquals(TITLE, result.getTitle());

@@ -12,8 +12,6 @@ public interface UserStore extends IdResolver<User> {
     
     Optional<User> userForId(Id id);
     
-    Iterable<User> usersFor(Iterable<Id> ids);
-    
     Iterable<User> allUsers();
     
     void store(User user);

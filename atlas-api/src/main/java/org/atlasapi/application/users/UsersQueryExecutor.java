@@ -6,6 +6,7 @@ import org.atlasapi.criteria.AttributeQuerySet;
 import org.atlasapi.criteria.IdAttributeQuery;
 import org.atlasapi.criteria.QueryVisitorAdapter;
 import org.atlasapi.entity.Id;
+import org.atlasapi.entity.util.Resolved;
 import org.atlasapi.output.NotFoundException;
 import org.atlasapi.output.ResourceForbiddenException;
 import org.atlasapi.output.useraware.UserAwareQueryResult;
@@ -16,6 +17,8 @@ import org.atlasapi.query.common.useraware.UserAwareQueryExecutor;
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
+import com.google.common.util.concurrent.Futures;
+import com.google.common.util.concurrent.ListenableFuture;
 
 public class UsersQueryExecutor implements UserAwareQueryExecutor<User> {
     
@@ -30,7 +33,7 @@ public class UsersQueryExecutor implements UserAwareQueryExecutor<User> {
         return query.isListQuery() ? multipleQuery(query) : singleQuery(query);
     }
     
-    private UserAwareQueryResult<User> singleQuery(UserAwareQuery<User> query) throws NotFoundException, ResourceForbiddenException {
+    private UserAwareQueryResult<User> singleQuery(UserAwareQuery<User> query) throws QueryExecutionException {
         Id id = query.getOnlyId();
         if (!query.getContext().isAdminUser() && !id.equals(query.getContext().getUser().get().getId())) {
             throw new ResourceForbiddenException();
@@ -43,7 +46,7 @@ public class UsersQueryExecutor implements UserAwareQueryExecutor<User> {
         }
     }
     
-    private UserAwareQueryResult<User> multipleQuery(UserAwareQuery<User> query) throws NotFoundException {
+    private UserAwareQueryResult<User> multipleQuery(UserAwareQuery<User> query) throws QueryExecutionException {
         AttributeQuerySet operands = query.getOperands();
         // Can only return own profile if non admin user
         if (!query.getContext().isAdminUser()) {
@@ -63,8 +66,11 @@ public class UsersQueryExecutor implements UserAwareQueryExecutor<User> {
     
     }
     
-    private UserAwareQueryResult<User> usersQueryForIds(UserAwareQuery<User> query, Iterable<Id> ids) {
-        return UserAwareQueryResult.listResult(userStore.usersFor(ids), query.getContext());
+    private UserAwareQueryResult<User> usersQueryForIds(UserAwareQuery<User> query, Iterable<Id> ids)
+            throws QueryExecutionException {
+        ListenableFuture<Resolved<User>> resolved = userStore.resolveIds(ids);
+        Resolved<User> users = Futures.get(resolved, QueryExecutionException.class);
+        return UserAwareQueryResult.listResult(users.getResources(), query.getContext());
     }
     
     private UserAwareQueryResult<User> allUsersQuery(UserAwareQuery<User> query) {

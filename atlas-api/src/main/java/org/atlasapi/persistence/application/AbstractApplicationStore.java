@@ -43,7 +43,7 @@ public abstract class AbstractApplicationStore implements ApplicationStore {
 
     abstract void doUpdateApplication(Application application);
     
-    public Application createApplication(Application application) {
+    public final Application createApplication(Application application) {
         // Create requests do not have to post credentials or 
         // sources part of the object so ensure these exist
         ApplicationCredentials.Builder credentialsBuilder;
@@ -74,7 +74,7 @@ public abstract class AbstractApplicationStore implements ApplicationStore {
     }
 
     @Override
-    public Application updateApplication(Application application) {
+    public final Application updateApplication(Application application) {
         Application updated = withGuaranteedSlug(application);
         doUpdateApplication(updated);
         return updated;

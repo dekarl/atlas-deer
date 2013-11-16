@@ -82,16 +82,6 @@ public class CacheBackedApplicationStore implements ApplicationStore, LegacyAppl
     }
 
     @Override
-    public Iterable<Application> applicationsFor(Iterable<Id> ids) {
-        return Iterables.transform(ids, new Function<Id, Application>() {
-            @Override
-            public Application apply(Id input) {
-                return idCache.getUnchecked(input).get();
-            }
-        });
-    }
-
-    @Override
     public Iterable<Application> readersFor(Publisher source) {
         return delegate.readersFor(source);
     }

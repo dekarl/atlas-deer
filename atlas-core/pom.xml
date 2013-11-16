@@ -14,6 +14,10 @@
       <artifactId>atlas-model</artifactId>
     </dependency>
     <dependency>
+      <groupId>org.atlasapi</groupId>
+      <artifactId>atlas-applications</artifactId>
+    </dependency>
+    <dependency>
       <groupId>com.metabroadcast.common</groupId>
       <artifactId>common</artifactId>
     </dependency>
