@@ -2,9 +2,9 @@ package org.atlasapi.system.bootstrap;
 
 import javax.jms.ConnectionFactory;
 
+import org.atlasapi.application.AtlasPersistenceModule;
 import org.atlasapi.content.Content;
 import org.atlasapi.equiv.EquivalenceRecord;
-import org.atlasapi.persistence.AtlasPersistenceModule;
 import org.atlasapi.system.bootstrap.workers.BootstrapWorkersModule;
 import org.atlasapi.system.legacy.LegacyPersistenceModule;
 import org.atlasapi.topic.Topic;

@@ -1,6 +1,7 @@
-package org.atlasapi.persistence.application;
+package org.atlasapi.application;
 
 import org.atlasapi.application.CacheBackedApplicationStore;
+import org.atlasapi.application.LegacyAdaptingApplicationStore;
 import org.atlasapi.application.LegacyApplicationStore;
 import org.atlasapi.application.SourceRequestStore;
 import org.atlasapi.application.users.v3.MongoUserStore;

@@ -11,7 +11,6 @@ import org.atlasapi.application.notification.NotifierModule;
 import org.atlasapi.application.users.NewUserSupplier;
 import org.atlasapi.application.users.UserStore;
 import org.atlasapi.application.www.ApplicationWebModule;
-import org.atlasapi.persistence.application.ApplicationPersistenceModule;
 import org.atlasapi.persistence.ids.MongoSequentialIdGenerator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;

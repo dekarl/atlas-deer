@@ -1,9 +1,5 @@
-package org.atlasapi.persistence.application;
+package org.atlasapi.application;
 
-import org.atlasapi.application.Application;
-import org.atlasapi.application.ApplicationCredentials;
-import org.atlasapi.application.ApplicationSources;
-import org.atlasapi.application.ApplicationStore;
 import org.atlasapi.entity.Id;
 
 import com.google.common.base.Preconditions;

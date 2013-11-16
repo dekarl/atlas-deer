@@ -1,11 +1,11 @@
 package org.atlasapi.system.bootstrap.workers;
 
+import org.atlasapi.application.AtlasPersistenceModule;
 import org.atlasapi.content.ContentResolver;
 import org.atlasapi.content.ContentWriter;
 import org.atlasapi.equiv.EquivalenceRecordStore;
 import org.atlasapi.messaging.AtlasMessagingModule;
 import org.atlasapi.messaging.QueueHelper;
-import org.atlasapi.persistence.AtlasPersistenceModule;
 import org.atlasapi.persistence.lookup.entry.LookupEntryStore;
 import org.atlasapi.system.legacy.LegacyPersistenceModule;
 import org.atlasapi.topic.TopicResolver;

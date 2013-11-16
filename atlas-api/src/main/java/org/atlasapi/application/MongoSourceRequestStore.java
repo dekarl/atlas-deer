@@ -1,8 +1,8 @@
-package org.atlasapi.persistence.application;
+package org.atlasapi.application;
 
 import static com.metabroadcast.common.persistence.mongo.MongoBuilders.where;
-import static org.atlasapi.persistence.application.SourceRequestTranslator.APPID_KEY;
-import static org.atlasapi.persistence.application.SourceRequestTranslator.SOURCE_KEY;
+import static org.atlasapi.application.SourceRequestTranslator.APPID_KEY;
+import static org.atlasapi.application.SourceRequestTranslator.SOURCE_KEY;
 
 import java.util.Set;
 

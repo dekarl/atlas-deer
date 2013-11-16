@@ -1,4 +1,4 @@
-package org.atlasapi.persistence.application;
+package org.atlasapi.application;
 
 
 import org.atlasapi.application.SourceRequest;

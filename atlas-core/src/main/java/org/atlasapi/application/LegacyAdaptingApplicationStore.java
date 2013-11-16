@@ -1,4 +1,4 @@
-package org.atlasapi.persistence.application;
+package org.atlasapi.application;
 
 import static com.metabroadcast.common.persistence.mongo.MongoBuilders.select;
 import static com.metabroadcast.common.persistence.mongo.MongoBuilders.where;
@@ -9,8 +9,6 @@ import static org.atlasapi.application.v3.ApplicationConfigurationTranslator.WRI
 import static org.atlasapi.application.v3.ApplicationTranslator.APPLICATION_CONFIG_KEY;
 import static org.atlasapi.application.v3.ApplicationTranslator.DEER_ID_KEY;
 
-import org.atlasapi.application.Application;
-import org.atlasapi.application.LegacyApplicationStore;
 import org.atlasapi.application.SourceStatus.SourceState;
 import org.atlasapi.application.v3.ApplicationTranslator;
 import org.atlasapi.entity.Id;

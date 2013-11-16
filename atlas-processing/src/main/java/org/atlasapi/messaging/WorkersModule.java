@@ -3,7 +3,7 @@ package org.atlasapi.messaging;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 
-import org.atlasapi.persistence.AtlasPersistenceModule;
+import org.atlasapi.application.AtlasPersistenceModule;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

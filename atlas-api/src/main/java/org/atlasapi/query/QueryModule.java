@@ -14,12 +14,12 @@ permissions and limitations under the License. */
 
 package org.atlasapi.query;
 
+import org.atlasapi.application.AtlasPersistenceModule;
 import org.atlasapi.content.Content;
 import org.atlasapi.equiv.DefaultMergingEquivalentsResolver;
 import org.atlasapi.equiv.MergingEquivalentsResolver;
 import org.atlasapi.equiv.OutputContentMerger;
 import org.atlasapi.equiv.StrategyBackedEquivalentsMerger;
-import org.atlasapi.persistence.AtlasPersistenceModule;
 import org.atlasapi.query.common.ContextualQueryExecutor;
 import org.atlasapi.query.common.QueryExecutor;
 import org.atlasapi.query.v4.content.IndexBackedEquivalentContentQueryExecutor;

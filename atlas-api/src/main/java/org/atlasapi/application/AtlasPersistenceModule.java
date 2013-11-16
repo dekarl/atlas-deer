@@ -1,4 +1,4 @@
-package org.atlasapi.persistence;
+package org.atlasapi.application;
 
 import java.net.UnknownHostException;
 import java.util.List;
