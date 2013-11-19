@@ -2,16 +2,20 @@ package org.atlasapi.messaging;
 
 import javax.jms.ConnectionFactory;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.jms.core.JmsTemplate;
 import org.springframework.jms.listener.DefaultMessageListenerContainer;
 import org.springframework.jms.listener.adapter.MessageListenerAdapter;
 
-public final class QueueHelper {
+public final class QueueFactory {
 
+    private static final Logger log = LoggerFactory.getLogger(QueueFactory.class);
+    
     private final String system;
     private final ConnectionFactory cf;
 
-    public QueueHelper(ConnectionFactory cf, String system) {
+    public QueueFactory(ConnectionFactory cf, String system) {
         this.cf = cf;
         this.system = system;
     }
@@ -37,6 +41,7 @@ public final class QueueHelper {
     }
     
     public DefaultMessageListenerContainer makeContainer(Worker worker, String destination, int consumers, int maxConsumers) {
+        log.info("Reading {} with {}", destination, worker.getClass().getSimpleName());
         MessageListenerAdapter adapter = new MessageListenerAdapter(worker);
         DefaultMessageListenerContainer container = new DefaultMessageListenerContainer();
 
@@ -51,9 +56,11 @@ public final class QueueHelper {
     }
     
     public JmsTemplate makeVirtualTopicProducer(String producerName) {
+        String destination = this.virtualTopicProducer(producerName);
+        log.info("Writing {}", destination);
         JmsTemplate jmsTemplate = new JmsTemplate(cf);
         jmsTemplate.setPubSubDomain(true);
-        jmsTemplate.setDefaultDestinationName(this.virtualTopicProducer(producerName));
+        jmsTemplate.setDefaultDestinationName(destination);
         return jmsTemplate;
     }
     

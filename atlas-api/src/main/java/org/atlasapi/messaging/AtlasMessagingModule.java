@@ -20,8 +20,8 @@ public class AtlasMessagingModule {
     @Value("${messaging.destination.topics.changes}") public String topicChanges;
 
     @Bean
-    public QueueHelper queueHelper() {
-        return new QueueHelper(activemqConnectionFactory(), messagingSystem);
+    public QueueFactory queueHelper() {
+        return new QueueFactory(activemqConnectionFactory(), messagingSystem);
     }
     
     @Bean

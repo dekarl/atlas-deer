@@ -4,7 +4,7 @@ import org.atlasapi.application.AtlasPersistenceModule;
 import org.atlasapi.content.ContentResolver;
 import org.atlasapi.equiv.EquivalenceRecordStore;
 import org.atlasapi.messaging.AtlasMessagingModule;
-import org.atlasapi.messaging.QueueHelper;
+import org.atlasapi.messaging.QueueFactory;
 import org.atlasapi.persistence.lookup.entry.LookupEntryStore;
 import org.atlasapi.system.legacy.LegacyPersistenceModule;
 import org.atlasapi.topic.TopicResolver;
@@ -30,7 +30,7 @@ public class BootstrapWorkersModule {
     @Autowired private LegacyPersistenceModule legacy;
     @Autowired private AtlasMessagingModule messaging;
     
-    private final QueueHelper queueHelper = new QueueHelper(messaging.activemqConnectionFactory(), originSystem);
+    private final QueueFactory queueHelper = new QueueFactory(messaging.activemqConnectionFactory(), originSystem);
 
     @Bean
     @Lazy(true)
