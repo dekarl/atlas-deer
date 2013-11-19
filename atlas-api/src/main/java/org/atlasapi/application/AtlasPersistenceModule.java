@@ -31,14 +31,12 @@ import org.atlasapi.topic.EsPopularTopicIndex;
 import org.atlasapi.topic.EsTopicIndex;
 import org.atlasapi.topic.TopicStore;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.Primary;
 
 import com.google.common.base.Function;
-import com.google.common.base.Preconditions;
 import com.google.common.base.Predicates;
 import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableList;
@@ -58,7 +56,8 @@ import com.mongodb.ServerAddress;
 public class AtlasPersistenceModule {
 
     private final String mongoHost = Configurer.get("mongo.host").get();
-    private final String mongoDbName = Configurer.get("mongo.dbName").get();
+    private final Integer mongoPort = Configurer.get("mongo.port").toInt();
+    private final String mongoDbName = Configurer.get("mongo.name").get();
     
     private final String cassandraCluster = Configurer.get("cassandra.cluster").get();
     private final String cassandraKeyspace = Configurer.get("cassandra.keyspace").get();
@@ -71,10 +70,6 @@ public class AtlasPersistenceModule {
     private final String esCluster = Configurer.get("elasticsearch.cluster").get();
     private final String esRequestTimeout = Configurer.get("elasticsearch.requestTimeout").get();
     private final Parameter processingConfig = Configurer.get("processing.config");
-    
-    private final String adminDbHost = Configurer.get("admin.db.host").get();
-    private final String adminDbPort = Configurer.get("admin.db.port").get();
-    private final String adminDbName = Configurer.get("admin.db.name").get();    
 
     @Autowired AtlasMessagingModule messaging;
 
@@ -144,23 +139,7 @@ public class AtlasPersistenceModule {
         }
         return mongo;
     }
-    
-    @Bean
-    @Qualifier(value = "adminMongo")
-    public DatabasedMongo adminMongo() {
-        ServerAddress adminAddress = null;
-        try {
-            adminAddress = new ServerAddress(adminDbHost, Integer.parseInt(adminDbPort));
-            Mongo adminMongoDb = new MongoClient(adminAddress);
-            adminMongoDb.setReadPreference(ReadPreference.primary());
-            DatabasedMongo adminMongo = new DatabasedMongo(adminMongoDb, adminDbName);
-            return adminMongo;
-        } catch (UnknownHostException e) {
-            Preconditions.checkNotNull(adminAddress);
-            return null;
-        }
-    }
-    
+
     @Bean
     public IdGeneratorBuilder idGeneratorBuilder() {
         return new IdGeneratorBuilder() {
@@ -217,17 +196,18 @@ public class AtlasPersistenceModule {
 
     private List<ServerAddress> mongoHosts() {
         Splitter splitter = Splitter.on(",").omitEmptyStrings().trimResults();
-        return ImmutableList.copyOf(Iterables.filter(Iterables.transform(splitter.split(mongoHost), new Function<String, ServerAddress>() {
-
-            @Override
-            public ServerAddress apply(String input) {
-                try {
-                    return new ServerAddress(input, 27017);
-                } catch (UnknownHostException e) {
-                    return null;
+        return ImmutableList.copyOf(Iterables.filter(Iterables.transform(splitter.split(mongoHost), 
+            new Function<String, ServerAddress>() {
+                @Override
+                public ServerAddress apply(String input) {
+                    try {
+                        return new ServerAddress(input, mongoPort);
+                    } catch (UnknownHostException e) {
+                        return null;
+                    }
                 }
             }
-        }), Predicates.notNull()));
+        ), Predicates.notNull()));
     }
     
 }
