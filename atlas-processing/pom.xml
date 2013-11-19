@@ -31,7 +31,7 @@
                   <classifier>classes</classifier>
                   <overWrite>false</overWrite>
                   <outputDirectory>${project.build.directory}/atlas-api</outputDirectory>
-                  <includes>org/atlasapi/*.class,org/atlasapi/util/jetty/*.class</includes>
+                  <includes>org/atlasapi/*.class,org/atlasapi/util/jetty/*.class,**/*.properties</includes>
                 </artifactItem>
               </artifactItems>
               <overWriteReleases>false</overWriteReleases>
@@ -63,10 +63,9 @@
             <configuration>
               <tasks>
                 <copy
-                  todir="${project.build.directory}/${project.artifactId}/org/atlasapi/">
+                  todir="${project.build.directory}/${project.artifactId}/">
                   <fileset
-                    dir="${project.build.directory}/atlas-api/org/atlasapi/">
-                    <filename name="*.class" />
+                    dir="${project.build.directory}/atlas-api/">
                   </fileset>
                 </copy>
                 <copy
