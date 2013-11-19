@@ -17,11 +17,11 @@ import com.google.common.util.concurrent.ListenableFuture;
 public class ContentReadWriteWorker extends AbstractWorker {
 
     private final ContentResolver contentResolver;
-    private final ContentWriter contentWriter;
+    private final ContentWriter writer;
 
-    public ContentReadWriteWorker(ContentResolver contentResolver, ContentWriter contentWriter) {
+    public ContentReadWriteWorker(ContentResolver contentResolver, ContentWriter writer) {
         this.contentResolver = contentResolver;
-        this.contentWriter = contentWriter;
+        this.writer = writer;
     }
 
     @Override
@@ -33,8 +33,7 @@ public class ContentReadWriteWorker extends AbstractWorker {
             @Override
             public void onSuccess(Resolved<Content> result) {
                 for (Content content : result.getResources()) {
-                    content.setReadHash(null);//force write
-                    contentWriter.writeContent(content);
+                    writer.writeContent(content);
                 }
             }
 
@@ -44,5 +43,6 @@ public class ContentReadWriteWorker extends AbstractWorker {
             }
         });
     }
+    
     
 }

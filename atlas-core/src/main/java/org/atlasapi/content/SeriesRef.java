@@ -30,7 +30,7 @@ public class SeriesRef implements Identifiable, Comparable<SeriesRef> {
     
     public SeriesRef(Id id, String title, Integer seriesNumber, DateTime updated) {
         this.id = checkNotNull(id);
-        this.title =  checkNotNull(title);
+        this.title =  title;
         this.updated = updated;
         this.seriesNumber = seriesNumber;
     }

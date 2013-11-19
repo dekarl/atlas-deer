@@ -7,11 +7,9 @@ import java.io.IOException;
 import javax.servlet.http.HttpServletResponse;
 
 import org.atlasapi.content.Brand;
-import org.atlasapi.content.Container;
 import org.atlasapi.content.Content;
 import org.atlasapi.content.ContentResolver;
 import org.atlasapi.content.ContentVisitorAdapter;
-import org.atlasapi.content.ContentWriter;
 import org.atlasapi.content.Identified;
 import org.atlasapi.content.Item;
 import org.atlasapi.content.Series;
@@ -19,6 +17,7 @@ import org.atlasapi.entity.Id;
 import org.atlasapi.entity.Identifiables;
 import org.atlasapi.entity.util.Resolved;
 import org.atlasapi.entity.util.WriteResult;
+import org.atlasapi.system.bootstrap.workers.BootstrapContentPersistor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -35,9 +34,9 @@ import com.google.common.util.concurrent.ListenableFuture;
 public class IndividualContentBootstrapController {
 
     private final ContentResolver read;
-    private final ContentWriter write;
+    private final BootstrapContentPersistor write;
 
-    public IndividualContentBootstrapController(ContentResolver read, ContentWriter write) {
+    public IndividualContentBootstrapController(ContentResolver read, BootstrapContentPersistor write) {
         this.read = checkNotNull(read);
         this.write = checkNotNull(write);
     }
@@ -54,7 +53,7 @@ public class IndividualContentBootstrapController {
             
             @Override
             public String visit(Brand brand) {
-                WriteResult<Container> brandWrite = write(brand.copy());
+                WriteResult<?> brandWrite = write(brand.copy());
                 int series = resolveAndWrite(Iterables.transform(brand.getSeriesRefs(), Identifiables.toId()));
                 int childs = resolveAndWrite(Iterables.transform(brand.getChildRefs(), Identifiables.toId()));
                 return String.format("%s s:%s c:%s", brandWrite, series, childs);
@@ -62,7 +61,7 @@ public class IndividualContentBootstrapController {
             
             @Override
             public String visit(Series series) {
-                WriteResult<Container> seriesWrite = write(series.copy());
+                WriteResult<?> seriesWrite = write(series.copy());
                 int childs = resolveAndWrite(Iterables.transform(series.getChildRefs(), Identifiables.toId()));
                 return String.format("%s c:%s", seriesWrite, childs);
             }
@@ -82,7 +81,7 @@ public class IndividualContentBootstrapController {
                 return write(item).toString();
             }
 
-            private <C extends Content> WriteResult<C> write(C content) {
+            private WriteResult<? extends Content> write(Content content) {
                 content.setReadHash(null);
                 return write.writeContent(content);
             }

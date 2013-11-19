@@ -2,7 +2,6 @@ package org.atlasapi.system.bootstrap.workers;
 
 import org.atlasapi.application.AtlasPersistenceModule;
 import org.atlasapi.content.ContentResolver;
-import org.atlasapi.content.ContentWriter;
 import org.atlasapi.equiv.EquivalenceRecordStore;
 import org.atlasapi.messaging.AtlasMessagingModule;
 import org.atlasapi.messaging.QueueHelper;
@@ -37,8 +36,9 @@ public class BootstrapWorkersModule {
     @Lazy(true)
     DefaultMessageListenerContainer contentReadWriter() {
         ContentResolver legacyResolver = legacy.legacyContentResolver();
-        ContentWriter writer = persistence.contentStore();
-        ContentReadWriteWorker worker = new ContentReadWriteWorker(legacyResolver, writer);
+        BootstrapContentPersistor persistor = new BootstrapContentPersistor(
+            persistence.contentStore(), persistence.scheduleStore(), persistence.channelStore());
+        ContentReadWriteWorker worker = new ContentReadWriteWorker(legacyResolver, persistor);
         return queueHelper.makeVirtualTopicConsumer(worker, "Bootstrap", messaging.contentChanges, 1, 1);
     }
 
