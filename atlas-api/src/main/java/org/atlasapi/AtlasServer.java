@@ -182,17 +182,17 @@ public class AtlasServer {
     }
 
     @SuppressWarnings("unchecked")
-    public static Map<String, String> getMetrics(Object atlasMain)
+    public static Map<String, String> getMetrics(Object atlasServer)
             throws IllegalArgumentException,
             SecurityException, IllegalAccessException, InvocationTargetException {
-        Class<? extends Object> clazz = atlasMain.getClass();
-        if (clazz.getCanonicalName() != AtlasMain.class.getCanonicalName()) {
+        Class<? extends Object> clazz = atlasServer.getClass();
+        if (clazz.getCanonicalName() != AtlasServer.class.getCanonicalName()) {
             throw new IllegalArgumentException("Parameter must be instance of "
-                + AtlasMain.class.getCanonicalName());
+                + AtlasServer.class.getCanonicalName());
         }
 
         try {
-            return (Map<String, String>) clazz.getDeclaredMethod(METRIC_METHOD_NAME).invoke(atlasMain);
+            return (Map<String, String>) clazz.getDeclaredMethod(METRIC_METHOD_NAME).invoke(atlasServer);
         } catch (NoSuchMethodException e) {
             throw new IllegalArgumentException(
                     "Couldn't find method " + METRIC_METHOD_NAME + ": Perhaps a mismatch between AtlasMain objects across classloaders?",

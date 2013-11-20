@@ -24,7 +24,7 @@
           <fork>true</fork>
           <compilerArgs>
             <arg>-J-Xss1M</arg>
-            <arg>-Xlint</arg>
+            <arg>-Xlint:-deprecation</arg>
           </compilerArgs>
         </configuration>
       </plugin>

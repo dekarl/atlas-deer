@@ -117,7 +117,6 @@ import com.metabroadcast.common.time.SystemClock;
 public class QueryWebModule {
     
     private @Value("${local.host.name}") String localHostName;
-    private @Value("${ids.expose}") String exposeIds;
     
     private @Autowired DatabasedMongo mongo;
     private @Autowired QueryModule queryModule;
