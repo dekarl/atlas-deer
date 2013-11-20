@@ -75,6 +75,7 @@ public class AtlasServer {
 
 
     private WebAppContext createWebApp(String descriptor, final Server server) throws Exception {
+        System.out.println(String.format("Creating web app: %s", descriptor));
         WebAppContext ctx = new WebAppContext(warBase(), "/");
         ctx.setDescriptor(descriptor);
         server.setHandler(ctx);

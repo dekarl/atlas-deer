@@ -32,6 +32,7 @@
                   <overWrite>false</overWrite>
                   <outputDirectory>${project.build.directory}/atlas-api</outputDirectory>
                   <includes>org/atlasapi/*.class,org/atlasapi/util/jetty/*.class,**/*.properties</includes>
+                  <excludes>**/AtlasMain.class,**/AtlasApiModule.class</excludes>
                 </artifactItem>
               </artifactItems>
               <overWriteReleases>false</overWriteReleases>
@@ -66,6 +67,13 @@
                   todir="${project.build.directory}/${project.artifactId}/">
                   <fileset
                     dir="${project.build.directory}/atlas-api/">
+                  </fileset>
+                </copy>
+                <copy
+                  todir="${project.build.directory}/${project.artifactId}/org/atlasapi/">
+                  <fileset
+                    dir="${project.build.directory}/classes/org/atlasapi/">
+                    <filename name="*.class" />
                   </fileset>
                 </copy>
                 <copy
