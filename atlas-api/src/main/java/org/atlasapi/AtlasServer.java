@@ -58,6 +58,7 @@ public class AtlasServer {
     }
     
     public AtlasServer(int port, boolean monitor) throws Exception {
+        System.out.println(String.format("port: %s, monitoring %s", port, monitor? "enabled" : "disabled"));
         this.start(port, monitor);
     }
     
