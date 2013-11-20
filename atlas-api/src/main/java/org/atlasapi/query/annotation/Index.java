@@ -4,7 +4,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
-import org.atlasapi.output.Annotation;
+import org.atlasapi.annotation.Annotation;
 import org.atlasapi.query.common.InvalidAnnotationException;
 import org.atlasapi.query.common.ReplacementSuggestion;
 import org.atlasapi.query.common.Resource;

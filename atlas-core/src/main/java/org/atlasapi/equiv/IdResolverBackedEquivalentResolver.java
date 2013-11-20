@@ -7,6 +7,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
 
+import org.atlasapi.annotation.Annotation;
 import org.atlasapi.entity.Id;
 import org.atlasapi.entity.IdResolver;
 import org.atlasapi.entity.Identifiable;
@@ -15,7 +16,6 @@ import org.atlasapi.entity.Sourced;
 import org.atlasapi.entity.Sourceds;
 import org.atlasapi.entity.util.Resolved;
 import org.atlasapi.media.entity.Publisher;
-import org.atlasapi.output.Annotation;
 
 import com.google.common.base.Function;
 import com.google.common.base.Functions;

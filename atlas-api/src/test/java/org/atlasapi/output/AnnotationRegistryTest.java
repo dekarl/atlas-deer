@@ -1,17 +1,18 @@
 package org.atlasapi.output;
 
-import static org.atlasapi.output.Annotation.DESCRIPTION;
-import static org.atlasapi.output.Annotation.EXTENDED_DESCRIPTION;
-import static org.atlasapi.output.Annotation.EXTENDED_ID;
-import static org.atlasapi.output.Annotation.ID;
-import static org.atlasapi.output.Annotation.ID_SUMMARY;
-import static org.atlasapi.output.Annotation.SERIES_REFERENCE;
-import static org.atlasapi.output.Annotation.SERIES_SUMMARY;
+import static org.atlasapi.annotation.Annotation.DESCRIPTION;
+import static org.atlasapi.annotation.Annotation.EXTENDED_DESCRIPTION;
+import static org.atlasapi.annotation.Annotation.EXTENDED_ID;
+import static org.atlasapi.annotation.Annotation.ID;
+import static org.atlasapi.annotation.Annotation.ID_SUMMARY;
+import static org.atlasapi.annotation.Annotation.SERIES_REFERENCE;
+import static org.atlasapi.annotation.Annotation.SERIES_SUMMARY;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
 
 import java.util.List;
 
+import org.atlasapi.annotation.Annotation;
 import org.atlasapi.content.Content;
 import org.atlasapi.output.annotation.ContentDescriptionAnnotation;
 import org.atlasapi.output.annotation.ExtendedDescriptionAnnotation;

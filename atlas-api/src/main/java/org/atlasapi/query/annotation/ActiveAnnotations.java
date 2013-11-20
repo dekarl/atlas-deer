@@ -5,7 +5,7 @@ import java.util.Map.Entry;
 
 import javax.annotation.Nullable;
 
-import org.atlasapi.output.Annotation;
+import org.atlasapi.annotation.Annotation;
 import org.atlasapi.query.common.Resource;
 
 import com.google.common.base.Function;

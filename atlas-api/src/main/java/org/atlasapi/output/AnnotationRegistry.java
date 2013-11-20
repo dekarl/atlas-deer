@@ -3,6 +3,7 @@ package org.atlasapi.output;
 import java.util.List;
 import java.util.Set;
 
+import org.atlasapi.annotation.Annotation;
 import org.atlasapi.output.annotation.OutputAnnotation;
 
 import com.google.common.base.Functions;

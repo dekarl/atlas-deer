@@ -13,13 +13,13 @@ import static org.mockito.Mockito.when;
 
 import java.util.List;
 
+import org.atlasapi.annotation.Annotation;
 import org.atlasapi.content.Content;
 import org.atlasapi.content.Episode;
 import org.atlasapi.entity.Id;
 import org.atlasapi.entity.IdResolver;
 import org.atlasapi.entity.util.Resolved;
 import org.atlasapi.media.entity.Publisher;
-import org.atlasapi.output.Annotation;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.runners.MockitoJUnitRunner;

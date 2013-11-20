@@ -5,7 +5,7 @@ import static org.hamcrest.Matchers.is;
 
 import java.util.Set;
 
-import org.atlasapi.output.Annotation;
+import org.atlasapi.annotation.Annotation;
 import org.atlasapi.query.annotation.ActiveAnnotations;
 import org.atlasapi.query.annotation.ContextualAnnotationIndex;
 import org.atlasapi.query.annotation.ResourceAnnotationIndex;

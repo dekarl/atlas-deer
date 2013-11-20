@@ -2,6 +2,7 @@ package org.atlasapi.application.www;
 
 import static com.google.gson.FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES;
 
+import org.atlasapi.annotation.Annotation;
 import org.atlasapi.application.Application;
 import org.atlasapi.application.ApplicationPersistenceModule;
 import org.atlasapi.application.ApplicationQueryExecutor;
@@ -51,7 +52,6 @@ import org.atlasapi.entity.Id;
 import org.atlasapi.input.GsonModelReader;
 import org.atlasapi.input.ModelReader;
 import org.atlasapi.media.entity.Publisher;
-import org.atlasapi.output.Annotation;
 import org.atlasapi.output.EntityListWriter;
 import org.atlasapi.persistence.ids.MongoSequentialIdGenerator;
 import org.atlasapi.query.annotation.ResourceAnnotationIndex;

@@ -6,7 +6,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import org.atlasapi.output.Annotation;
+import org.atlasapi.annotation.Annotation;
 import org.atlasapi.query.common.InvalidAnnotationException;
 import org.atlasapi.query.common.Resource;
 

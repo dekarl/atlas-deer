@@ -1,4 +1,4 @@
-package org.atlasapi.output;
+package org.atlasapi.annotation;
 
 import java.util.Map;
 

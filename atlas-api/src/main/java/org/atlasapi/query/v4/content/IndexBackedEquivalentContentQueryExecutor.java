@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
+import org.atlasapi.annotation.Annotation;
 import org.atlasapi.application.ApplicationSources;
 import org.atlasapi.equiv.MergingEquivalentsResolver;
 import org.atlasapi.equiv.ResolvedEquivalents;
@@ -13,7 +14,6 @@ import org.atlasapi.entity.Id;
 import org.atlasapi.content.Content;
 import org.atlasapi.content.ContentIndex;
 import org.atlasapi.media.entity.Publisher;
-import org.atlasapi.output.Annotation;
 import org.atlasapi.output.NotFoundException;
 import org.atlasapi.query.common.Query;
 import org.atlasapi.query.common.QueryExecutionException;

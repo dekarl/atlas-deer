@@ -5,6 +5,7 @@ import static java.util.concurrent.TimeUnit.MILLISECONDS;
 
 import java.util.Set;
 
+import org.atlasapi.annotation.Annotation;
 import org.atlasapi.application.ApplicationSources;
 import org.atlasapi.content.Content;
 import org.atlasapi.content.ContentIndex;
@@ -12,7 +13,6 @@ import org.atlasapi.entity.Id;
 import org.atlasapi.entity.util.Resolved;
 import org.atlasapi.equiv.MergingEquivalentsResolver;
 import org.atlasapi.equiv.ResolvedEquivalents;
-import org.atlasapi.output.Annotation;
 import org.atlasapi.output.NotFoundException;
 import org.atlasapi.query.common.ContextualQuery;
 import org.atlasapi.query.common.ContextualQueryExecutor;

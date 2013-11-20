@@ -2,9 +2,9 @@ package org.atlasapi.equiv;
 
 import java.util.Set;
 
+import org.atlasapi.annotation.Annotation;
 import org.atlasapi.entity.Id;
 import org.atlasapi.media.entity.Publisher;
-import org.atlasapi.output.Annotation;
 
 import com.google.common.util.concurrent.ListenableFuture;
 

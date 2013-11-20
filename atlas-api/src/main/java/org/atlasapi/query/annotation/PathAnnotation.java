@@ -4,7 +4,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.util.List;
 
-import org.atlasapi.output.Annotation;
+import org.atlasapi.annotation.Annotation;
 import org.atlasapi.query.common.Resource;
 
 final class PathAnnotation {
