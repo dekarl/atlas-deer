@@ -12,13 +12,15 @@ import com.google.common.collect.ImmutableList;
 import com.metabroadcast.common.health.HealthProbe;
 import com.metabroadcast.common.health.probes.DiskSpaceProbe;
 import com.metabroadcast.common.health.probes.MemoryInfoProbe;
-import com.metabroadcast.common.persistence.mongo.health.MongoConnectionPoolProbe;
 import com.metabroadcast.common.webapp.health.HealthController;
 
 @Configuration
 public class HealthModule {
         
-        private final ImmutableList<HealthProbe> systemProbes = ImmutableList.<HealthProbe>of(new MemoryInfoProbe(), new DiskSpaceProbe(), new MongoConnectionPoolProbe());
+        private final ImmutableList<HealthProbe> systemProbes = ImmutableList.of(
+            new MemoryInfoProbe(), 
+            new DiskSpaceProbe()
+        );
         
         private @Autowired Collection<HealthProbe> probes;
         private @Autowired HealthController healthController;

@@ -41,9 +41,11 @@ import com.google.common.base.Predicates;
 import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
+import com.metabroadcast.common.health.HealthProbe;
 import com.metabroadcast.common.ids.IdGenerator;
 import com.metabroadcast.common.ids.IdGeneratorBuilder;
 import com.metabroadcast.common.persistence.mongo.DatabasedMongo;
+import com.metabroadcast.common.persistence.mongo.health.MongoConnectionPoolProbe;
 import com.metabroadcast.common.properties.Configurer;
 import com.metabroadcast.common.properties.Parameter;
 import com.mongodb.Mongo;
@@ -208,6 +210,11 @@ public class AtlasPersistenceModule {
                 }
             }
         ), Predicates.notNull()));
+    }
+    
+    @Bean
+    HealthProbe mongoConnectionProbe() {
+        return new MongoConnectionPoolProbe();
     }
     
 }

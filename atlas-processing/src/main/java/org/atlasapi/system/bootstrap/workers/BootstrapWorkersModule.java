@@ -10,6 +10,7 @@ import org.atlasapi.system.legacy.LegacyPersistenceModule;
 import org.atlasapi.topic.TopicResolver;
 import org.atlasapi.topic.TopicStore;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
@@ -30,8 +31,11 @@ public class BootstrapWorkersModule {
     @Autowired private LegacyPersistenceModule legacy;
     @Autowired private AtlasMessagingModule messaging;
     
-    private final QueueFactory queueHelper = new QueueFactory(messaging.activemqConnectionFactory(), originSystem);
-
+    @Bean @Qualifier("bootstrap")
+    QueueFactory bootstrapQueueFactory() {
+        return new QueueFactory(messaging.activemqConnectionFactory(), originSystem);
+    }
+    
     @Bean
     @Lazy(true)
     DefaultMessageListenerContainer contentReadWriter() {
@@ -39,7 +43,7 @@ public class BootstrapWorkersModule {
         BootstrapContentPersistor persistor = new BootstrapContentPersistor(
             persistence.contentStore(), persistence.scheduleStore(), persistence.channelStore());
         ContentReadWriteWorker worker = new ContentReadWriteWorker(legacyResolver, persistor);
-        return queueHelper.makeVirtualTopicConsumer(worker, "Bootstrap", messaging.contentChanges, 1, 1);
+        return bootstrapQueueFactory().makeVirtualTopicConsumer(worker, "Bootstrap", messaging.contentChanges, 1, 1);
     }
 
     @Bean
@@ -48,7 +52,7 @@ public class BootstrapWorkersModule {
         TopicResolver legacyResolver = legacy.legacyTopicResolver();
         TopicStore writer = persistence.topicStore();
         TopicReadWriteWorker worker = new TopicReadWriteWorker(legacyResolver, writer);
-        return queueHelper.makeVirtualTopicConsumer(worker, "Bootstrap", messaging.topicChanges, 1, 1);
+        return bootstrapQueueFactory().makeVirtualTopicConsumer(worker, "Bootstrap", messaging.topicChanges, 1, 1);
     }
     
     @Bean
@@ -57,7 +61,7 @@ public class BootstrapWorkersModule {
         LookupEntryStore legacyResolver = legacy.legacyeEquiavlenceStore();
         EquivalenceRecordStore writer = persistence.equivalenceRecordStore();
         LookupEntryReadWriteWorker worker = new LookupEntryReadWriteWorker(legacyResolver, writer);
-        return queueHelper.makeVirtualTopicConsumer(worker, "Bootstrap", CHANGES_EQUIV_PRODUCER, 1, 1);
+        return bootstrapQueueFactory().makeVirtualTopicConsumer(worker, "Bootstrap", CHANGES_EQUIV_PRODUCER, 1, 1);
     }
     
 }
