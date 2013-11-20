@@ -14,10 +14,12 @@ import org.atlasapi.entity.Id;
 import org.atlasapi.media.entity.Publisher;
 import org.junit.Test;
 
+import com.google.common.base.Function;
 import com.google.common.collect.Collections2;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
+import com.google.common.collect.Lists;
 
 
 public class OutputContentMergerTest {
@@ -26,22 +28,15 @@ public class OutputContentMergerTest {
     
     @Test
     public void testSortOfCommonSourceContentIsStable() {
-        Publisher source = Publisher.BBC;
-        Brand one = brand(1L, "one",source);
-        Brand two = brand(2L, "two",source);
+        Brand one = brand(1L, "one",Publisher.BBC);
+        Brand two = brand(2L, "two",Publisher.BBC);
         Brand three = brand(3L, "three",Publisher.TED);
         
         setEquivalent(one, two, three);
         setEquivalent(two, one, three);
         setEquivalent(three, two, one);
         
-        ApplicationSources sources = ApplicationSources.defaults()
-                .copy().withPrecedence(true)
-                .withReadableSources(ImmutableList.of(
-                        new SourceReadEntry(Publisher.BBC, SourceStatus.AVAILABLE_ENABLED),
-                        new SourceReadEntry(Publisher.TED, SourceStatus.AVAILABLE_ENABLED)
-                 ))
-                .build();
+        ApplicationSources sources = sourcesWithPrecedence(Publisher.BBC, Publisher.TED);
         
         ImmutableList<Brand> contents = ImmutableList.of(one, two, three);
         
@@ -71,22 +66,20 @@ public class OutputContentMergerTest {
         //two is intentionally missing here
         ImmutableList<Brand> contents = ImmutableList.of(one, three);
 
-        ApplicationSources sources = ApplicationSources.defaults()
-                .copy().withPrecedence(true)
-                .withReadableSources(ImmutableList.of(
-                        new SourceReadEntry(Publisher.BBC, SourceStatus.AVAILABLE_ENABLED),
-                        new SourceReadEntry(Publisher.TED, SourceStatus.AVAILABLE_ENABLED)
-                 ))
-                .build();
+        ApplicationSources sources = sourcesWithPrecedence(Publisher.BBC, Publisher.TED);
         mergePermutations(contents, sources, one, two.getId());
+        
+        one = brand(5L, "one", Publisher.BBC);
+        two = brand(2L, "two",Publisher.PA);
+        three = brand(10L, "three",Publisher.TED);
+        
+        setEquivalent(one, two, three);
+        setEquivalent(two, one, three);
+        setEquivalent(three, two, one);
 
-        sources = ApplicationSources.defaults()
-                .copy().withPrecedence(true)
-                .withReadableSources(ImmutableList.of(
-                        new SourceReadEntry(Publisher.TED, SourceStatus.AVAILABLE_ENABLED),
-                        new SourceReadEntry(Publisher.BBC, SourceStatus.AVAILABLE_ENABLED)
-                 ))
-                .build();
+        contents = ImmutableList.of(one, three);
+        
+        sources = sourcesWithPrecedence(Publisher.TED,Publisher.BBC);
         mergePermutations(contents, sources, three, two.getId());
         
     }
@@ -107,9 +100,27 @@ public class OutputContentMergerTest {
         }
     }
     
+    private ApplicationSources sourcesWithPrecedence(Publisher...publishers) {
+        return ApplicationSources.defaults().copy().withPrecedence(true)
+                .withReadableSources(Lists.transform(ImmutableList.copyOf(publishers),
+                    new Function<Publisher, SourceReadEntry>() {
+
+                        @Override
+                        public SourceReadEntry apply(Publisher input) {
+                            return new SourceReadEntry(input, SourceStatus.AVAILABLE_ENABLED);
+                        }
+                    }
+                ))
+                .build();
+    }
+    
     private void setEquivalent(Content receiver, Content...equivalents) {
+        ImmutableList<Content> allContent = ImmutableList.<Content>builder()
+            .add(receiver)
+            .addAll(ImmutableList.copyOf(equivalents))
+            .build();
         receiver.setEquivalentTo(ImmutableSet.copyOf(Iterables.transform(
-            ImmutableList.copyOf(equivalents), EquivalenceRef.toEquivalenceRef())
+            allContent, EquivalenceRef.toEquivalenceRef())
         ));
     }
     

@@ -1,7 +1,5 @@
 package org.atlasapi;
 
-import javax.annotation.PostConstruct;
-
 import org.atlasapi.messaging.AtlasMessagingModule;
 import org.atlasapi.messaging.WorkersModule;
 import org.atlasapi.system.HealthModule;
@@ -23,11 +21,6 @@ import com.metabroadcast.common.webapp.properties.ContextConfigurer;
 })
 public class AtlasProcessingModule {
 
-    @PostConstruct
-    public void setup() {
-        System.out.println("Ta Da!");
-    }
-    
     @Bean
     public ContextConfigurer config() {
         ContextConfigurer c = new ContextConfigurer();

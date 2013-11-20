@@ -1,0 +1,32 @@
+{namespace atlas.templates.applications.user.success.email}
+
+/**
+ *
+ */
+{template .subject}
+[Atlas] Request for access to a publisher approved
+{/template}
+
+/**
+ * @param appUrl
+ * @param reason
+ * @param publisher_key
+ * @param publisher_title
+ * @param application_title
+ * @param app_id
+ * @param usage_type
+ */
+{template .body}
+<html>
+<body>
+<p>Your request to access <b>{$publisher_title}</b> has been approved and is now available for use under the application .</p>
+<p>Please log in to Atlas and add the source to your API key.</p>
+<p>Details:<br/>
+Application: {$application_title} ({$app_id})<br/>
+App/Website URL: {$appUrl}<br/>
+Reason for request: {$reason}<br/>
+Publisher: {$publisher_title} ({$publisher_key})<br/>
+Usage type: {$usage_type}</p>
+</body>
+</html>
+{/template}

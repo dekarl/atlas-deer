@@ -110,7 +110,7 @@ public class UserModelTranslatorTest {
 		assertEquals(COMPANY, result.getCompany());
 		assertEquals(WEBSITE, result.getWebsite());
 		assertEquals(PROFILE_IMAGE, result.getProfileImage());
-		assertEquals(ROLE, result.getRole());
+		assertEquals(org.atlasapi.application.users.v3.Role.ADMIN, result.getRole());
 		assertTrue(result.getApplicationSlugs().containsAll(APP_SLUGS));
 		assertTrue(result.getSources().containsAll(SOURCES));
 		assertTrue(result.isProfileComplete());

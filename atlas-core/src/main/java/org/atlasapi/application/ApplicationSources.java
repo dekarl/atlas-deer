@@ -136,7 +136,7 @@ public class ApplicationSources {
     }
     
     public Ordering<Sourced> getSourcedReadOrdering() {
-        Ordering<Publisher> ordering = ApplicationSources.defaults().publisherPrecedenceOrdering();
+        Ordering<Publisher> ordering = this.publisherPrecedenceOrdering();
         return ordering.onResultOf(Sourceds.toPublisher());
     }
     

@@ -1,0 +1,34 @@
+{namespace atlas.templates.applications.admin.email}
+
+/**
+ *
+ */
+{template .subject}
+[Atlas] Request for access to a source
+{/template}
+
+/**
+ * @param email
+ * @param appUrl
+ * @param reason
+ * @param publisher_key
+ * @param publisher_title
+ * @param application_title
+ * @param app_id
+ * @param usage_type
+ */
+{template .body}
+<html>
+<body>
+<p>A request has been made for access to a source.</p>
+<p>Details:<br/>
+Application: {$application_title} ({$app_id})<br/>
+
+Email: {$email}<br/>
+App/Website URL: {$appUrl}<br/>
+Reason for request: {$reason}<br/>
+Publisher: {$publisher_title} ({$publisher_key})<br/>
+Usage type: {$usage_type}</p>
+</body>
+</html>
+{/template}

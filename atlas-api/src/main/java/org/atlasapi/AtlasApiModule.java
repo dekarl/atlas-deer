@@ -1,7 +1,6 @@
 package org.atlasapi;
 
-import javax.annotation.PostConstruct;
-
+import org.atlasapi.application.ApplicationModule;
 import org.atlasapi.application.AtlasPersistenceModule;
 import org.atlasapi.messaging.AtlasMessagingModule;
 import org.springframework.context.annotation.Bean;
@@ -11,14 +10,9 @@ import org.springframework.context.annotation.Import;
 import com.metabroadcast.common.webapp.properties.ContextConfigurer;
 
 @Configuration
-@Import({AtlasPersistenceModule.class, AtlasMessagingModule.class})
+@Import({AtlasPersistenceModule.class, AtlasMessagingModule.class, ApplicationModule.class})
 public class AtlasApiModule {
 
-    @PostConstruct
-    public void setup() {
-        System.out.println("Ta Da!");
-    }
-    
     @Bean
     public ContextConfigurer config() {
         ContextConfigurer c = new ContextConfigurer();

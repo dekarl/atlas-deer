@@ -1,5 +1,6 @@
 package org.atlasapi.application;
 
+import org.atlasapi.application.auth.MongoTokenRequestStore;
 import org.atlasapi.application.users.LegacyAdaptingUserStore;
 import org.atlasapi.application.users.UserStore;
 import org.atlasapi.application.users.v3.MongoUserStore;
@@ -15,18 +16,32 @@ import com.metabroadcast.common.ids.NumberToShortStringCodec;
 import com.metabroadcast.common.ids.SubstitutionTableNumberCodec;
 import com.metabroadcast.common.persistence.mongo.DatabasedMongo;
 import com.metabroadcast.common.properties.Configurer;
+import com.metabroadcast.common.social.auth.credentials.CredentialsStore;
+import com.metabroadcast.common.social.auth.credentials.MongoDBCredentialsStore;
 
 @Configuration
 @Import({AtlasPersistenceModule.class})
 public class ApplicationPersistenceModule {
     
     private int cacheMinutes = Integer.parseInt(Configurer.get("application.cache.minutes").get());
-    private @Autowired DatabasedMongo mongo; 
+    
+    @Autowired AtlasPersistenceModule persistence;
     
     private final NumberToShortStringCodec idCodec = SubstitutionTableNumberCodec.lowerCaseOnly();
 
     @Bean
-    protected LegacyApplicationStore applicationStore() {
+    public CredentialsStore credentialsStore() {
+        return new MongoDBCredentialsStore(persistence.databasedMongo());
+    }
+    
+    @Bean
+    public MongoTokenRequestStore tokenStore() {
+        return new MongoTokenRequestStore(persistence.databasedMongo());
+    }
+    
+    @Bean
+    public LegacyApplicationStore applicationStore() {
+        DatabasedMongo mongo = persistence.databasedMongo();
         IdGenerator idGenerator = new MongoSequentialIdGenerator(mongo, "application");
         MongoApplicationStore legacyStore = new MongoApplicationStore(mongo, idGenerator);
         LegacyAdaptingApplicationStore store = new LegacyAdaptingApplicationStore(legacyStore, mongo, idGenerator, idCodec);
@@ -34,14 +49,14 @@ public class ApplicationPersistenceModule {
     }
     
     @Bean
-    protected SourceRequestStore sourceRequestStore() {
-        return new MongoSourceRequestStore(mongo);
+    public SourceRequestStore sourceRequestStore() {
+        return new MongoSourceRequestStore(persistence.databasedMongo());
     }
     
     public @Bean
     UserStore userStore() {
-        MongoUserStore legacy = new MongoUserStore(mongo);
-        return new LegacyAdaptingUserStore(legacy, applicationStore(), mongo);
+        MongoUserStore legacy = new MongoUserStore(persistence.databasedMongo());
+        return new LegacyAdaptingUserStore(legacy, applicationStore(), persistence.databasedMongo());
     }
     
 }
