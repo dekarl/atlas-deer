@@ -1,4 +1,4 @@
-package org.atlasapi.equiv;
+package org.atlasapi.output;
 
 import java.util.List;
 import java.util.Map;
@@ -29,6 +29,9 @@ import org.atlasapi.content.TopicRef;
 import org.atlasapi.content.Version;
 import org.atlasapi.entity.Id;
 import org.atlasapi.entity.Sourced;
+import org.atlasapi.equiv.EquivalenceRef;
+import org.atlasapi.equiv.SeriesAndEpisodeNumber;
+import org.atlasapi.equiv.SeriesOrder;
 
 import com.google.common.base.Function;
 import com.google.common.base.Optional;

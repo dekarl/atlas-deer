@@ -1,4 +1,4 @@
-package org.atlasapi.equiv;
+package org.atlasapi.output;
 
 import static com.metabroadcast.common.time.DateTimeZones.UTC;
 import static org.junit.Assert.assertFalse;
@@ -12,6 +12,7 @@ import org.atlasapi.content.Item;
 import org.atlasapi.content.Version;
 import org.atlasapi.entity.Alias;
 import org.atlasapi.media.entity.Publisher;
+import org.atlasapi.output.OutputContentMerger;
 import org.joda.time.DateTime;
 import org.junit.Test;
 

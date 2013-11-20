@@ -1,6 +1,7 @@
-package org.atlasapi.equiv;
+package org.atlasapi.output;
 
 import org.atlasapi.application.ApplicationSources;
+import org.atlasapi.equiv.Equivalent;
 
 /**
  *  Merges a set of equivalents into a single chosen resource.

@@ -1,4 +1,4 @@
-package org.atlasapi.equiv;
+package org.atlasapi.output;
 
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
@@ -11,7 +11,9 @@ import org.atlasapi.application.SourceStatus;
 import org.atlasapi.content.Brand;
 import org.atlasapi.content.Content;
 import org.atlasapi.entity.Id;
+import org.atlasapi.equiv.EquivalenceRef;
 import org.atlasapi.media.entity.Publisher;
+import org.atlasapi.output.OutputContentMerger;
 import org.junit.Test;
 
 import com.google.common.base.Function;

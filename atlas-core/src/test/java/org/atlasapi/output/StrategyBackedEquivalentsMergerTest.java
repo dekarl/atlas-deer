@@ -1,4 +1,4 @@
-package org.atlasapi.equiv;
+package org.atlasapi.output;
 
 import static org.hamcrest.Matchers.any;
 import static org.hamcrest.Matchers.is;
@@ -20,6 +20,7 @@ import org.atlasapi.application.SourceStatus;
 import org.atlasapi.content.Brand;
 import org.atlasapi.content.Content;
 import org.atlasapi.media.entity.Publisher;
+import org.atlasapi.output.EquivalentsMergeStrategy;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.runners.MockitoJUnitRunner;
