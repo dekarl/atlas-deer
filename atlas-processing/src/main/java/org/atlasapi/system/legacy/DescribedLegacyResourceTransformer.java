@@ -13,8 +13,10 @@ import org.atlasapi.content.RelatedLink;
 import org.atlasapi.content.Specialization;
 import org.atlasapi.content.Synopses;
 import org.atlasapi.entity.Alias;
+import org.atlasapi.media.entity.Content;
 import org.atlasapi.media.entity.Described;
 import org.atlasapi.media.entity.Identified;
+import org.atlasapi.media.entity.Topic;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -66,7 +68,9 @@ public abstract class DescribedLegacyResourceTransformer<F extends Described, T 
         i.setCanonicalUri(input.getCanonicalUri());
         i.setCurie(input.getCurie());
         i.setEquivalenceUpdate(input.getEquivalenceUpdate());
-        i.setId(input.getId());
+        if (input instanceof Content || input instanceof Topic || input.getId() != null) {
+            i.setId(input.getId());
+        }
         i.setLastUpdated(input.getLastUpdated());
     }
 
