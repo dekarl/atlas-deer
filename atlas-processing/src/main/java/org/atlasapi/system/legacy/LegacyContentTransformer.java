@@ -34,9 +34,11 @@ import org.atlasapi.segment.SegmentRef;
 import org.joda.time.Duration;
 
 import com.google.common.base.Function;
+import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
+import com.google.common.collect.Sets;
 
 public class LegacyContentTransformer extends DescribedLegacyResourceTransformer<Content, org.atlasapi.content.Content> {
 
@@ -150,7 +152,7 @@ public class LegacyContentTransformer extends DescribedLegacyResourceTransformer
                 }
             }
         )));
-        v.setBroadcasts(ImmutableSet.copyOf(Iterables.transform(input.getBroadcasts(), 
+        v.setBroadcasts(ImmutableSet.copyOf(Iterables.transform(broadcastsWithIds(input), 
             new Function<org.atlasapi.media.entity.Broadcast, Broadcast>(){
                 @Override
                 public Broadcast apply(org.atlasapi.media.entity.Broadcast input) {
@@ -168,6 +170,18 @@ public class LegacyContentTransformer extends DescribedLegacyResourceTransformer
             }
         ));
         return v;
+    }
+
+    private Set<org.atlasapi.media.entity.Broadcast> broadcastsWithIds(
+            org.atlasapi.media.entity.Version input) {
+        return Sets.filter(input.getBroadcasts(),
+            new Predicate<org.atlasapi.media.entity.Broadcast>() {
+                @Override
+                public boolean apply(org.atlasapi.media.entity.Broadcast input) {
+                    return input.getSourceId() != null;
+                }
+            }
+        );
     }
 
     private SegmentEvent transformSegmentEvent(org.atlasapi.media.segment.SegmentEvent input) {

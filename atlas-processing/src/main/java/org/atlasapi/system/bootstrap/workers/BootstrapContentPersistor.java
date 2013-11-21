@@ -48,7 +48,9 @@ public class BootstrapContentPersistor implements ContentWriter {
                 boolean written = false;
                 for (Version version : item.getVersions()) {
                     for (Broadcast broadcast : version.getBroadcasts()) {
-                        write(new ItemAndBroadcast(item, broadcast));
+                        if (broadcast.getSourceId() != null) {
+                            write(new ItemAndBroadcast(item, broadcast));
+                        }
                         written = true;
                     }
                 }
