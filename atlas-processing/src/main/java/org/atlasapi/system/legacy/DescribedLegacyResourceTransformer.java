@@ -15,6 +15,8 @@ import org.atlasapi.content.Synopses;
 import org.atlasapi.entity.Alias;
 import org.atlasapi.media.entity.Described;
 import org.atlasapi.media.entity.Identified;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Function;
 import com.google.common.collect.Collections2;
@@ -24,6 +26,8 @@ import com.google.common.collect.Iterables;
 
 public abstract class DescribedLegacyResourceTransformer<F extends Described, T extends org.atlasapi.content.Described>
     extends BaseLegacyResourceTransformer<F, T> {
+    
+    private final Logger log = LoggerFactory.getLogger(getClass());
 
     @Override
     public final T apply(F input) {
@@ -69,11 +73,14 @@ public abstract class DescribedLegacyResourceTransformer<F extends Described, T 
     protected abstract T createDescribed(F input);
     
     protected <E extends Enum<E>> E transformEnum(Enum<?> from, Class<E> to) {
+        if (from == null) {
+            return null;
+        }
         try {
-            return to.cast(to.getMethod("valueOf", String.class).invoke(null, from.name()));
-        } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException
-                | NoSuchMethodException | SecurityException e) {
-            throw new RuntimeException(e);
+            return Enum.valueOf(to, from.name());
+        } catch (IllegalArgumentException e) {
+            log.warn("{} missing constant {}", to, from);
+            return null;
         }
     }
 
