@@ -1,6 +1,6 @@
 package org.atlasapi.system.bootstrap.workers;
 
-import org.atlasapi.application.AtlasPersistenceModule;
+import org.atlasapi.AtlasPersistenceModule;
 import org.atlasapi.content.ContentResolver;
 import org.atlasapi.equiv.EquivalenceRecordStore;
 import org.atlasapi.messaging.AtlasMessagingModule;
@@ -42,7 +42,7 @@ public class BootstrapWorkersModule {
         ContentResolver legacyResolver = legacy.legacyContentResolver();
         BootstrapContentPersistor persistor = new BootstrapContentPersistor(
             persistence.contentStore(), persistence.scheduleStore(), persistence.channelStore());
-        ContentReadWriteWorker worker = new ContentReadWriteWorker(legacyResolver, persistor);
+        ContentReadWriteWorker worker = new ContentReadWriteWorker(legacyResolver, persistor, messaging.serializer());
         return bootstrapQueueFactory().makeVirtualTopicConsumer(worker, "Bootstrap", messaging.contentChanges, 1, 1);
     }
 
@@ -51,7 +51,7 @@ public class BootstrapWorkersModule {
     DefaultMessageListenerContainer topicReadWriter() {
         TopicResolver legacyResolver = legacy.legacyTopicResolver();
         TopicStore writer = persistence.topicStore();
-        TopicReadWriteWorker worker = new TopicReadWriteWorker(legacyResolver, writer);
+        TopicReadWriteWorker worker = new TopicReadWriteWorker(legacyResolver, writer, messaging.serializer());
         return bootstrapQueueFactory().makeVirtualTopicConsumer(worker, "Bootstrap", messaging.topicChanges, 1, 1);
     }
     
@@ -60,7 +60,7 @@ public class BootstrapWorkersModule {
     DefaultMessageListenerContainer lookupEntryReadWriter() {
         LookupEntryStore legacyResolver = legacy.legacyeEquiavlenceStore();
         EquivalenceRecordStore writer = persistence.equivalenceRecordStore();
-        LookupEntryReadWriteWorker worker = new LookupEntryReadWriteWorker(legacyResolver, writer);
+        LookupEntryReadWriteWorker worker = new LookupEntryReadWriteWorker(legacyResolver, writer, messaging.serializer());
         return bootstrapQueueFactory().makeVirtualTopicConsumer(worker, "Bootstrap", CHANGES_EQUIV_PRODUCER, 1, 1);
     }
     

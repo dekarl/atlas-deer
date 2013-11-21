@@ -1,6 +1,5 @@
 package org.atlasapi;
 
-import org.atlasapi.application.AtlasPersistenceModule;
 import org.atlasapi.messaging.AtlasMessagingModule;
 import org.atlasapi.messaging.WorkersModule;
 import org.atlasapi.system.HealthModule;

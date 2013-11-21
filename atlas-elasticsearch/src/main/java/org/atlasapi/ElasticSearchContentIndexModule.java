@@ -58,7 +58,7 @@ public class ElasticSearchContentIndexModule implements IndexModule {
             
             @Override
             public void onSuccess(State result) {
-                log.info("Started content index module");
+                log.info("Started topic index module");
             }
             
             @Override

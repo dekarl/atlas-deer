@@ -1,6 +1,6 @@
 package org.atlasapi.system.legacy;
 
-import org.atlasapi.application.AtlasPersistenceModule;
+import org.atlasapi.AtlasPersistenceModule;
 import org.atlasapi.content.ContentResolver;
 import org.atlasapi.content.NullContentResolver;
 import org.atlasapi.persistence.content.KnownTypeContentResolver;

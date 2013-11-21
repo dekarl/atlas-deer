@@ -31,7 +31,8 @@ public class ReplayingWorker extends AbstractWorker {
     private final Worker delegate;
     private long replayThreshold;
     
-    public ReplayingWorker(Worker delegate) {
+    public ReplayingWorker(Worker delegate, MessageSerializer serializer) {
+        super(serializer);
         this.delegate = delegate;
         this.replayThreshold = 60000;
     }

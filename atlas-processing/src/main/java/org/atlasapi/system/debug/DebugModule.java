@@ -1,6 +1,6 @@
 package org.atlasapi.system.debug;
 
-import org.atlasapi.application.AtlasPersistenceModule;
+import org.atlasapi.AtlasPersistenceModule;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

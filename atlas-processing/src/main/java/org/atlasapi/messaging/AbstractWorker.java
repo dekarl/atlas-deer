@@ -1,16 +1,7 @@
 package org.atlasapi.messaging;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-
-import java.io.IOException;
-
-import org.atlasapi.messaging.BeginReplayMessage;
-import org.atlasapi.messaging.EndReplayMessage;
-import org.atlasapi.messaging.EntityUpdatedMessage;
-import org.atlasapi.messaging.Message;
-import org.atlasapi.messaging.ReplayMessage;
-import org.atlasapi.messaging.Worker;
-import org.atlasapi.serialization.json.JsonFactory;
+import com.google.common.base.Charsets;
+import com.google.common.io.ByteSource;
 
 /**
  * Base {@link org.atlasapi.messaging.messaging.worker.Worker} class providing
@@ -19,13 +10,17 @@ import org.atlasapi.serialization.json.JsonFactory;
  */
 public abstract class AbstractWorker implements Worker {
 
-    private final ObjectMapper mapper = JsonFactory.makeJsonMapper();
+    private final MessageSerializer serializer;
 
+    public AbstractWorker(MessageSerializer serializer) {
+        this.serializer = serializer;
+    }
+    
     public void onMessage(String message) {
         try {
-            Message event = mapper.readValue(message, Message.class);
+            Message event = serializer.deserialize(ByteSource.wrap(message.getBytes(Charsets.UTF_8)));
             event.dispatchTo(this);
-        } catch (IOException ex) {
+        } catch (MessageException ex) {
             throw new RuntimeException(ex.getMessage(), ex);
         }
     }

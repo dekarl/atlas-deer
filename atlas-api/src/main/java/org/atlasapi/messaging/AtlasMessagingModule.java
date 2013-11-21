@@ -26,6 +26,11 @@ public class AtlasMessagingModule {
     }
     
     @Bean
+    public MessageSerializer serializer() {
+        return new JacksonMessageSerializer();
+    }
+    
+    @Bean
     @Lazy(true)
     public ConnectionFactory activemqConnectionFactory() {
         ActiveMQConnectionFactory activeMQConnectionFactory = new ActiveMQConnectionFactory(brokerUrl);
@@ -35,14 +40,16 @@ public class AtlasMessagingModule {
     
     @Bean
     @Lazy(true)
-    public JmsTemplate contentChanges() {
-        return queueHelper().makeVirtualTopicProducer(contentChanges);
+    public MessageSender contentChanges() {
+        JmsTemplate template = queueHelper().makeVirtualTopicProducer(contentChanges);
+        return new MessageSender(template, serializer());
     }
     
     @Bean
     @Lazy(true)
-    public JmsTemplate topicChanges() {
-        return queueHelper().makeVirtualTopicProducer(topicChanges);
+    public MessageSender topicChanges() {
+        JmsTemplate template = queueHelper().makeVirtualTopicProducer(topicChanges);
+        return new MessageSender(template, serializer());
     }
     
 //    @Bean 

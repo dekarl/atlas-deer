@@ -3,7 +3,7 @@ package org.atlasapi.messaging;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 
-import org.atlasapi.application.AtlasPersistenceModule;
+import org.atlasapi.AtlasPersistenceModule;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -32,7 +32,7 @@ public class WorkersModule {
     @Bean
     @Lazy(true)
     public ReplayingWorker contentIndexingWorker() {
-        return new ReplayingWorker(new ContentIndexingWorker(persistence.contentStore(), persistence.contentIndex()));
+        return new ReplayingWorker(new ContentIndexingWorker(persistence.contentStore(), persistence.contentIndex(), messaging.serializer()), messaging.serializer());
     }
 
     @Bean
@@ -50,7 +50,7 @@ public class WorkersModule {
     @Bean
     @Lazy(true)
     public ReplayingWorker topicIndexingWorker() {
-        return new ReplayingWorker(new TopicIndexingWorker(persistence.topicStore(), persistence.topicIndex()));
+        return new ReplayingWorker(new TopicIndexingWorker(persistence.topicStore(), persistence.topicIndex(), messaging.serializer()), messaging.serializer());
     }
     
     @Bean

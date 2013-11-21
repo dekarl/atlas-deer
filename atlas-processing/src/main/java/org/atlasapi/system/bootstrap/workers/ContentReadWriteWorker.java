@@ -7,6 +7,7 @@ import org.atlasapi.entity.Id;
 import org.atlasapi.entity.util.Resolved;
 import org.atlasapi.messaging.AbstractWorker;
 import org.atlasapi.messaging.EntityUpdatedMessage;
+import org.atlasapi.messaging.MessageSerializer;
 
 import com.google.common.base.Throwables;
 import com.google.common.collect.ImmutableList;
@@ -19,7 +20,8 @@ public class ContentReadWriteWorker extends AbstractWorker {
     private final ContentResolver contentResolver;
     private final ContentWriter writer;
 
-    public ContentReadWriteWorker(ContentResolver contentResolver, ContentWriter writer) {
+    public ContentReadWriteWorker(ContentResolver contentResolver, ContentWriter writer, MessageSerializer serializer) {
+        super(serializer);
         this.contentResolver = contentResolver;
         this.writer = writer;
     }

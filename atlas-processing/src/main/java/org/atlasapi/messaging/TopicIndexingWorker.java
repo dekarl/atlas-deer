@@ -23,7 +23,8 @@ public class TopicIndexingWorker extends AbstractWorker {
     private final TopicResolver topicResolver;
     private final TopicIndex topicIndex;
 
-    public TopicIndexingWorker(TopicResolver topicResolver, TopicIndex topicIndex) {
+    public TopicIndexingWorker(TopicResolver topicResolver, TopicIndex topicIndex, MessageSerializer serializer) {
+        super(serializer);
         this.topicResolver = topicResolver;
         this.topicIndex = topicIndex;
     }

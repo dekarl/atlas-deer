@@ -22,7 +22,8 @@ public class ContentIndexingWorker extends AbstractWorker {
     private final ContentResolver contentResolver;
     private final ContentIndex contentIndex;
 
-    public ContentIndexingWorker(ContentResolver contentResolver, ContentIndex contentIndex) {
+    public ContentIndexingWorker(ContentResolver contentResolver, ContentIndex contentIndex, MessageSerializer serializer) {
+        super(serializer);
         this.contentResolver = contentResolver;
         this.contentIndex = contentIndex;
     }

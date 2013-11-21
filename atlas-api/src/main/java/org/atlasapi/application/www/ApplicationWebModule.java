@@ -2,12 +2,12 @@ package org.atlasapi.application.www;
 
 import static com.google.gson.FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES;
 
+import org.atlasapi.AtlasPersistenceModule;
 import org.atlasapi.annotation.Annotation;
 import org.atlasapi.application.Application;
 import org.atlasapi.application.ApplicationPersistenceModule;
 import org.atlasapi.application.ApplicationQueryExecutor;
 import org.atlasapi.application.ApplicationsController;
-import org.atlasapi.application.AtlasPersistenceModule;
 import org.atlasapi.application.SourceReadEntry;
 import org.atlasapi.application.SourceRequest;
 import org.atlasapi.application.SourceRequestManager;

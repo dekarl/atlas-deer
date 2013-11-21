@@ -14,7 +14,7 @@ permissions and limitations under the License. */
 
 package org.atlasapi.query;
 
-import org.atlasapi.application.AtlasPersistenceModule;
+import org.atlasapi.AtlasPersistenceModule;
 import org.atlasapi.content.Content;
 import org.atlasapi.equiv.DefaultMergingEquivalentsResolver;
 import org.atlasapi.equiv.MergingEquivalentsResolver;

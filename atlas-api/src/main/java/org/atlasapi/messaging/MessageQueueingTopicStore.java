@@ -4,33 +4,22 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.util.UUID;
 
-import javax.jms.JMSException;
-import javax.jms.Message;
-import javax.jms.Session;
-
+import org.atlasapi.entity.util.WriteResult;
 import org.atlasapi.topic.ForwardingTopicStore;
 import org.atlasapi.topic.Topic;
 import org.atlasapi.topic.TopicStore;
-import org.atlasapi.entity.util.WriteResult;
-import org.atlasapi.serialization.json.JsonFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.jms.core.JmsTemplate;
-import org.springframework.jms.core.MessageCreator;
-
-import com.fasterxml.jackson.databind.ObjectMapper;
 
 public class MessageQueueingTopicStore extends ForwardingTopicStore {
     
     private static final Logger log = LoggerFactory.getLogger(MessageQueueingContentStore.class);
 
-    private final JmsTemplate template;
+    private final MessageSender sender;
     private final TopicStore delegate;
     
-    private final ObjectMapper mapper = JsonFactory.makeJsonMapper();
-
-    public MessageQueueingTopicStore(JmsTemplate template, TopicStore delegate) {
-        this.template = checkNotNull(template);
+    public MessageQueueingTopicStore(MessageSender sender, TopicStore delegate) {
+        this.sender = checkNotNull(sender);
         this.delegate = checkNotNull(delegate);
     }
     
@@ -49,12 +38,12 @@ public class MessageQueueingTopicStore extends ForwardingTopicStore {
     }
 
     private void writeMessage(final WriteResult<Topic> result) {
-        template.send(new MessageCreator() {
-            @Override
-            public Message createMessage(Session session) throws JMSException {
-                return session.createTextMessage(serialize(createEntityUpdatedMessage(result)));
-            }
-        });
+        EntityUpdatedMessage message = createEntityUpdatedMessage(result);
+        try {
+            sender.sendMessage(message);
+        } catch (Exception e) {
+            log.error(message.getEntityId(), e);
+        }
     }
     
     private <T extends Topic> EntityUpdatedMessage createEntityUpdatedMessage(WriteResult<T> result) {
@@ -64,15 +53,5 @@ public class MessageQueueingTopicStore extends ForwardingTopicStore {
                 result.getResource().getId().toString(),
                 result.getClass().getSimpleName().toLowerCase(),
                 result.getResource().getPublisher().key());
-    }
-    
-    private String serialize(final EntityUpdatedMessage message) {
-        String result = null;
-        try {
-            result = mapper.writeValueAsString(message);
-        } catch (Exception e) {
-            log.error(message.getEntityId(), e);
-        }
-        return result;
     }
 }

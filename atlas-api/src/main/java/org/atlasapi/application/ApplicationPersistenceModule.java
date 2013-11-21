@@ -1,5 +1,6 @@
 package org.atlasapi.application;
 
+import org.atlasapi.AtlasPersistenceModule;
 import org.atlasapi.application.auth.MongoTokenRequestStore;
 import org.atlasapi.application.users.LegacyAdaptingUserStore;
 import org.atlasapi.application.users.UserStore;

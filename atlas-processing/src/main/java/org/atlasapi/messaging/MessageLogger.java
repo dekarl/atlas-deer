@@ -7,7 +7,8 @@ public class MessageLogger extends AbstractWorker {
 
     private final MessageStore store;
 
-    public MessageLogger(MessageStore store) {
+    public MessageLogger(MessageStore store, MessageSerializer serializer) {
+        super(serializer);
         this.store = store;
     }
 

@@ -3,6 +3,7 @@ package org.atlasapi.system.bootstrap.workers;
 import org.atlasapi.equiv.EquivalenceRecordStore;
 import org.atlasapi.messaging.EntityUpdatedMessage;
 import org.atlasapi.messaging.AbstractWorker;
+import org.atlasapi.messaging.MessageSerializer;
 import org.atlasapi.persistence.lookup.entry.LookupEntry;
 import org.atlasapi.persistence.lookup.entry.LookupEntryStore;
 import org.atlasapi.system.bootstrap.EquivalenceBootstrapListener;
@@ -19,7 +20,8 @@ public class LookupEntryReadWriteWorker extends AbstractWorker {
     private final LegacyEquivalenceTransformer transformer = new LegacyEquivalenceTransformer();
 
     public LookupEntryReadWriteWorker(LookupEntryStore lookupStore,
-            EquivalenceRecordStore equivalenceRecordStore) {
+            EquivalenceRecordStore equivalenceRecordStore, MessageSerializer serializer) {
+        super(serializer);
         this.lookupStore = lookupStore;
         this.changeListener = new EquivalenceBootstrapListener(1, equivalenceRecordStore);
     }
