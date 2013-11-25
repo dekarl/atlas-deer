@@ -16,7 +16,6 @@ import org.atlasapi.application.auth.ApplicationSourcesFetcher;
 import org.atlasapi.application.auth.InvalidApiKeyException;
 import org.atlasapi.entity.Id;
 import org.atlasapi.media.entity.Publisher;
-import org.atlasapi.output.NotFoundException;
 import org.atlasapi.query.annotation.ActiveAnnotations;
 import org.atlasapi.query.annotation.ContextualAnnotationsExtractor;
 import org.atlasapi.query.common.QueryContext;
@@ -28,8 +27,11 @@ import org.joda.time.DateTime;
 import org.joda.time.Duration;
 import org.joda.time.Interval;
 
+import com.google.common.base.Joiner;
 import com.google.common.base.Optional;
+import com.google.common.base.Splitter;
 import com.google.common.base.Strings;
+import com.google.common.collect.Lists;
 import com.metabroadcast.common.ids.NumberToShortStringCodec;
 import com.metabroadcast.common.ids.SubstitutionTableNumberCodec;
 import com.metabroadcast.common.time.Clock;
@@ -45,7 +47,7 @@ class ScheduleRequestParser {
 
     private final SetBasedRequestParameterValidator validator = SetBasedRequestParameterValidator.builder()
         .withRequiredParameters("from","to","source")
-        .withOptionalParameters("annotations","apiKey", "callback")
+        .withOptionalParameters("id","annotations","apiKey", "callback")
         .build();
     
     private final NumberToShortStringCodec idCodec;
@@ -68,8 +70,7 @@ class ScheduleRequestParser {
         this.annotationExtractor = annotationsExtractor;
     }
 
-    public ScheduleQuery queryFrom(HttpServletRequest request) throws QueryParseException, NotFoundException, InvalidApiKeyException {
-        Id channel = extractChannel(request);
+    public ScheduleQuery queryFrom(HttpServletRequest request) throws QueryParseException, InvalidApiKeyException {
 
         validator.validateParameters(request);
         
@@ -81,8 +82,14 @@ class ScheduleRequestParser {
         checkArgument(appSources != null, "Source %s not enabled", publisher);
         
         ActiveAnnotations annotations = annotationExtractor.extractFromRequest(request);
-
-        return new ScheduleQuery(publisher, channel, queryInterval, new QueryContext(appSources, annotations));
+        
+        Optional<Id> channel = extractChannel(request);
+        if (channel.isPresent()) {
+            return ScheduleQuery.single(publisher, queryInterval, new QueryContext(appSources, annotations), channel.get());
+        } else {
+            List<Id> channels = extractChannels(request);
+            return ScheduleQuery.multi(publisher, queryInterval, new QueryContext(appSources, annotations), channels);
+        }
     }
 
     private ApplicationSources appConfigForValidPublisher(Publisher publisher,
@@ -107,24 +114,45 @@ class ScheduleRequestParser {
         return openInterval.contains(interval);
     }
 
-    private Id extractChannel(HttpServletRequest request) throws QueryParseException, NotFoundException {
-        String channelId = getChannelId(request.getRequestURI());
-        
-        Id cid;
+    private List<Id> extractChannels(HttpServletRequest request) throws QueryParseException {
+        String csvCids = request.getParameter("id");
+        List<String> cids = Splitter.on(",").omitEmptyStrings().trimResults().splitToList(csvCids);
+        List<String> invalidIds = Lists.newLinkedList();
+        ImmutableList.Builder<Id> ids = ImmutableList.builder();
+        for (String cid : cids) {
+            try {
+                ids.add(transformToId(cid));
+            } catch (QueryParseException qpe) {
+                invalidIds.add(cid);
+            }
+        }
+        if (!invalidIds.isEmpty()) {
+            throw new QueryParseException(String.format("Invalid id%s %s", 
+                    invalidIds.size()>1 ? "s" : "" , Joiner.on(", ").join(invalidIds)));
+        }
+        return ids.build();
+    }
+    
+    private Optional<Id> extractChannel(HttpServletRequest request) throws QueryParseException {
+        Optional<String> channelId = getChannelId(request.getRequestURI());
+        return channelId.isPresent() ? Optional.of(transformToId(channelId.get()))
+                                     : Optional.<Id>absent();
+    }
+
+    private Id transformToId(String channelId) throws QueryParseException {
         try {
-            cid = Id.valueOf(idCodec.decode(channelId));
+            return Id.valueOf(idCodec.decode(channelId));
         } catch (IllegalArgumentException e) {
             throw new QueryParseException("Invalid id " + channelId);
         }
-        return cid;
     }
 
-    private String getChannelId(String requestUri) {
+    private Optional<String> getChannelId(String requestUri) {
         Matcher matcher = CHANNEL_ID_PATTERN.matcher(requestUri);
         if (matcher.matches()) {
-            return matcher.group(1);
+            return Optional.fromNullable(matcher.group(1));
         }
-        throw new IllegalArgumentException("Channel identifier missing");
+        return Optional.absent();
     }
     
     private Interval extractInterval(HttpServletRequest request) {

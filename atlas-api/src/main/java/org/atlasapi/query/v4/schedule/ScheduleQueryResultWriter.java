@@ -2,11 +2,7 @@ package org.atlasapi.query.v4.schedule;
 
 import java.io.IOException;
 
-import org.atlasapi.content.Content;
-import org.atlasapi.content.ItemAndBroadcast;
-import org.atlasapi.media.channel.Channel;
 import org.atlasapi.output.EntityListWriter;
-import org.atlasapi.output.EntityWriter;
 import org.atlasapi.output.OutputContext;
 import org.atlasapi.output.QueryResultWriter;
 import org.atlasapi.output.ResponseWriter;
@@ -15,16 +11,14 @@ import org.atlasapi.query.common.QueryContext;
 import org.atlasapi.query.common.QueryResult;
 import org.atlasapi.schedule.ChannelSchedule;
 
-import com.google.common.collect.Lists;
+import com.google.common.collect.FluentIterable;
 
 public class ScheduleQueryResultWriter implements QueryResultWriter<ChannelSchedule> {
 
-    private final EntityListWriter<Content> contentWriter;
-    private final EntityWriter<Channel> channelWriter;
+    private final EntityListWriter<ChannelSchedule> scheduleWriter;
 
-    public ScheduleQueryResultWriter(EntityWriter<Channel> channelWriter, EntityListWriter<Content> contentListWriter) {
-        this.channelWriter = channelWriter;
-        this.contentWriter = contentListWriter;
+    public ScheduleQueryResultWriter(EntityListWriter<ChannelSchedule> scheduleWriter) {
+        this.scheduleWriter = scheduleWriter;
     }
 
     @Override
@@ -39,8 +33,6 @@ public class ScheduleQueryResultWriter implements QueryResultWriter<ChannelSched
 
         OutputContext ctxt = outputContext(result.getContext());
 
-        ChannelSchedule channelSchedule = result.getOnlyResource();
-
         //TODO: train-wreck
         if (result.getContext().getAnnotations() == ActiveAnnotations.standard()) {
             writer.writeField("license",
@@ -51,9 +43,12 @@ public class ScheduleQueryResultWriter implements QueryResultWriter<ChannelSched
                 "services, including any third-party software applications " +
                 "available to the general public.");
         }
-        
-        writer.writeObject(channelWriter, channelSchedule.getChannel(), ctxt);
-        writer.writeList(contentWriter, Lists.transform(channelSchedule.getEntries(),ItemAndBroadcast.toItem()), ctxt);
+        if (result.isListResult()) {
+            FluentIterable<ChannelSchedule> resources = result.getResources();
+            writer.writeList(scheduleWriter, resources, ctxt);
+        } else {
+            writer.writeObject(scheduleWriter, result.getOnlyResource(), ctxt);
+        }
     }
 
     private OutputContext outputContext(QueryContext queryContext) {

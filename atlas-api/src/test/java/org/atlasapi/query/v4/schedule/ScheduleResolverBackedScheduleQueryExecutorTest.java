@@ -70,7 +70,7 @@ public class ScheduleResolverBackedScheduleQueryExecutorTest {
         channel.setId(1L);
         channel.setCanonicalUri("one");
         Interval interval = new Interval(0, 100, DateTimeZones.UTC);
-        ScheduleQuery query = new ScheduleQuery(METABROADCAST, Id.valueOf(channel.getId()), interval, QueryContext.standard());
+        ScheduleQuery query = ScheduleQuery.single(METABROADCAST, interval, QueryContext.standard(), Id.valueOf(channel.getId()));
 
         ChannelSchedule channelSchedule = new ChannelSchedule(channel, interval, ImmutableList.<ItemAndBroadcast>of());
 
@@ -91,7 +91,7 @@ public class ScheduleResolverBackedScheduleQueryExecutorTest {
             .thenReturn(Maybe.<Channel>nothing());
 
         Interval interval = new Interval(0, 100, DateTimeZones.UTC);
-        ScheduleQuery query = new ScheduleQuery(METABROADCAST, Id.valueOf(1), interval, QueryContext.standard());
+        ScheduleQuery query = ScheduleQuery.single(METABROADCAST, interval, QueryContext.standard(), Id.valueOf(1));
         
         try {
             executor.execute(query);
@@ -128,7 +128,7 @@ public class ScheduleResolverBackedScheduleQueryExecutorTest {
             )
         ));
 
-        ScheduleQuery query = new ScheduleQuery(METABROADCAST, Id.valueOf(channel.getId()), interval, context);
+        ScheduleQuery query = ScheduleQuery.single(METABROADCAST, interval, context, Id.valueOf(channel.getId()));
 
         Item equivalentItem = new Item(itemId, METABROADCAST);
         when(channelResolver.fromId(channel.getId()))

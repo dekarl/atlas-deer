@@ -60,7 +60,7 @@ public class IndexBackedScheduleQueryExecutorTest {
         channel.setId(1L);
         channel.setCanonicalUri("one");
         Interval interval = new Interval(0, 100, DateTimeZones.UTC);
-        ScheduleQuery query = new ScheduleQuery(METABROADCAST, Id.valueOf(channel.getId()), interval, QueryContext.standard());
+        ScheduleQuery query = ScheduleQuery.single(METABROADCAST, interval, QueryContext.standard(), Id.valueOf(channel.getId()));
 
         when(channelResolver.fromId(channel.getId()))
             .thenReturn(Maybe.just(channel));
@@ -81,7 +81,7 @@ public class IndexBackedScheduleQueryExecutorTest {
         channel.setId(1L);
         channel.setCanonicalUri("one");
         Interval interval = new Interval(0, 100, DateTimeZones.UTC);
-        ScheduleQuery query = new ScheduleQuery(METABROADCAST, Id.valueOf(channel.getId()), interval, QueryContext.standard());
+        ScheduleQuery query = ScheduleQuery.single(METABROADCAST, interval, QueryContext.standard(), Id.valueOf(channel.getId()));
         
         Item item = itemWithBroadcast("item", channel.getCanonicalUri(), dateTime(25), dateTime(75), "bid");
         addBroadcast(item, channel.getCanonicalUri(), dateTime(125), dateTime(175), "bid2");
@@ -117,7 +117,7 @@ public class IndexBackedScheduleQueryExecutorTest {
         channel.setId(1L);
         channel.setCanonicalUri("one");
         Interval interval = new Interval(0, 100, DateTimeZones.UTC);
-        ScheduleQuery query = new ScheduleQuery(METABROADCAST, Id.valueOf(channel.getId()), interval, QueryContext.standard());
+        ScheduleQuery query = ScheduleQuery.single(METABROADCAST, interval, QueryContext.standard(), Id.valueOf(channel.getId()));
         
         Item item = itemWithBroadcast("item", channel.getCanonicalUri(), dateTime(25), dateTime(75), "bid");
         addBroadcast(item, channel.getCanonicalUri(), dateTime(125), dateTime(175), "bid2");

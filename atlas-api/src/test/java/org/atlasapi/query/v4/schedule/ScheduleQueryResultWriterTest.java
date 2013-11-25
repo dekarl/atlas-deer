@@ -13,6 +13,7 @@ import org.atlasapi.content.ItemAndBroadcast;
 import org.atlasapi.media.channel.Channel;
 import org.atlasapi.media.entity.Publisher;
 import org.atlasapi.output.AnnotationRegistry;
+import org.atlasapi.output.EntityListWriter;
 import org.atlasapi.output.JsonResponseWriter;
 import org.atlasapi.persistence.output.ContainerSummaryResolver;
 import org.atlasapi.query.common.QueryContext;
@@ -32,8 +33,9 @@ public class ScheduleQueryResultWriterTest {
     private final ContainerSummaryResolver containerSummaryResolver = mock(ContainerSummaryResolver.class);
     private final AnnotationRegistry<Content> contentAnnotations = AnnotationRegistry.<Content>builder().build();
     private final AnnotationRegistry<Channel> channelAnnotations = AnnotationRegistry.<Channel>builder().build();
-    private final ScheduleQueryResultWriter writer = new ScheduleQueryResultWriter(
-            new ChannelListWriter(channelAnnotations), new ContentListWriter(contentAnnotations));
+    private final EntityListWriter<ChannelSchedule> scheduleWriter
+        = new ScheduleListWriter(new ChannelListWriter(channelAnnotations), new ContentListWriter(contentAnnotations));
+    private final ScheduleQueryResultWriter writer = new ScheduleQueryResultWriter(scheduleWriter);
       
     
     @Test

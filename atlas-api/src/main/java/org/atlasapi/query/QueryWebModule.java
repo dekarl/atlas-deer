@@ -82,6 +82,7 @@ import org.atlasapi.query.v4.schedule.ChannelListWriter;
 import org.atlasapi.query.v4.schedule.ContentListWriter;
 import org.atlasapi.query.v4.schedule.ScheduleController;
 import org.atlasapi.query.v4.schedule.ScheduleIndexDebugController;
+import org.atlasapi.query.v4.schedule.ScheduleListWriter;
 import org.atlasapi.query.v4.schedule.ScheduleQueryResultWriter;
 import org.atlasapi.query.v4.search.ContentQueryResultWriter;
 import org.atlasapi.query.v4.search.SearchController;
@@ -142,8 +143,9 @@ public class QueryWebModule {
 
     @Bean
     ScheduleController v4ScheduleController() {
+        ScheduleListWriter scheduleWriter = new ScheduleListWriter(channelListWriter(), contentListWriter());
         return new ScheduleController(queryModule.scheduleStoreScheduleQueryExecutor(),
-            configFetcher, new ScheduleQueryResultWriter(channelListWriter(), contentListWriter()),
+            configFetcher, new ScheduleQueryResultWriter(scheduleWriter),
             new IndexContextualAnnotationsExtractor(ResourceAnnotationIndex.combination()
                 .addExplicitSingleContext(channelAnnotationIndex())
                 .addExplicitListContext(contentAnnotationIndex())

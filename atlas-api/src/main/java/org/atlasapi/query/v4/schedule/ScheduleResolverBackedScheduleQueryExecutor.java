@@ -52,20 +52,23 @@ public class ScheduleResolverBackedScheduleQueryExecutor implements ScheduleQuer
     public QueryResult<ChannelSchedule> execute(ScheduleQuery query)
             throws QueryExecutionException {
         
-        Channel channel = resolveChannel(query);
-        ListenableFuture<Schedule> resolve = scheduleResolver.resolve(ImmutableList.of(channel), query.getInterval(), query.getSource());
+        List<Channel> channel = resolveChannels(query);
+        ListenableFuture<Schedule> resolve = scheduleResolver.resolve(channel, query.getInterval(), query.getSource());
         
-        return QueryResult.singleResult(channelSchedule(resolve, query), query.getContext());
+        if (query.isMultiChannel()) {
+            return QueryResult.listResult(channelSchedules(resolve, query), query.getContext());
+        }
+        return QueryResult.singleResult(Iterables.getOnlyElement(channelSchedules(resolve, query)), query.getContext());
     }
 
-    private ChannelSchedule channelSchedule(ListenableFuture<Schedule> schedule, ScheduleQuery query) throws ScheduleQueryExecutionException {
+    private List<ChannelSchedule> channelSchedules(ListenableFuture<Schedule> schedule, ScheduleQuery query) throws ScheduleQueryExecutionException {
         
         if (query.getContext().getApplicationSources().isPrecedenceEnabled()) {
             schedule = Futures.transform(schedule, toEquivalentEntries(query));
         }
         
-        return Iterables.getOnlyElement(Futures.get(schedule,
-                QUERY_TIMEOUT, MILLISECONDS, ScheduleQueryExecutionException.class).channelSchedules()); 
+        return Futures.get(schedule,
+                QUERY_TIMEOUT, MILLISECONDS, ScheduleQueryExecutionException.class).channelSchedules(); 
     }
 
     private AsyncFunction<Schedule, Schedule> toEquivalentEntries(final ScheduleQuery query) {
@@ -121,12 +124,16 @@ public class ScheduleResolverBackedScheduleQueryExecutor implements ScheduleQuer
                 Functions.compose(Identifiables.toId(), ItemAndBroadcast.toItem()));
     }
 
-    private Channel resolveChannel(ScheduleQuery query) throws NotFoundException {
+    private ImmutableList<Channel> resolveChannels(ScheduleQuery query) throws NotFoundException {
+        if (query.isMultiChannel()) {
+            List<Long> ids = Lists.transform(query.getChannelIds().asList(),Id.toLongValue());
+            return ImmutableList.copyOf(channelResolver.forIds(ids));
+        }
         Maybe<Channel> possibleChannel = channelResolver.fromId(query.getChannelId().longValue());
         if (!possibleChannel.hasValue()) {
             throw new NotFoundException(query.getChannelId());
         }
-        return possibleChannel.requireValue();
+        return ImmutableList.of(possibleChannel.requireValue());
     }
 
 }
