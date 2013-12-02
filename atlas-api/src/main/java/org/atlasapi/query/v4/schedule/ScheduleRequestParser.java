@@ -18,6 +18,7 @@ import org.atlasapi.entity.Id;
 import org.atlasapi.media.entity.Publisher;
 import org.atlasapi.query.annotation.ActiveAnnotations;
 import org.atlasapi.query.annotation.ContextualAnnotationsExtractor;
+import org.atlasapi.query.common.InvalidAnnotationException;
 import org.atlasapi.query.common.QueryContext;
 import org.atlasapi.query.common.QueryParseException;
 import org.atlasapi.query.common.SetBasedRequestParameterValidator;
@@ -45,10 +46,14 @@ class ScheduleRequestParser {
     
     private final ApplicationSourcesFetcher applicationStore;
 
-    private final SetBasedRequestParameterValidator validator = SetBasedRequestParameterValidator.builder()
+    private final SetBasedRequestParameterValidator singleValidator = SetBasedRequestParameterValidator.builder()
         .withRequiredParameters("from","to","source")
-        .withOptionalParameters("id","annotations","apiKey", "callback")
+        .withOptionalParameters("annotations","apiKey", "callback")
         .build();
+    private final SetBasedRequestParameterValidator multiValidator = SetBasedRequestParameterValidator.builder()
+            .withRequiredParameters("id", "from","to","source")
+            .withOptionalParameters("annotations","apiKey", "callback")
+            .build();
     
     private final NumberToShortStringCodec idCodec;
     private final DateTimeInQueryParser dateTimeParser;
@@ -71,27 +76,50 @@ class ScheduleRequestParser {
     }
 
     public ScheduleQuery queryFrom(HttpServletRequest request) throws QueryParseException, InvalidApiKeyException {
+        Matcher matcher = CHANNEL_ID_PATTERN.matcher(request.getRequestURI());
+        return matcher.matches() ? parseSingleRequest(request)
+                                 : parseMultiRequest(request);
+    }
 
-        validator.validateParameters(request);
+    private ScheduleQuery parseSingleRequest(HttpServletRequest request)
+            throws QueryParseException, InvalidApiKeyException {
+        singleValidator.validateParameters(request);
         
         Publisher publisher = extractPublisher(request);
         Interval queryInterval = extractInterval(request);
         
+        QueryContext context = parseContext(request, publisher, queryInterval);
+        
+        Id channel = extractChannel(request);
+        return ScheduleQuery.single(publisher, queryInterval, context, channel);
+    }
+
+    private ScheduleQuery parseMultiRequest(HttpServletRequest request)
+            throws QueryParseException, InvalidApiKeyException {
+        
+        multiValidator.validateParameters(request);
+        
+        Publisher publisher = extractPublisher(request);
+        Interval queryInterval = extractInterval(request);
+        QueryContext context = parseContext(request, publisher, queryInterval);
+        
+        List<Id> channels = extractChannels(request);
+        return ScheduleQuery.multi(publisher, queryInterval, context, channels);
+    }
+
+
+    private QueryContext parseContext(HttpServletRequest request, Publisher publisher,
+            Interval queryInterval) throws InvalidApiKeyException, InvalidAnnotationException {
         ApplicationSources appSources = getConfiguration(request);
         appSources = appConfigForValidPublisher(publisher, appSources, queryInterval);
         checkArgument(appSources != null, "Source %s not enabled", publisher);
         
         ActiveAnnotations annotations = annotationExtractor.extractFromRequest(request);
-        
-        Optional<Id> channel = extractChannel(request);
-        if (channel.isPresent()) {
-            return ScheduleQuery.single(publisher, queryInterval, new QueryContext(appSources, annotations), channel.get());
-        } else {
-            List<Id> channels = extractChannels(request);
-            return ScheduleQuery.multi(publisher, queryInterval, new QueryContext(appSources, annotations), channels);
-        }
+        QueryContext context = new QueryContext(appSources, annotations);
+        return context;
     }
 
+    
     private ApplicationSources appConfigForValidPublisher(Publisher publisher,
                                                                 ApplicationSources appSources,
                                                                 Interval interval) {
@@ -133,10 +161,11 @@ class ScheduleRequestParser {
         return ids.build();
     }
     
-    private Optional<Id> extractChannel(HttpServletRequest request) throws QueryParseException {
-        Optional<String> channelId = getChannelId(request.getRequestURI());
-        return channelId.isPresent() ? Optional.of(transformToId(channelId.get()))
-                                     : Optional.<Id>absent();
+    private Id extractChannel(HttpServletRequest request) throws QueryParseException {
+        Matcher matcher = CHANNEL_ID_PATTERN.matcher(request.getRequestURI());
+        // we already know that this matches so we'll never get null
+        String channelId = matcher.matches() ? matcher.group(1) : null;
+        return transformToId(channelId);
     }
 
     private Id transformToId(String channelId) throws QueryParseException {
@@ -147,14 +176,6 @@ class ScheduleRequestParser {
         }
     }
 
-    private Optional<String> getChannelId(String requestUri) {
-        Matcher matcher = CHANNEL_ID_PATTERN.matcher(requestUri);
-        if (matcher.matches()) {
-            return Optional.fromNullable(matcher.group(1));
-        }
-        return Optional.absent();
-    }
-    
     private Interval extractInterval(HttpServletRequest request) {
         DateTime from = dateTimeParser.parse(getParameter(request, "from"));
         DateTime to = dateTimeParser.parse(getParameter(request, "to"));
