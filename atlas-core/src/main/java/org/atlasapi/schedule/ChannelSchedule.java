@@ -8,14 +8,40 @@ import org.atlasapi.content.ItemAndBroadcast;
 import org.atlasapi.media.channel.Channel;
 import org.joda.time.Interval;
 
+import com.google.common.base.Function;
 import com.google.common.base.Objects;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Ordering;
 
 public class ChannelSchedule {
+
+    private static final Function<ChannelSchedule, Channel> TO_CHANNEL
+        = new Function<ChannelSchedule, Channel>() {
+            @Override
+            public Channel apply(ChannelSchedule input) {
+                return input.getChannel();
+            }
+        };
+        
+    public static final Function<ChannelSchedule, Channel> toChannel() {
+        return TO_CHANNEL;
+    }
+    
+    private static final Function<ChannelSchedule, ImmutableList<ItemAndBroadcast>> TO_ENTRIES
+         = new Function<ChannelSchedule, ImmutableList<ItemAndBroadcast>>() {
+            @Override
+            public ImmutableList<ItemAndBroadcast> apply(ChannelSchedule input) {
+                return input.entries;
+            }
+        };
+        
+    public static final Function<ChannelSchedule, ImmutableList<ItemAndBroadcast>> toEntries() {
+        return TO_ENTRIES;
+    }
     
     private final Channel channel;
     private final Interval interval;
-    private final List<ItemAndBroadcast> entries;
+    private final ImmutableList<ItemAndBroadcast> entries;
 
     public ChannelSchedule(Channel channel, Interval interval, Iterable<ItemAndBroadcast> entries) {
         this.channel = checkNotNull(channel);

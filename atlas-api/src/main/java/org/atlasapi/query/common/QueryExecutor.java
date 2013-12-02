@@ -1,7 +1,9 @@
 package org.atlasapi.query.common;
 
+import javax.annotation.Nonnull;
+
 public interface QueryExecutor<T> {
 
-    QueryResult<T> execute(Query<T> query) throws QueryExecutionException;
+    @Nonnull QueryResult<T> execute(@Nonnull Query<T> query) throws QueryExecutionException;
     
 }

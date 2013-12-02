@@ -47,7 +47,9 @@ import org.mockito.runners.MockitoJUnitRunner;
 
 import com.google.common.base.Function;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
+import com.google.common.collect.Lists;
 import com.google.common.util.concurrent.Futures;
 import com.metabroadcast.common.base.Maybe;
 import com.metabroadcast.common.time.DateTimeZones;
@@ -64,7 +66,7 @@ public class ScheduleResolverBackedScheduleQueryExecutorTest {
             = new ScheduleResolverBackedScheduleQueryExecutor(channelResolver, scheduleResolver, equivalentContentResolver);
     
     @Test
-    public void testExecutingScheduleQuery() throws Exception {
+    public void testExecutingSingleScheduleQuery() throws Exception {
         
         Channel channel = Channel.builder().build();
         channel.setId(1L);
@@ -83,6 +85,35 @@ public class ScheduleResolverBackedScheduleQueryExecutorTest {
         
         assertThat(result.getOnlyResource(), is(channelSchedule));
     }
+    
+    @Test
+    public void testExecutingMultiScheduleQuery() throws Exception {
+        
+        Channel channelOne = Channel.builder().build();
+        channelOne.setId(1L);
+        channelOne.setCanonicalUri("one");
+
+        Channel channelTwo = Channel.builder().build();
+        channelTwo.setId(2L);
+        channelTwo.setCanonicalUri("two");
+        
+        Interval interval = new Interval(0, 100, DateTimeZones.UTC);
+        List<Id> cids = ImmutableList.of(Id.valueOf(channelOne.getId()), Id.valueOf(channelTwo.getId()));
+        ScheduleQuery query = ScheduleQuery.multi(METABROADCAST, interval, QueryContext.standard(), cids);
+
+        ChannelSchedule cs1 = new ChannelSchedule(channelOne, interval, ImmutableList.<ItemAndBroadcast>of());
+        ChannelSchedule cs2 = new ChannelSchedule(channelTwo, interval, ImmutableList.<ItemAndBroadcast>of());
+
+        when(channelResolver.forIds(Lists.transform(cids, Id.toLongValue())))
+            .thenReturn(ImmutableList.of(channelOne, channelTwo));
+        when(scheduleResolver.resolve(argThat(hasItems(channelOne, channelTwo)), eq(interval), eq(query.getSource())))
+                .thenReturn(Futures.immediateFuture(new Schedule(ImmutableList.of(cs1, cs2), interval)));
+        
+        QueryResult<ChannelSchedule> result = executor.execute(query);
+        
+        assertThat(result.getResources().toList(), is(ImmutableList.of(cs1, cs2)));
+    }
+    
     
     @Test
     public void testThrowsExceptionIfChannelIsMissing() {
@@ -135,13 +166,13 @@ public class ScheduleResolverBackedScheduleQueryExecutorTest {
             .thenReturn(Maybe.just(channel));
         when(scheduleResolver.resolve(argThat(hasItems(channel)), eq(interval), eq(query.getSource())))
             .thenReturn(Futures.immediateFuture(new Schedule(ImmutableList.of(channelSchedule), interval)));
-        when(equivalentContentResolver.resolveIds(ImmutableList.of(itemId), appSources, ActiveAnnotations.standard().all()))
+        when(equivalentContentResolver.resolveIds(ImmutableSet.of(itemId), appSources, ActiveAnnotations.standard().all()))
             .thenReturn(Futures.immediateFuture(ResolvedEquivalents.<Content>builder().putEquivalents(itemId, ImmutableList.of(equivalentItem)).build()));
         
         QueryResult<ChannelSchedule> result = executor.execute(query);
         
         assertThat(result.getOnlyResource().getEntries().get(0).getItem(), sameInstance(equivalentItem));
-        verify(equivalentContentResolver).resolveIds(ImmutableList.of(itemId), appSources, ActiveAnnotations.standard().all());
+        verify(equivalentContentResolver).resolveIds(ImmutableSet.of(itemId), appSources, ActiveAnnotations.standard().all());
         
     }
     
