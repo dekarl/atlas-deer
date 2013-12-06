@@ -2,7 +2,7 @@ package org.atlasapi;
 
 import java.io.File;
 import java.lang.reflect.InvocationTargetException;
-import java.security.ProtectionDomain;
+import java.net.URL;
 import java.text.DecimalFormat;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -63,11 +63,11 @@ public class AtlasServer {
     }
     
     private void start(int port, boolean monitor) throws Exception {
-        
-        WebAppContext apiContext = createWebApp(warBase() + "/WEB-INF/web.xml", createApiServer(port));
+        System.out.println(this.getClass().getName().replace(".", "/") + ".class");
+        WebAppContext apiContext = createWebApp(warBase() + "WEB-INF/web.xml", createApiServer(port));
         apiContext.setAttribute(CONTEXT_ATTRIBUTE, this);
         if (monitor) {
-            WebAppContext monitoringContext = createWebApp(warBase() + "/WEB-INF/web-monitoring.xml",
+            WebAppContext monitoringContext = createWebApp(warBase() + "WEB-INF/web-monitoring.xml",
                     createMonitoringServer());
             monitoringContext.setAttribute(CONTEXT_ATTRIBUTE, this);
         }
@@ -88,8 +88,9 @@ public class AtlasServer {
         if (new File(LOCAL_WAR_DIR).exists()) {
             return LOCAL_WAR_DIR;
         }
-        ProtectionDomain domain = AtlasMain.class.getProtectionDomain();
-        return domain.getCodeSource().getLocation().toString();
+        String knownPath = this.getClass().getName().replace(".", "/") + ".class";
+        URL url = this.getClass().getClassLoader().getResource(knownPath);
+        return url.toString().replace(knownPath, "");
     }
 
     private Server createApiServer(int port) throws Exception {
