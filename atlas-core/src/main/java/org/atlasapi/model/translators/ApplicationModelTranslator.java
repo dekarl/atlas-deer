@@ -5,6 +5,7 @@ import java.util.Map;
 
 import org.atlasapi.application.SourceStatus;
 import org.atlasapi.application.v3.ApplicationConfiguration;
+import org.atlasapi.application.v3.SourceStatus.SourceState;
 import org.atlasapi.application.Application;
 import org.atlasapi.application.ApplicationCredentials;
 import org.atlasapi.application.ApplicationSources;
@@ -64,17 +65,19 @@ public class ApplicationModelTranslator implements Function<org.atlasapi.applica
                 .build();
     }
     
-    private List<SourceReadEntry> asOrderedList(Map<Publisher, SourceStatus> readsMap, Iterable<Publisher> order) {
+    private List<SourceReadEntry> asOrderedList(Map<Publisher, org.atlasapi.application.v3.SourceStatus> readsMap, Iterable<Publisher> order) {
         ImmutableList.Builder<SourceReadEntry> builder = ImmutableList.builder();
         for (Publisher source : order) {
             builder.add(new SourceReadEntry(
                       source,
-                      readsMap.get(source)
+                      SourceStatusModelTranslator.transform3To4(readsMap.get(source))
                     )
             );
         }   
         return builder.build();
     }
+    
+
     
     public org.atlasapi.application.v3.Application transform4to3(Application input) {
         return org.atlasapi.application.v3.Application.application(input.getSlug())
@@ -93,7 +96,7 @@ public class ApplicationModelTranslator implements Function<org.atlasapi.applica
     }
     
     private ApplicationConfiguration transformSources4to3(ApplicationSources input) {
-        Map<Publisher, SourceStatus> sourceStatuses = readsAsMap(input.getReads());
+        Map<Publisher, org.atlasapi.application.v3.SourceStatus> sourceStatuses = readsAsMap(input.getReads());
         ApplicationConfiguration configuration = ApplicationConfiguration.defaultConfiguration()
                 .withSources(sourceStatuses);
         if (input.isPrecedenceEnabled()) {
@@ -104,12 +107,11 @@ public class ApplicationModelTranslator implements Function<org.atlasapi.applica
         return configuration;
     }
     
-    public Map<Publisher, SourceStatus> readsAsMap(List<SourceReadEntry> input) {
-        Map<Publisher, SourceStatus> sourceStatuses = Maps.newHashMap();
+    private Map<Publisher, org.atlasapi.application.v3.SourceStatus> readsAsMap(List<SourceReadEntry> input) {
+        Map<Publisher, org.atlasapi.application.v3.SourceStatus> sourceStatuses = Maps.newHashMap();
         for (SourceReadEntry entry : input) {
-            sourceStatuses.put(entry.getPublisher(), entry.getSourceStatus());
+            sourceStatuses.put(entry.getPublisher(), SourceStatusModelTranslator.transform4To3(entry.getSourceStatus()));
         }
         return sourceStatuses;
     }
-
 }

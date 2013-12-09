@@ -36,9 +36,9 @@ public class ApplicationModelTranslatorTest {
 	public void test3To4Translation() {
 
 	    List<Publisher> writes = ImmutableList.of(Publisher.ARCHIVE_ORG, Publisher.DBPEDIA);
-		Map<Publisher, SourceStatus> sourceStatuses = Maps.newHashMap();
-		sourceStatuses.put(Publisher.BBC, SourceStatus.AVAILABLE_ENABLED);
-		sourceStatuses.put(Publisher.ARCHIVE_ORG, SourceStatus.UNAVAILABLE);
+		Map<Publisher, org.atlasapi.application.v3.SourceStatus> sourceStatuses = Maps.newHashMap();
+		sourceStatuses.put(Publisher.BBC, org.atlasapi.application.v3.SourceStatus.AVAILABLE_ENABLED);
+		sourceStatuses.put(Publisher.ARCHIVE_ORG, org.atlasapi.application.v3.SourceStatus.UNAVAILABLE);
 		ApplicationConfiguration configuration = ApplicationConfiguration.defaultConfiguration()
                 .withSources(sourceStatuses);
 		configuration = configuration.copyWithPrecedence(ImmutableList.of(Publisher.BBC, Publisher.ARCHIVE_ORG));

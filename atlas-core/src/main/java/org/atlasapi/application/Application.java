@@ -149,7 +149,7 @@ public class Application implements Identifiable, Sourced {
                 return status.getSourceStatus();
             }
         }
-        return source.getDefaultSourceStatus();
+        return SourceStatus.fromV3SourceStatus(source.getDefaultSourceStatus());
     }
     
     private List<SourceReadEntry> changeReadsPreservingOrder(

@@ -219,7 +219,7 @@ public class ApplicationSources {
             }            
             for (Publisher source : Publisher.values()) {
                 if (!publishersSeen.contains(source)) {
-                    readsAll.add(new SourceReadEntry(source, source.getDefaultSourceStatus()));
+                    readsAll.add(new SourceReadEntry(source, SourceStatus.fromV3SourceStatus(source.getDefaultSourceStatus())));
                 }
             }
             this.reads = readsAll;

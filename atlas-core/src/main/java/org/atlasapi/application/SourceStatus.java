@@ -1,5 +1,7 @@
 package org.atlasapi.application;
 
+import org.atlasapi.model.translators.SourceStatusModelTranslator;
+
 import com.google.common.base.Preconditions;
 import com.google.common.base.Predicate;
 
@@ -71,6 +73,10 @@ public class SourceStatus {
 
     public SourceState getState() {
         return state;
+    }
+    
+    public static SourceStatus fromV3SourceStatus(org.atlasapi.application.v3.SourceStatus sourceStatus) {
+    	return SourceStatusModelTranslator.transform3To4(sourceStatus);
     }
     
     @Override
