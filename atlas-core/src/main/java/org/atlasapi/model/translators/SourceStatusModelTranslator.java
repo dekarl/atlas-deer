@@ -12,12 +12,17 @@ public class SourceStatusModelTranslator {
     }
     
     public static org.atlasapi.application.v3.SourceStatus transform4To3(SourceStatus sourceStatus) {
-    	org.atlasapi.application.v3.SourceStatus v3Status = org.atlasapi.application.v3.SourceStatus.UNAVAILABLE.copyWithState(transform4To3(sourceStatus.getState()));
-    	if (sourceStatus.isEnabled()) {
-    		return v3Status.enable();
+    	org.atlasapi.application.v3.SourceStatus v3Status = org.atlasapi.application.v3.SourceStatus
+    			.UNAVAILABLE.copyWithState(transform4To3(sourceStatus.getState()));
+    	if (sourceStatus.equals(SourceStatus.SourceState.AVAILABLE)) {
+    		if (sourceStatus.isEnabled()) {
+        		return v3Status.enable();
+        	} else {
+        		return v3Status.disable();
+        	}
     	} else {
-    		return v3Status.disable();
-    	}
+    		return v3Status;
+    	}    	
     }
     
     public static org.atlasapi.application.v3.SourceStatus.SourceState transform4To3(SourceStatus.SourceState sourceState) {
