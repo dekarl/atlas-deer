@@ -46,8 +46,8 @@ public class ApplicationModificationTest {
               .withSources(sources)
               .build();
          List<SourceReadEntry> modifiedReads = ImmutableList.of(
-         new SourceReadEntry(Publisher.YOUTUBE, Publisher.YOUTUBE.getDefaultSourceStatus()),
-         new SourceReadEntry(Publisher.NETFLIX, Publisher.NETFLIX.getDefaultSourceStatus())
+         new SourceReadEntry(Publisher.YOUTUBE, SourceStatus.fromV3SourceStatus(Publisher.YOUTUBE.getDefaultSourceStatus())),
+         new SourceReadEntry(Publisher.NETFLIX, SourceStatus.fromV3SourceStatus(Publisher.NETFLIX.getDefaultSourceStatus()))
       );
 
       List<Publisher> modfiedWrites = ImmutableList.of(
