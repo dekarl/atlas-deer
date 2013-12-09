@@ -14,7 +14,7 @@ public class SourceStatusModelTranslator {
     public static org.atlasapi.application.v3.SourceStatus transform4To3(SourceStatus sourceStatus) {
     	org.atlasapi.application.v3.SourceStatus v3Status = org.atlasapi.application.v3.SourceStatus
     			.UNAVAILABLE.copyWithState(transform4To3(sourceStatus.getState()));
-    	if (sourceStatus.equals(SourceStatus.SourceState.AVAILABLE)) {
+    	if (sourceStatus.getState().equals(SourceStatus.SourceState.AVAILABLE)) {
     		if (sourceStatus.isEnabled()) {
         		return v3Status.enable();
         	} else {
