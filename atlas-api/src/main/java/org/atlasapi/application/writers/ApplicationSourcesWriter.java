@@ -22,6 +22,7 @@ public class ApplicationSourcesWriter implements EntityListWriter<ApplicationSou
     @Override
     public void write(ApplicationSources entity, FieldWriter writer, OutputContext ctxt)
             throws IOException {
+    	
         writer.writeField("precedence", entity.isPrecedenceEnabled());
         writer.writeList(readsWriter, entity.getReads(), ctxt);
         writer.writeList(writesWriter, entity.getWrites(), ctxt);

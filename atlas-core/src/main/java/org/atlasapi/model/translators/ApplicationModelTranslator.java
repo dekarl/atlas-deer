@@ -62,7 +62,8 @@ public class ApplicationModelTranslator implements Function<org.atlasapi.applica
                 .withPrecedence(input.precedenceEnabled())
                 .withReadableSources(reads)
                 .withWritableSources(input.writableSources().asList())
-                .build();
+                .build()
+                .copyWithMissingSourcesPopulated();
     }
     
     private List<SourceReadEntry> asOrderedList(Map<Publisher, org.atlasapi.application.v3.SourceStatus> readsMap, Iterable<Publisher> order) {

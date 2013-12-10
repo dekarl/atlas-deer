@@ -24,6 +24,7 @@ public class ApplicationSourcesReadsWriter implements
         writer.writeField("title", entity.getPublisher().title());
         writer.writeField("state", entity.getSourceStatus().getState().toString().toLowerCase());
         writer.writeField("enabled", entity.getSourceStatus().isEnabled());
+        writer.writeField("restriction", entity.getPublisher().restriction().toString().toLowerCase());
     }
 
     @Override
