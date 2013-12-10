@@ -20,10 +20,13 @@ import org.atlasapi.output.useraware.UserAwareQueryResult;
 import org.atlasapi.query.common.QueryExecutionException;
 import org.atlasapi.query.common.useraware.UserAwareQuery;
 import org.atlasapi.query.common.useraware.UserAwareQueryExecutor;
+import org.atlasapi.source.Sources;
 
+import com.google.common.base.Function;
 import com.google.common.base.Optional;
 import com.google.common.base.Predicate;
 import com.google.common.collect.FluentIterable;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
@@ -47,10 +50,12 @@ public class ApplicationQueryExecutor implements UserAwareQueryExecutor<Applicat
         if (!userCanAccessApplication(id, query)) {
             throw new ResourceForbiddenException();
         }
-       
+        
         Optional<Application> application = applicationStore.applicationFor(id);
-        if (application.isPresent()) {
+        if (application.isPresent() && query.getContext().isAdminUser()) {
             return UserAwareQueryResult.singleResult(application.get(), query.getContext());
+        } else if (application.isPresent() && !query.getContext().isAdminUser()) {
+            return UserAwareQueryResult.singleResult(copyApplicationWithAdminOnlySourcesRemoved(application.get()), query.getContext());
         } else {
             throw new NotFoundException(id);
         }
@@ -98,7 +103,8 @@ public class ApplicationQueryExecutor implements UserAwareQueryExecutor<Applicat
         if (query.getContext().isAdminUser()) {
             return UserAwareQueryResult.listResult(results, query.getContext());
         } else {
-            return UserAwareQueryResult.listResult(filterByUserViewable(results, user), query.getContext());
+        	Iterable<Application> userApplications = filterByUserViewable(results, user);
+            return UserAwareQueryResult.listResult(copyApplicationsWithAdminOnlySourcesRemoved(userApplications), query.getContext());
         }
     }
 
@@ -120,5 +126,30 @@ public class ApplicationQueryExecutor implements UserAwareQueryExecutor<Applicat
             public boolean apply(@Nullable Application input) {
                 return user.getApplicationIds().contains(input.getId());
             }});
+    }
+    
+    private Iterable<Application> copyApplicationsWithAdminOnlySourcesRemoved(Iterable<Application> applications) {
+    	return Iterables.transform(applications, new Function<Application, Application>() {
+
+			@Override
+			public Application apply(Application input) {
+				return copyApplicationWithAdminOnlySourcesRemoved(input);
+			}});
+    }
+    
+    private Application copyApplicationWithAdminOnlySourcesRemoved(Application application) {
+    	List<SourceReadEntry> reads = filterSourcesReadsForNonAdmins(
+    			application.getSources().getReads());
+		return application.copy().withSources(application.getSources()
+				.copy().withReadableSources(reads).build())
+				.build();
+    }
+    
+    private List<SourceReadEntry> filterSourcesReadsForNonAdmins(List<SourceReadEntry> reads) {
+    	return ImmutableList.copyOf(Iterables.filter(reads, new Predicate<SourceReadEntry>() {
+			@Override
+			public boolean apply(SourceReadEntry input) {
+				return !Sources.isAdminOnlySource(input.getPublisher());
+			}}));
     }
 }

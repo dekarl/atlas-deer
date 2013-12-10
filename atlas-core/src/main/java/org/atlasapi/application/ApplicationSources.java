@@ -144,7 +144,8 @@ public class ApplicationSources {
     // with default source status
     public static ApplicationSources defaults() {
         return ApplicationSources.builder()
-                  .build();
+                  .build()
+                  .copyWithMissingSourcesPopulated();
     }
     
 
@@ -175,6 +176,24 @@ public class ApplicationSources {
             }
         }
         return this.copy().withReadableSources(reads).build();
+    }
+    
+    /*
+     * Adds any missing sources to the application. 
+     */
+    public ApplicationSources copyWithMissingSourcesPopulated() {
+        List<SourceReadEntry> readsAll = Lists.newLinkedList();
+        Set<Publisher> publishersSeen = Sets.newHashSet();
+        for (SourceReadEntry read : this.getReads()) {
+            readsAll.add(read);
+            publishersSeen.add(read.getPublisher());
+        }            
+        for (Publisher source : Publisher.values()) {
+            if (!publishersSeen.contains(source)) {
+                readsAll.add(new SourceReadEntry(source, SourceStatus.fromV3SourceStatus(source.getDefaultSourceStatus())));
+            }
+        }
+        return this.copy().withReadableSources(readsAll).build();
     }
 
     public Builder copy() {
@@ -210,22 +229,9 @@ public class ApplicationSources {
         }
 
         public ApplicationSources build() {
-            // populate any missing publishers 
-            List<SourceReadEntry> readsAll = Lists.newLinkedList();
-            Set<Publisher> publishersSeen = Sets.newHashSet();
-            for (SourceReadEntry read : this.reads) {
-                readsAll.add(read);
-                publishersSeen.add(read.getPublisher());
-            }            
-            for (Publisher source : Publisher.values()) {
-                if (!publishersSeen.contains(source)) {
-                    readsAll.add(new SourceReadEntry(source, SourceStatus.fromV3SourceStatus(source.getDefaultSourceStatus())));
-                }
-            }
-            this.reads = readsAll;
             // If precedence not enabled then sort reads by publisher key order
             if (!this.precedence) {
-                Collections.sort(this.reads, SORT_READS_BY_PUBLISHER);
+                Collections.sort(Lists.newArrayList(this.reads), SORT_READS_BY_PUBLISHER);
             }
             return new ApplicationSources(this);
         }

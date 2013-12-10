@@ -56,12 +56,13 @@ public abstract class AbstractApplicationStore implements ApplicationStore {
         }
         
         Id id = Id.valueOf(idGenerator.generateRaw());
+        // Make sure any missing sources are populated
         Application created = application.copy()
                 .withId(id)
                 .withCreated(clock.now())
                 .withSlug(generateSlug(id))
                 .withCredentials(credentialsBuilder.build())
-                .withSources(sources)
+                .withSources(sources.copyWithMissingSourcesPopulated())
                 .withRevoked(false)
                 .build();
         
@@ -72,6 +73,10 @@ public abstract class AbstractApplicationStore implements ApplicationStore {
     @Override
     public final Application updateApplication(Application application) {
         Application updated = withGuaranteedSlug(application);
+        // Make sure full list of sources present in application
+        // May not be present is posted by non admin user
+        updated = updated.copyWithSources(
+        		updated.getSources().copyWithMissingSourcesPopulated());
         doUpdateApplication(updated);
         return updated;
     }

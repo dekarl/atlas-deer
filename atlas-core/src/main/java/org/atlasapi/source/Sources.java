@@ -1,5 +1,6 @@
 package org.atlasapi.source;
 
+import org.atlasapi.application.v3.SourceRestriction;
 import org.atlasapi.media.entity.Publisher;
 
 import com.google.common.base.Function;
@@ -53,6 +54,10 @@ public class Sources {
             return KEY_LOOKUP.get(input);
         }
 
+    }
+    
+    public static final boolean isAdminOnlySource(Publisher source) {
+    	return source.restriction().equals(SourceRestriction.ADMIN_ONLY);
     }
 
 }
