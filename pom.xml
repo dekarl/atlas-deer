@@ -305,6 +305,12 @@
       <name>Metabroadcast</name>
       <url>http://mvn.metabroadcast.com/all</url>
       <layout>default</layout>
+      <snapshots>
+        <enabled>true</enabled>
+      </snapshots>
+      <releases>
+        <enabled>true</enabled>
+      </releases>
     </repository>
   </repositories>
 

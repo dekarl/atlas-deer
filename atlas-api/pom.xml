@@ -183,4 +183,17 @@
     </dependency>
   </dependencies>
 
+  <distributionManagement>
+    <repository>
+      <id>metabroadcast-mvn</id>
+      <name>Public Releases MetaBroadcast Repo</name>
+      <url>dav:http://mvn.metabroadcast.com:80/deploy-releases-local</url>
+    </repository>
+    <snapshotRepository>
+      <id>metabroadcast-mvn</id>
+      <name>Public Snapshots MetaBroadcast Repo</name>
+      <url>dav:http://mvn.metabroadcast.com:80/deploy-snapshots-local</url>
+    </snapshotRepository>
+  </distributionManagement>
+
 </project>
