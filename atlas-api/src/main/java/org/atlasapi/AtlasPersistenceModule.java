@@ -2,6 +2,7 @@ package org.atlasapi;
 
 import java.net.UnknownHostException;
 import java.util.List;
+import java.util.UUID;
 
 import javax.annotation.PostConstruct;
 
@@ -88,7 +89,7 @@ public class AtlasPersistenceModule {
             idGeneratorBuilder(), new ContentHasher() {
                 @Override
                 public String hash(Content content) {
-                    return "";
+                    return UUID.randomUUID().toString();
                 }
             });
     }

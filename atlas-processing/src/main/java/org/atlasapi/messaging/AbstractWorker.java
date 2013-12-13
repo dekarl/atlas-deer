@@ -16,6 +16,15 @@ public abstract class AbstractWorker implements Worker {
         this.serializer = serializer;
     }
     
+    public void onMessage(byte[] message) {
+        try {
+            Message event = serializer.deserialize(ByteSource.wrap(message));
+            event.dispatchTo(this);
+        } catch (MessageException ex) {
+            throw new RuntimeException(ex.getMessage(), ex);
+        }
+    }
+    
     public void onMessage(String message) {
         try {
             Message event = serializer.deserialize(ByteSource.wrap(message.getBytes(Charsets.UTF_8)));
