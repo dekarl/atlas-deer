@@ -182,7 +182,7 @@
         <exclusions>
           <exclusion>
             <groupId>org.mortbay.jetty</groupId>
-            <artifactId>servlet-api</artifactId>
+            <artifactId>jetty</artifactId>
           </exclusion>
         </exclusions>
       </dependency>
@@ -272,7 +272,7 @@
     <atlas.legacy.version>5.0-SNAPSHOT</atlas.legacy.version>
     <guava.version>15.0</guava.version>
     <jetty.version>9.0.6.v20130930</jetty.version>
-    <slf4j.version>1.7.2</slf4j.version>
+    <slf4j.version>1.7.5</slf4j.version>
     <astyanax.version>1.56.42</astyanax.version>
     <common.version>1.0-SNAPSHOT</common.version>
     <metrics.version>3.0.1</metrics.version>

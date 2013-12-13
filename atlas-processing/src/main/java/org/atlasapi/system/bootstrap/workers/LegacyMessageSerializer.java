@@ -15,7 +15,8 @@ import com.google.common.io.ByteSource;
 
 public class LegacyMessageSerializer implements MessageSerializer {
 
-    private final ObjectMapper mapper = JsonFactory.makeJsonMapper();
+    private final ObjectMapper mapper = JsonFactory.makeJsonMapper()
+            .registerModule(new org.atlasapi.messaging.worker.v3.AbstractWorker.MessagingModule());
     
     @Override
     public ByteSource serialize(Message msg) throws MessageException {
