@@ -18,7 +18,7 @@ import org.atlasapi.messaging.Worker;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class ReplayingWorker extends AbstractWorker {
+public class ReplayingWorker extends BaseWorker {
 
     private final Logger log = LoggerFactory.getLogger(this.getClass());
 
@@ -31,8 +31,7 @@ public class ReplayingWorker extends AbstractWorker {
     private final Worker delegate;
     private long replayThreshold;
     
-    public ReplayingWorker(Worker delegate, MessageSerializer serializer) {
-        super(serializer);
+    public ReplayingWorker(Worker delegate) {
         this.delegate = delegate;
         this.replayThreshold = 60000;
     }

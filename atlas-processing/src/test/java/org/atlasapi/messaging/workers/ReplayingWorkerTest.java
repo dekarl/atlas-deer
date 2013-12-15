@@ -16,7 +16,6 @@ import java.util.concurrent.TimeUnit;
 import org.atlasapi.messaging.BeginReplayMessage;
 import org.atlasapi.messaging.EndReplayMessage;
 import org.atlasapi.messaging.EntityUpdatedMessage;
-import org.atlasapi.messaging.JacksonMessageSerializer;
 import org.atlasapi.messaging.ReplayMessage;
 import org.atlasapi.messaging.ReplayingWorker;
 import org.atlasapi.messaging.Worker;
@@ -29,14 +28,13 @@ import org.mockito.stubbing.Answer;
 public class ReplayingWorkerTest {
 
     private final ExecutorService executor = Executors.newCachedThreadPool();
-    private final JacksonMessageSerializer serializer = new JacksonMessageSerializer();
 
     @Test
     public void testNormalProcessing() {
         Worker delegate = mock(Worker.class);
         long threshold = 100;
 
-        ReplayingWorker replayingWorker = new ReplayingWorker(delegate, serializer);
+        ReplayingWorker replayingWorker = new ReplayingWorker(delegate);
         replayingWorker.setReplayThreshold(threshold);
         try {
             replayingWorker.start();
@@ -54,7 +52,7 @@ public class ReplayingWorkerTest {
         Worker delegate = mock(Worker.class);
         long threshold = 100;
 
-        ReplayingWorker replayingWorker = new ReplayingWorker(delegate, serializer);
+        ReplayingWorker replayingWorker = new ReplayingWorker(delegate);
         replayingWorker.setReplayThreshold(threshold);
         try {
             replayingWorker.start();
@@ -78,7 +76,7 @@ public class ReplayingWorkerTest {
         final Worker delegate = mock(Worker.class);
         final long threshold = 10000;
 
-        final ReplayingWorker replayingWorker = new ReplayingWorker(delegate, serializer);
+        final ReplayingWorker replayingWorker = new ReplayingWorker(delegate);
         replayingWorker.setReplayThreshold(threshold);
         try {
             replayingWorker.start();
@@ -106,7 +104,7 @@ public class ReplayingWorkerTest {
         final Worker delegate = mock(Worker.class);
         final long threshold = 10000;
 
-        final ReplayingWorker replayingWorker = new ReplayingWorker(delegate, serializer);
+        final ReplayingWorker replayingWorker = new ReplayingWorker(delegate);
         replayingWorker.setReplayThreshold(threshold);
         final CountDownLatch processLatch = new CountDownLatch(1);
         try {
@@ -138,7 +136,7 @@ public class ReplayingWorkerTest {
         final Worker delegate = mock(Worker.class);
         final long threshold = 1000;
 
-        final ReplayingWorker replayingWorker = new ReplayingWorker(delegate, serializer);
+        final ReplayingWorker replayingWorker = new ReplayingWorker(delegate);
         replayingWorker.setReplayThreshold(threshold);
         final CountDownLatch processLatch = new CountDownLatch(1);
         try {

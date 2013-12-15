@@ -3,12 +3,11 @@ package org.atlasapi.messaging;
 import org.atlasapi.messaging.EntityUpdatedMessage;
 import org.atlasapi.messaging.MessageStore;
 
-public class MessageLogger extends AbstractWorker {
+public class MessageLogger extends BaseWorker {
 
     private final MessageStore store;
 
-    public MessageLogger(MessageStore store, MessageSerializer serializer) {
-        super(serializer);
+    public MessageLogger(MessageStore store) {
         this.store = store;
     }
 

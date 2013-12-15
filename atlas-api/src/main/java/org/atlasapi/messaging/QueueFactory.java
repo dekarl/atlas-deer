@@ -14,10 +14,12 @@ public final class QueueFactory {
     
     private final String system;
     private final ConnectionFactory cf;
+    private final MessageSerializer serializer;
 
-    public QueueFactory(ConnectionFactory cf, String system) {
+    public QueueFactory(ConnectionFactory cf, String system, MessageSerializer serializer) {
         this.cf = cf;
         this.system = system;
+        this.serializer = serializer;
     }
 
     private String virtualTopicProducer(String name) {
@@ -40,28 +42,30 @@ public final class QueueFactory {
         return makeContainer(worker, replayDestination(name), consumers, maxConsumers);
     }
     
-    public DefaultMessageListenerContainer makeContainer(Worker worker, String destination, int consumers, int maxConsumers) {
+    private DefaultMessageListenerContainer makeContainer(Worker worker, String destination, int consumers, int maxConsumers) {
         log.info("Reading {} with {}", destination, worker.getClass().getSimpleName());
-        MessageListenerAdapter adapter = new MessageListenerAdapter(worker);
-        DefaultMessageListenerContainer container = new DefaultMessageListenerContainer();
-
+        
+        JmsMessageAdapter messageAdapter = new JmsMessageAdapter(serializer, worker);
+        MessageListenerAdapter adapter = new MessageListenerAdapter(messageAdapter);
         adapter.setDefaultListenerMethod("onMessage");
+
+        DefaultMessageListenerContainer container = new DefaultMessageListenerContainer();
+        container.setMessageListener(adapter);
         container.setConnectionFactory(cf);
         container.setDestinationName(destination);
         container.setConcurrentConsumers(consumers);
         container.setMaxConcurrentConsumers(maxConsumers);
-        container.setMessageListener(adapter);
 
         return container;
     }
     
-    public JmsTemplate makeVirtualTopicProducer(String producerName) {
-        String destination = this.virtualTopicProducer(producerName);
+    public MessageSender makeMessageSender(String destinationName) {
+        String destination = this.virtualTopicProducer(destinationName);
         log.info("Writing {}", destination);
         JmsTemplate jmsTemplate = new JmsTemplate(cf);
         jmsTemplate.setPubSubDomain(true);
         jmsTemplate.setDefaultDestinationName(destination);
-        return jmsTemplate;
+        return new JmsMessageSender(jmsTemplate, serializer);
     }
     
 }

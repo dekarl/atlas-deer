@@ -33,7 +33,7 @@ public class BootstrapWorkersModule {
     
     @Bean @Qualifier("bootstrap")
     QueueFactory bootstrapQueueFactory() {
-        return new QueueFactory(messaging.activemqConnectionFactory(), originSystem);
+        return new QueueFactory(messaging.activemqConnectionFactory(), originSystem, new LegacyMessageSerializer());
     }
     
     @Bean
@@ -42,7 +42,7 @@ public class BootstrapWorkersModule {
         ContentResolver legacyResolver = legacy.legacyContentResolver();
         BootstrapContentPersistor persistor = new BootstrapContentPersistor(
             persistence.contentStore(), persistence.scheduleStore(), persistence.channelStore());
-        ContentReadWriteWorker worker = new ContentReadWriteWorker(legacyResolver, persistor, new LegacyMessageSerializer());
+        ContentReadWriteWorker worker = new ContentReadWriteWorker(legacyResolver, persistor);
         return bootstrapQueueFactory().makeVirtualTopicConsumer(worker, "Bootstrap", messaging.contentChanges, 1, 1);
     }
 
@@ -51,7 +51,7 @@ public class BootstrapWorkersModule {
     DefaultMessageListenerContainer topicReadWriter() {
         TopicResolver legacyResolver = legacy.legacyTopicResolver();
         TopicStore writer = persistence.topicStore();
-        TopicReadWriteWorker worker = new TopicReadWriteWorker(legacyResolver, writer, new LegacyMessageSerializer());
+        TopicReadWriteWorker worker = new TopicReadWriteWorker(legacyResolver, writer);
         return bootstrapQueueFactory().makeVirtualTopicConsumer(worker, "Bootstrap", messaging.topicChanges, 1, 1);
     }
     
@@ -60,7 +60,7 @@ public class BootstrapWorkersModule {
     DefaultMessageListenerContainer lookupEntryReadWriter() {
         LookupEntryStore legacyResolver = legacy.legacyeEquiavlenceStore();
         EquivalenceRecordStore writer = persistence.equivalenceRecordStore();
-        LookupEntryReadWriteWorker worker = new LookupEntryReadWriteWorker(legacyResolver, writer, new LegacyMessageSerializer());
+        LookupEntryReadWriteWorker worker = new LookupEntryReadWriteWorker(legacyResolver, writer);
         return bootstrapQueueFactory().makeVirtualTopicConsumer(worker, "Bootstrap", CHANGES_EQUIV_PRODUCER, 1, 1);
     }
     

@@ -3,23 +3,20 @@ package org.atlasapi.messaging;
 import com.google.common.base.Charsets;
 import com.google.common.io.ByteSource;
 
-/**
- * Base {@link org.atlasapi.messaging.messaging.worker.Worker} class providing
- * {@link org.atlasapi.persistence.messaging.Message} unmarshaling and
- * dispatching.
- */
-public abstract class AbstractWorker implements Worker {
-
+class JmsMessageAdapter {
+    
     private final MessageSerializer serializer;
+    private final Worker worker;
 
-    public AbstractWorker(MessageSerializer serializer) {
+    public JmsMessageAdapter(MessageSerializer serializer, Worker worker) {
         this.serializer = serializer;
+        this.worker = worker;
     }
     
     public void onMessage(byte[] message) {
         try {
             Message event = serializer.deserialize(ByteSource.wrap(message));
-            event.dispatchTo(this);
+            event.dispatchTo(worker);
         } catch (MessageException ex) {
             throw new RuntimeException(ex.getMessage(), ex);
         }
@@ -28,25 +25,10 @@ public abstract class AbstractWorker implements Worker {
     public void onMessage(String message) {
         try {
             Message event = serializer.deserialize(ByteSource.wrap(message.getBytes(Charsets.UTF_8)));
-            event.dispatchTo(this);
+            event.dispatchTo(worker);
         } catch (MessageException ex) {
             throw new RuntimeException(ex.getMessage(), ex);
         }
     }
-
-    @Override
-    public void process(EntityUpdatedMessage message) {
-    }
-
-    @Override
-    public void process(BeginReplayMessage message) {
-    }
-
-    @Override
-    public void process(EndReplayMessage message) {
-    }
-
-    @Override
-    public void process(ReplayMessage message) {
-    }
+    
 }

@@ -9,7 +9,6 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.context.annotation.Primary;
 import org.springframework.jms.connection.CachingConnectionFactory;
-import org.springframework.jms.core.JmsTemplate;
 
 @Configuration
 public class AtlasMessagingModule {
@@ -22,7 +21,7 @@ public class AtlasMessagingModule {
 
     @Bean @Primary
     public QueueFactory queueHelper() {
-        return new QueueFactory(activemqConnectionFactory(), messagingSystem);
+        return new QueueFactory(activemqConnectionFactory(), messagingSystem, serializer());
     }
     
     @Bean
@@ -41,15 +40,13 @@ public class AtlasMessagingModule {
     @Bean
     @Lazy(true)
     public MessageSender contentChanges() {
-        JmsTemplate template = queueHelper().makeVirtualTopicProducer(contentChanges);
-        return new MessageSender(template, serializer());
+        return queueHelper().makeMessageSender(contentChanges);
     }
     
     @Bean
     @Lazy(true)
     public MessageSender topicChanges() {
-        JmsTemplate template = queueHelper().makeVirtualTopicProducer(topicChanges);
-        return new MessageSender(template, serializer());
+        return queueHelper().makeMessageSender(topicChanges);
     }
     
 //    @Bean 

@@ -15,15 +15,14 @@ import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 
-public class ContentIndexingWorker extends AbstractWorker {
+public class ContentIndexingWorker extends BaseWorker {
 
     private final Logger log = LoggerFactory.getLogger(this.getClass());
 
     private final ContentResolver contentResolver;
     private final ContentIndex contentIndex;
 
-    public ContentIndexingWorker(ContentResolver contentResolver, ContentIndex contentIndex, MessageSerializer serializer) {
-        super(serializer);
+    public ContentIndexingWorker(ContentResolver contentResolver, ContentIndex contentIndex) {
         this.contentResolver = contentResolver;
         this.contentIndex = contentIndex;
     }

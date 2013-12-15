@@ -32,7 +32,7 @@ public class WorkersModule {
     @Bean
     @Lazy(true)
     public ReplayingWorker contentIndexingWorker() {
-        return new ReplayingWorker(new ContentIndexingWorker(persistence.contentStore(), persistence.contentIndex(), messaging.serializer()), messaging.serializer());
+        return new ReplayingWorker(new ContentIndexingWorker(persistence.contentStore(), persistence.contentIndex()));
     }
 
     @Bean
@@ -50,7 +50,7 @@ public class WorkersModule {
     @Bean
     @Lazy(true)
     public ReplayingWorker topicIndexingWorker() {
-        return new ReplayingWorker(new TopicIndexingWorker(persistence.topicStore(), persistence.topicIndex(), messaging.serializer()), messaging.serializer());
+        return new ReplayingWorker(new TopicIndexingWorker(persistence.topicStore(), persistence.topicIndex()));
     }
     
     @Bean
