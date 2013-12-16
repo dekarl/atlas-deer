@@ -326,7 +326,9 @@ public class LegacyContentTransformer extends DescribedLegacyResourceTransformer
         org.atlasapi.content.Episode e = new org.atlasapi.content.Episode();
         e.setEpisodeNumber(input.getEpisodeNumber());
         e.setPartNumber(e.getPartNumber());
-        e.setSeriesRef(transformParentRef(input.getSeriesRef(), EntityType.SERIES));
+        if (input.getSeriesRef() != null) {
+            e.setSeriesRef(transformParentRef(input.getSeriesRef(), EntityType.SERIES));
+        }
         e.setSpecial(input.getSpecial());
         return setItemFields(e, input);
     }
