@@ -2,7 +2,7 @@ package org.atlasapi.content;
 
 import org.atlasapi.entity.Alias;
 import org.atlasapi.entity.ProtoBufUtils;
-import org.atlasapi.equiv.EquivalenceRef;
+import org.atlasapi.equivalence.EquivalenceRef;
 import org.atlasapi.serialization.protobuf.CommonProtos;
 import org.atlasapi.serialization.protobuf.CommonProtos.Reference;
 import org.atlasapi.serialization.protobuf.ContentProtos;

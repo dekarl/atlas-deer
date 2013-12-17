@@ -1,10 +1,12 @@
-package org.atlasapi.equiv;
+package org.atlasapi.equivalence;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import org.atlasapi.content.CassandraPersistenceException;
 import org.atlasapi.entity.Id;
 import org.atlasapi.entity.Serializer;
+import org.atlasapi.equivalence.EquivalenceRecord;
+import org.atlasapi.equivalence.EquivalenceRecordStore;
 
 import com.google.common.base.Joiner;
 import com.google.common.base.Optional;

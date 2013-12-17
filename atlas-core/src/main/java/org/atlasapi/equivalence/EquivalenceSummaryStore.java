@@ -1,6 +1,4 @@
-package org.atlasapi.equiv;
-
-import java.util.Set;
+package org.atlasapi.equivalence;
 
 import org.atlasapi.entity.Id;
 
@@ -11,7 +9,5 @@ public interface EquivalenceSummaryStore {
     void store(EquivalenceSummary summary);
     
     OptionalMap<Id, EquivalenceSummary> summariesForIds(Iterable<Id> ids);
-
-    Set<EquivalenceSummary> summariesForChildren(Id parent);
 
 }

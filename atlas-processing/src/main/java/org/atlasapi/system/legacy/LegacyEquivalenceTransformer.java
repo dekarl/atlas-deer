@@ -3,8 +3,8 @@ package org.atlasapi.system.legacy;
 import java.util.Set;
 
 import org.atlasapi.entity.Id;
-import org.atlasapi.equiv.EquivalenceRecord;
-import org.atlasapi.equiv.EquivalenceRef;
+import org.atlasapi.equivalence.EquivalenceRecord;
+import org.atlasapi.equivalence.EquivalenceRef;
 import org.atlasapi.media.entity.LookupRef;
 import org.atlasapi.persistence.lookup.entry.LookupEntry;
 

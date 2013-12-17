@@ -7,6 +7,9 @@ import org.atlasapi.content.Content;
 import org.atlasapi.content.Episode;
 import org.atlasapi.entity.Id;
 import org.atlasapi.entity.Serializer;
+import org.atlasapi.equivalence.EquivalenceRecord;
+import org.atlasapi.equivalence.EquivalenceRecordSerializer;
+import org.atlasapi.equivalence.EquivalenceRef;
 import org.atlasapi.media.entity.Publisher;
 import org.junit.Test;
 

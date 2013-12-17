@@ -1,6 +1,6 @@
 package org.atlasapi.system.bootstrap.workers;
 
-import org.atlasapi.equiv.EquivalenceRecordStore;
+import org.atlasapi.equivalence.EquivalenceRecordStore;
 import org.atlasapi.messaging.BaseWorker;
 import org.atlasapi.messaging.EntityUpdatedMessage;
 import org.atlasapi.persistence.lookup.entry.LookupEntry;

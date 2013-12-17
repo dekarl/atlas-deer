@@ -29,9 +29,9 @@ import org.atlasapi.content.TopicRef;
 import org.atlasapi.content.Version;
 import org.atlasapi.entity.Id;
 import org.atlasapi.entity.Sourced;
-import org.atlasapi.equiv.EquivalenceRef;
-import org.atlasapi.equiv.SeriesAndEpisodeNumber;
-import org.atlasapi.equiv.SeriesOrder;
+import org.atlasapi.equivalence.EquivalenceRef;
+import org.atlasapi.equivalence.SeriesAndEpisodeNumber;
+import org.atlasapi.equivalence.SeriesOrder;
 
 import com.google.common.base.Function;
 import com.google.common.base.Optional;

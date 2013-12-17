@@ -7,7 +7,7 @@ import static org.junit.Assert.assertThat;
 import org.atlasapi.entity.Alias;
 import org.atlasapi.entity.Id;
 import org.atlasapi.entity.Serializer;
-import org.atlasapi.equiv.EquivalenceRef;
+import org.atlasapi.equivalence.EquivalenceRef;
 import org.atlasapi.media.entity.Publisher;
 import org.atlasapi.serialization.protobuf.ContentProtos;
 import org.joda.time.DateTime;

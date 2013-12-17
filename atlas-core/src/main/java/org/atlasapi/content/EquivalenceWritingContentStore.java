@@ -5,10 +5,10 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import org.atlasapi.entity.Sourceds;
 import org.atlasapi.entity.util.WriteException;
 import org.atlasapi.entity.util.WriteResult;
-import org.atlasapi.equiv.EquivalenceRecordStore;
-import org.atlasapi.equiv.EquivalenceRecordWriter;
-import org.atlasapi.equiv.EquivalenceRef;
-import org.atlasapi.equiv.TransitiveEquivalenceRecordWriter;
+import org.atlasapi.equivalence.EquivalenceRecordStore;
+import org.atlasapi.equivalence.EquivalenceRecordWriter;
+import org.atlasapi.equivalence.EquivalenceRef;
+import org.atlasapi.equivalence.TransitiveEquivalenceRecordWriter;
 import org.atlasapi.media.entity.Publisher;
 
 import com.google.common.collect.ImmutableSet;

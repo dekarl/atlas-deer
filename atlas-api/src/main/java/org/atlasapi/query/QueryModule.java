@@ -16,8 +16,8 @@ package org.atlasapi.query;
 
 import org.atlasapi.AtlasPersistenceModule;
 import org.atlasapi.content.Content;
-import org.atlasapi.equiv.DefaultMergingEquivalentsResolver;
-import org.atlasapi.equiv.MergingEquivalentsResolver;
+import org.atlasapi.equivalence.DefaultMergingEquivalentsResolver;
+import org.atlasapi.equivalence.MergingEquivalentsResolver;
 import org.atlasapi.output.OutputContentMerger;
 import org.atlasapi.output.StrategyBackedEquivalentsMerger;
 import org.atlasapi.query.common.ContextualQueryExecutor;

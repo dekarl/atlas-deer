@@ -1,4 +1,4 @@
-package org.atlasapi.equiv;
+package org.atlasapi.equivalence;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 

@@ -4,7 +4,7 @@ import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
 
 import org.atlasapi.content.Item;
-import org.atlasapi.equiv.EquivalenceRef;
+import org.atlasapi.equivalence.EquivalenceRef;
 import org.atlasapi.media.entity.Publisher;
 import org.atlasapi.serialization.protobuf.CommonProtos;
 import org.joda.time.DateTime;

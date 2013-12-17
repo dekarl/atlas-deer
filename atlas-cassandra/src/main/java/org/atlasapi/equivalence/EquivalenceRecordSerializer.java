@@ -1,10 +1,12 @@
-package org.atlasapi.equiv;
+package org.atlasapi.equivalence;
 
 import java.util.Collection;
 import java.util.List;
 
 import org.atlasapi.entity.Id;
 import org.atlasapi.entity.Serializer;
+import org.atlasapi.equivalence.EquivalenceRecord;
+import org.atlasapi.equivalence.EquivalenceRef;
 import org.atlasapi.serialization.protobuf.CommonProtos;
 import org.atlasapi.serialization.protobuf.CommonProtos.Reference;
 import org.atlasapi.serialization.protobuf.EquivProtos;

@@ -7,8 +7,8 @@ import java.util.List;
 import org.atlasapi.application.ApplicationSources;
 import org.atlasapi.entity.Sourced;
 import org.atlasapi.entity.Sourceds;
-import org.atlasapi.equiv.ApplicationEquivalentsMerger;
-import org.atlasapi.equiv.Equivalent;
+import org.atlasapi.equivalence.ApplicationEquivalentsMerger;
+import org.atlasapi.equivalence.Equivalent;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Ordering;

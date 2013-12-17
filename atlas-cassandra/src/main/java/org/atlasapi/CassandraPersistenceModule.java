@@ -5,7 +5,7 @@ import java.util.concurrent.Executors;
 import org.atlasapi.PersistenceModule;
 import org.atlasapi.content.CassandraContentStore;
 import org.atlasapi.content.ContentHasher;
-import org.atlasapi.equiv.CassandraEquivalenceRecordStore;
+import org.atlasapi.equivalence.CassandraEquivalenceRecordStore;
 import org.atlasapi.schedule.CassandraScheduleStore;
 import org.atlasapi.topic.CassandraTopicStore;
 import org.atlasapi.topic.Topic;

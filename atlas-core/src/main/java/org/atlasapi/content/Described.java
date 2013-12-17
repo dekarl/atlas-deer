@@ -19,7 +19,7 @@ import java.util.Set;
 import org.atlasapi.entity.Id;
 import org.atlasapi.entity.Identifiables;
 import org.atlasapi.entity.Sourced;
-import org.atlasapi.equiv.EquivalenceRef;
+import org.atlasapi.equivalence.EquivalenceRef;
 import org.atlasapi.media.channel.Channel;
 import org.atlasapi.media.entity.Publisher;
 import org.joda.time.DateTime;

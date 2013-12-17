@@ -8,8 +8,8 @@ import java.util.concurrent.TimeUnit;
 
 import org.atlasapi.annotation.Annotation;
 import org.atlasapi.application.ApplicationSources;
-import org.atlasapi.equiv.MergingEquivalentsResolver;
-import org.atlasapi.equiv.ResolvedEquivalents;
+import org.atlasapi.equivalence.MergingEquivalentsResolver;
+import org.atlasapi.equivalence.ResolvedEquivalents;
 import org.atlasapi.entity.Id;
 import org.atlasapi.content.Content;
 import org.atlasapi.content.ContentIndex;

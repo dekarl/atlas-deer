@@ -1,7 +1,7 @@
 package org.atlasapi.system.bootstrap;
 
-import org.atlasapi.equiv.EquivalenceRecord;
-import org.atlasapi.equiv.EquivalenceRecordStore;
+import org.atlasapi.equivalence.EquivalenceRecord;
+import org.atlasapi.equivalence.EquivalenceRecordStore;
 
 import com.google.common.collect.ImmutableList;
 

@@ -1,4 +1,4 @@
-package org.atlasapi.equiv;
+package org.atlasapi.equivalence;
 
 import java.util.Comparator;
 

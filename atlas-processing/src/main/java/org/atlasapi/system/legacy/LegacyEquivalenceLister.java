@@ -1,7 +1,7 @@
 package org.atlasapi.system.legacy;
 
 import org.atlasapi.entity.ResourceLister;
-import org.atlasapi.equiv.EquivalenceRecord;
+import org.atlasapi.equivalence.EquivalenceRecord;
 import org.atlasapi.persistence.lookup.mongo.MongoLookupEntryStore;
 
 import com.google.common.collect.FluentIterable;
