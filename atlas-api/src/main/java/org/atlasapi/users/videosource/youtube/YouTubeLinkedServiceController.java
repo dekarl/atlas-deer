@@ -6,6 +6,7 @@ import java.util.List;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+
 import org.atlasapi.application.auth.UserFetcher;
 import org.atlasapi.application.model.auth.OAuthRequest;
 import org.atlasapi.application.users.User;
@@ -20,7 +21,8 @@ import org.atlasapi.output.ResponseWriterFactory;
 import org.atlasapi.output.UnsupportedFormatException;
 import org.atlasapi.query.common.QueryContext;
 import org.atlasapi.query.common.QueryResult;
-import org.atlasapi.users.videosource.model.OauthTokenDetails;
+import org.atlasapi.users.videosource.UserVideoSourceStore;
+import org.atlasapi.users.videosource.model.OauthToken;
 import org.atlasapi.users.videosource.model.UserVideoSource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -61,18 +63,21 @@ public class YouTubeLinkedServiceController {
     private final HttpTransport httpTransport = new NetHttpTransport();
     private final UserFetcher userFetcher;
     private final NumberToShortStringCodec idCodec;
+    private final UserVideoSourceStore store;
 
     public YouTubeLinkedServiceController(String youTubeClientId,
             String youTubeClientSecret,
             QueryResultWriter<OAuthRequest> oauthRequestResultWriter,
             UserFetcher userFetcher,
-            NumberToShortStringCodec idCodec) {
+            NumberToShortStringCodec idCodec,
+            UserVideoSourceStore store) {
         super();
         this.youTubeClientId = youTubeClientId;
         this.youTubeClientSecret = youTubeClientSecret;
         this.oauthRequestResultWriter = oauthRequestResultWriter;
         this.userFetcher = userFetcher;
         this.idCodec = idCodec;
+        this.store = store;
     }
 
     // Any callback URL used must be registered in the Google API console
@@ -120,7 +125,7 @@ public class YouTubeLinkedServiceController {
             }
             GoogleTokenResponse googleTokenResponse = getGoogleTokenResponse(authResponse,
                     request.getRequestURL().toString());
-            OauthTokenDetails tokenResponse = getOauthTokenFromTokenResponse(googleTokenResponse);
+            OauthToken token = getOauthTokenFromTokenResponse(googleTokenResponse);
             // get the youtube user info
             Userinfo userinfo = getUserInfo(googleTokenResponse);
             // get the passed atlas user from the scope
@@ -131,9 +136,9 @@ public class YouTubeLinkedServiceController {
                     .withAtlasUser(atlasUser)
                     .withName(userinfo.getName())
                     .withPublisher(Publisher.YOUTUBE)
+                    .withToken(token)
                     .build();
-            // Future ticket: store
-
+            store.store(userVideoSource);
         } catch (Exception e) {
             log.error("Request exception " + request.getRequestURI(), e);
             ErrorSummary summary = ErrorSummary.forException(e);
@@ -160,8 +165,8 @@ public class YouTubeLinkedServiceController {
                 .execute();
     }
 
-    private OauthTokenDetails getOauthTokenFromTokenResponse(GoogleTokenResponse tokenResponse) {
-        return OauthTokenDetails.builder()
+    private OauthToken getOauthTokenFromTokenResponse(GoogleTokenResponse tokenResponse) {
+        return OauthToken.builder()
                 .withAccessToken(tokenResponse.getAccessToken())
                 .withTokenType(tokenResponse.getTokenType())
                 .withExpiresIn(tokenResponse.getExpiresInSeconds())

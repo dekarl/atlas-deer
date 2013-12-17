@@ -335,7 +335,8 @@ public class ApplicationWebModule {
     			youTubeClientSecret,
     			new OAuthRequestQueryResultWriter(new OAuthRequestListWriter()), 
     			userFetcher(),
-    			idCodec);
+    			idCodec,
+    			appPersistence.linkedOauthTokenUserStore());
     }
 
 }
