@@ -233,7 +233,7 @@ public final class CassandraContentStore extends AbstractContentStore {
     }
 
     @Override
-    protected Item.ContainerSummary summarize(ParentRef id) {
+    protected Item.ContainerSummary summarize(ContainerRef id) {
         Content resolved = resolve(id.getId().longValue(), 
             ImmutableSet.of(TYPE, SOURCE, IDENTIFICATION, DESCRIPTION));
         if (resolved instanceof Container) {
@@ -270,7 +270,7 @@ public final class CassandraContentStore extends AbstractContentStore {
     }
 
     @Override
-    protected void writeSecondaryContainerRef(ParentRef primary, SeriesRef seriesRef) {
+    protected void writeSecondaryContainerRef(BrandRef primary, SeriesRef seriesRef) {
         try {
             Long rowId = primary.getId().longValue();
             Brand container = new Brand();
@@ -288,12 +288,12 @@ public final class CassandraContentStore extends AbstractContentStore {
     }
 
     @Override
-    protected void writeChildRef(ParentRef containerRef, ChildRef childRef) {
+    protected void writeItemRef(ContainerRef containerRef, ItemRef childRef) {
         try {
 
             Long rowId = containerRef.getId().longValue();
             Container container = new Brand();
-            container.setChildRefs(ImmutableList.of(childRef));
+            container.setItemRefs(ImmutableList.of(childRef));
             container.setThisOrChildLastUpdated(childRef.getUpdated());
             
             MutationBatch batch = keyspace.prepareMutationBatch();

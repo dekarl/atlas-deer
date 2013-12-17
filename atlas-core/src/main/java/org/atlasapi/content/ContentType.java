@@ -10,19 +10,56 @@ import com.metabroadcast.common.collect.OptionalMap;
 
 public enum ContentType {
 
-    BRAND(Brand.class),
-    SERIES(Series.class),
-    ITEM(Item.class),
-    EPISODE(Episode.class),
-    FILM(Film.class),
-    SONG(Song.class),
-    CLIP(Clip.class);
+    BRAND(Brand.class) {
+        @Override
+        public <V> V accept(Visitor<V> v) {
+            return v.visitBrand(this);
+        }
+    },
+    SERIES(Series.class) {
+        @Override
+        public <V> V accept(Visitor<V> v) {
+            return v.visitSeries(this);
+        }
+    },
+    ITEM(Item.class) {
+        @Override
+        public <V> V accept(Visitor<V> v) {
+            return v.visitItem(this);
+        }
+    },
+    EPISODE(Episode.class) {
+        @Override
+        public <V> V accept(Visitor<V> v) {
+            return v.visitEpisode(this);
+        }
+    },
+    FILM(Film.class) {
+        @Override
+        public <V> V accept(Visitor<V> v) {
+            return v.visitFilm(this);
+        }
+    },
+    SONG(Song.class) {
+        @Override
+        public <V> V accept(Visitor<V> v) {
+            return v.visitSong(this);
+        }
+    },
+    CLIP(Clip.class) {
+        @Override
+        public <V> V accept(Visitor<V> v) {
+            return v.visitClip(this);
+        }
+    };
     
     private Class<? extends Content> cls;
 
     ContentType(Class<? extends Content> cls) {
         this.cls = cls;
     }
+    
+    public abstract <V> V accept(Visitor<V> v);
     
     public String getKey() {
         return cls.getSimpleName().toLowerCase();
@@ -95,5 +132,22 @@ public enum ContentType {
     public static final Function<Class<? extends Content>, Optional<ContentType>> fromContentClass() {
         return FROM_CLASS;
     }
-            
+    
+    public interface Visitor<T> {
+
+        T visitBrand(ContentType contentType);
+
+        T visitClip(ContentType contentType);
+
+        T visitSong(ContentType contentType);
+
+        T visitFilm(ContentType contentType);
+
+        T visitEpisode(ContentType contentType);
+
+        T visitItem(ContentType contentType);
+
+        T visitSeries(ContentType contentType);
+
+    }
 }

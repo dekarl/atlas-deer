@@ -78,15 +78,15 @@ public class EsContentTitleSearcherTest {
         Brand brand1 = new Brand("buri1", "buri1", Publisher.METABROADCAST);
         brand1.setTitle("title");
         brand1.setId(Id.valueOf(5));
-        brand1.setChildRefs(Arrays.asList(item1.childRef(), item2.childRef()));
+        brand1.setItemRefs(Arrays.asList(item1.toRef(), item2.toRef()));
         Brand brand2 = new Brand("buri2", "buri2", Publisher.METABROADCAST);
         brand2.setTitle("b");
         brand2.setId(Id.valueOf(6));
-        brand2.setChildRefs(Arrays.asList(item3.childRef()));
+        brand2.setItemRefs(Arrays.asList(item3.toRef()));
 
-        item1.setParentRef(ParentRef.parentRefFrom(brand1));
-        item2.setParentRef(ParentRef.parentRefFrom(brand1));
-        item3.setParentRef(ParentRef.parentRefFrom(brand2));
+        item1.setContainerRef(brand1.toRef());
+        item2.setContainerRef(brand1.toRef());
+        item3.setContainerRef(brand2.toRef());
 
         EsContentIndex contentIndex = new EsContentIndex(esClient, EsSchema.CONTENT_INDEX, new SystemClock(), 60000);
         contentIndex.startAsync().awaitRunning();

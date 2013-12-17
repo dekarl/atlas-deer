@@ -15,11 +15,11 @@ public class SeriesReferenceAnnotation extends OutputAnnotation<Content> {
 
     private static final String SERIES_FIELD = "series";
     
-    private final ParentRefWriter seriesRefWriter;
+    private final ContainerRefWriter seriesRefWriter;
 
     public SeriesReferenceAnnotation(NumberToShortStringCodec idCodec) {
         super();
-        seriesRefWriter = new ParentRefWriter(SERIES_FIELD, idCodec);
+        seriesRefWriter = new ContainerRefWriter(SERIES_FIELD, idCodec);
     }
 
     @Override

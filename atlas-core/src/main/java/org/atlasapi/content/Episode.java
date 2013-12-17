@@ -17,6 +17,9 @@ package org.atlasapi.content;
 
 import java.util.Set;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+
 import org.atlasapi.entity.Id;
 import org.atlasapi.media.entity.Publisher;
 
@@ -34,7 +37,7 @@ public class Episode extends Item {
 	private Integer partNumber;
 	private Boolean special = null;
 	
-    private ParentRef seriesRef;
+    private SeriesRef seriesRef;
 
 	public Episode(String uri, String curie, Publisher publisher) {
 		super(uri, curie, publisher);
@@ -78,15 +81,15 @@ public class Episode extends Item {
 		this.seriesNumber = position;
 	}
 	
-    public void setSeriesRef(ParentRef seriesRef) {
+    public void setSeriesRef(@Nullable SeriesRef seriesRef) {
         this.seriesRef = seriesRef;
     }
     
-    public void setSeries(Series series) {
-        setSeriesRef(ParentRef.parentRefFrom(series));
+    public void setSeries(@Nonnull Series series) {
+        setSeriesRef(series.toRef());
     }
 
-	public ParentRef getSeriesRef() {
+	public @Nullable SeriesRef getSeriesRef() {
 		return seriesRef;
 	}
 	

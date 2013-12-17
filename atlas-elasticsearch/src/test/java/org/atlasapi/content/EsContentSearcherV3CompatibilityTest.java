@@ -258,10 +258,10 @@ public class EsContentSearcherV3CompatibilityTest {
         Item eastItem = new Item("/eastItem", "curie", Publisher.ARCHIVE_ORG);
         eastItem.setTitle("east");
         eastItem.setId(Id.valueOf(2518));
-        eastItem.setParentRef(ParentRef.parentRefFrom(eastBrand));
+        eastItem.setContainerRef(eastBrand.toRef());
         eastItem.setThisOrChildLastUpdated(new DateTime(DateTimeZones.UTC));
         
-        eastBrand.setChildRefs(Arrays.asList(eastItem.childRef()));
+        eastBrand.setItemRefs(Arrays.asList(eastItem.toRef()));
         indexer.index(eastBrand);
         indexer.index(eastItem);
         refresh(esClient);

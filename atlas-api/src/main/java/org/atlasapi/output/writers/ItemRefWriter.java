@@ -4,27 +4,27 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.io.IOException;
 
-import org.atlasapi.content.ChildRef;
+import org.atlasapi.content.ItemRef;
 import org.atlasapi.output.EntityListWriter;
 import org.atlasapi.output.FieldWriter;
 import org.atlasapi.output.OutputContext;
 
 import com.metabroadcast.common.ids.NumberToShortStringCodec;
 
-public final class ChildRefWriter implements EntityListWriter<ChildRef> {
+public final class ItemRefWriter implements EntityListWriter<ItemRef> {
 
     private final String listName;
     private final NumberToShortStringCodec idCodec;
 
-    public ChildRefWriter(NumberToShortStringCodec idCodec, String listName) {
+    public ItemRefWriter(NumberToShortStringCodec idCodec, String listName) {
         this.idCodec = checkNotNull(idCodec);
         this.listName = checkNotNull(listName);
     }
 
     @Override
-    public void write(ChildRef entity, FieldWriter writer, OutputContext ctxt) throws IOException {
+    public void write(ItemRef entity, FieldWriter writer, OutputContext ctxt) throws IOException {
         writer.writeField("id", idCodec.encode(entity.getId().toBigInteger()));
-        writer.writeField("type", entity.getType());
+        writer.writeField("type", entity.getContentType());
     }
 
     @Override
@@ -33,7 +33,7 @@ public final class ChildRefWriter implements EntityListWriter<ChildRef> {
     }
 
     @Override
-    public String fieldName(ChildRef entity) {
+    public String fieldName(ItemRef entity) {
         return "content";
     }
 }

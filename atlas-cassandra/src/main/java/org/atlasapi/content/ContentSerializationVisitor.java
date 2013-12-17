@@ -19,8 +19,6 @@ final class ContentSerializationVisitor implements ContentVisitor<Builder> {
     private final CrewMemberSerializer crewMemberSerializer = new CrewMemberSerializer();
     private final ContainerSummarySerializer containerSummarySerializer = new ContainerSummarySerializer();
     private final ReleaseDateSerializer releaseDateSerializer = new ReleaseDateSerializer();
-    private final ChildRefSerializer childRefSerializer = new ChildRefSerializer();
-    private static final SeriesRefSerializer seriesRefSerializer = new SeriesRefSerializer();
     private final CertificateSerializer certificateSerializer = new CertificateSerializer();
     
     private Builder visitIdentified(Identified ided) {
@@ -148,10 +146,10 @@ final class ContentSerializationVisitor implements ContentVisitor<Builder> {
 
     private Builder visitItem(Item item) {
         Builder builder = visitContent(item);
-        if (item.getContainer() != null) {
+        if (item.getContainerRef() != null) {
             builder.setContainerRef(Reference.newBuilder()
-                .setId(item.getContainer().getId().longValue())
-                .setType(item.getContainer().getType().toString()));
+                .setId(item.getContainerRef().getId().longValue())
+                .setType(item.getContainerRef().getContentType().toString()));
         }
         if (item.getContainerSummary() != null) {
             builder.setContainerSummary(containerSummarySerializer.serialize(item.getContainerSummary()));
@@ -172,7 +170,8 @@ final class ContentSerializationVisitor implements ContentVisitor<Builder> {
     
     private Builder visitContainer(Container container) {
         Builder builder = visitContent(container);
-        for (ChildRef child : container.getChildRefs()) {
+        ChildRefSerializer childRefSerializer = new ChildRefSerializer(container.getPublisher());
+        for (ItemRef child : container.getItemRefs()) {
             builder.addChildren(childRefSerializer.serialize(child));
         }
         return builder;
@@ -181,6 +180,7 @@ final class ContentSerializationVisitor implements ContentVisitor<Builder> {
     @Override
     public Builder visit(Brand brand) {
         Builder builder = visitContainer(brand);
+        SeriesRefSerializer seriesRefSerializer = new SeriesRefSerializer(brand.getPublisher());
         for (SeriesRef seriesRef : brand.getSeriesRefs()) {
             builder.addSecondaries(seriesRefSerializer.serialize(seriesRef));
         }
@@ -190,10 +190,10 @@ final class ContentSerializationVisitor implements ContentVisitor<Builder> {
     @Override
     public Builder visit(Series series) {
         Builder builder = visitContainer(series);
-        if (series.getParent() != null) {
+        if (series.getBrandRef() != null) {
             builder.setContainerRef(Reference.newBuilder()
-                .setId(series.getParent().getId().longValue())
-                .setType(series.getParent().getType().toString()));
+                .setId(series.getBrandRef().getId().longValue())
+                .setType(series.getBrandRef().getContentType().toString()));
         }
         if (series.getSeriesNumber() != null) {
             builder.setSeriesNumber(series.getSeriesNumber());
@@ -210,7 +210,7 @@ final class ContentSerializationVisitor implements ContentVisitor<Builder> {
         if (episode.getSeriesRef() != null) {
             builder.setSeriesRef(Reference.newBuilder()
                 .setId(episode.getSeriesRef().getId().longValue())
-                .setType(episode.getContainer().getType().toString()));
+                .setType(episode.getContainerRef().getContentType().toString()));
         }
         if (episode.getSeriesNumber() != null) {
             builder.setSeriesNumber(episode.getSeriesNumber());

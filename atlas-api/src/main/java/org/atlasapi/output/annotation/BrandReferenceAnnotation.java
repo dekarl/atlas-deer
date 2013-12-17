@@ -15,21 +15,21 @@ public class BrandReferenceAnnotation extends OutputAnnotation<Content> {
 
     private static final String CONTAINER_FIELD = "container";
 
-    private final ParentRefWriter brandRefWriter;
+    private final ContainerRefWriter brandRefWriter;
 
     public BrandReferenceAnnotation(NumberToShortStringCodec idCodec) {
         super();
-        brandRefWriter = new ParentRefWriter(CONTAINER_FIELD, checkNotNull(idCodec));
+        brandRefWriter = new ContainerRefWriter(CONTAINER_FIELD, checkNotNull(idCodec));
     }
 
     @Override
     public void write(Content content, FieldWriter writer, OutputContext ctxt) throws IOException {
         if (content instanceof Item) {
             Item item = (Item) content;
-            if (item.getContainer() == null) {
+            if (item.getContainerRef() == null) {
                 writer.writeField(CONTAINER_FIELD, null);
             } else {
-                writer.writeObject(brandRefWriter, item.getContainer(), ctxt);
+                writer.writeObject(brandRefWriter, item.getContainerRef(), ctxt);
             }
         }
     }

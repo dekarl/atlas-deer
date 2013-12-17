@@ -146,7 +146,7 @@ public class EsContentIndex extends AbstractIdleService implements ContentIndex 
             
             BulkRequest requests = Requests.bulkRequest();
             IndexRequest mainIndexRequest;
-            ParentRef container = item.getContainer();
+            ContainerRef container = item.getContainerRef();
             if (container != null) {
                 fillParentData(esContent, container);
                 mainIndexRequest = Requests.indexRequest(CONTENT_INDEX)
@@ -254,7 +254,7 @@ public class EsContentIndex extends AbstractIdleService implements ContentIndex 
             .parentFlattenedTitle(flattenedOrNull(container.getTitle()))
             .specialization(container.getSpecialization() != null ? container.getSpecialization().name() : null)
             .topics(makeESTopics(container));
-        if (!container.getChildRefs().isEmpty()) {
+        if (!container.getItemRefs().isEmpty()) {
             indexed.hasChildren(Boolean.TRUE);
             indexChildrenData(container);
         } else {
@@ -333,7 +333,7 @@ public class EsContentIndex extends AbstractIdleService implements ContentIndex 
         return esTopics;
     }
 
-    private void fillParentData(EsContent child, ParentRef parent) {
+    private void fillParentData(EsContent child, ContainerRef parent) {
         Map<String, Object> indexedContainer = trySearchParent(parent);
         if (indexedContainer != null) {
             Object title = indexedContainer.get(EsContent.TITLE);
@@ -345,7 +345,7 @@ public class EsContentIndex extends AbstractIdleService implements ContentIndex 
 
     private void indexChildrenData(Container parent) {
         BulkRequest bulk = Requests.bulkRequest();
-        for (ChildRef child : parent.getChildRefs()) {
+        for (ItemRef child : parent.getItemRefs()) {
             Map<String, Object> indexedChild = trySearchChild(parent, child);
             if (indexedChild != null) {
                 if (parent.getTitle() != null) {
@@ -367,7 +367,7 @@ public class EsContentIndex extends AbstractIdleService implements ContentIndex 
         }
     }
 
-    private String getDocId(ChildRef child) {
+    private String getDocId(ItemRef child) {
         return String.valueOf(child.getId());
     }
     
@@ -375,11 +375,11 @@ public class EsContentIndex extends AbstractIdleService implements ContentIndex 
         return String.valueOf(content.getId());
     }
     
-    private String getDocId(ParentRef container) {
+    private String getDocId(ContainerRef container) {
         return String.valueOf(container.getId());
     }
 
-    private Map<String, Object> trySearchParent(ParentRef parent) {
+    private Map<String, Object> trySearchParent(ContainerRef parent) {
         GetRequest request = Requests.getRequest(CONTENT_INDEX).id(getDocId(parent));
         GetResponse response = timeoutGet(esClient.client().get(request));
         if (response.isExists()) {
@@ -389,7 +389,7 @@ public class EsContentIndex extends AbstractIdleService implements ContentIndex 
         }
     }
 
-    private Map<String, Object> trySearchChild(Container parent, ChildRef child) {
+    private Map<String, Object> trySearchChild(Container parent, ItemRef child) {
         try {
             GetRequest request = Requests.getRequest(CONTENT_INDEX)
                     .parent(getDocId(parent))

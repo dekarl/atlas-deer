@@ -219,7 +219,7 @@ public class CassandraContentStoreIT {
     @Test(expected=WriteException.class)
     public void testWritingItemWithMissingBrandFails() throws Exception {
         Item item = create(new Item());
-        item.setParentRef(new ParentRef(1235, EntityType.BRAND));
+        item.setContainerRef(new BrandRef(Id.valueOf(1235), item.getPublisher()));
         
         store.writeContent(item);
         
@@ -231,7 +231,7 @@ public class CassandraContentStoreIT {
     public void testWritingSeriesWithMissingBrandFails() throws Exception {
         try {
             Series series = create(new Series());
-            series.setParentRef(new ParentRef(1235, EntityType.BRAND));
+            series.setBrandRef(new BrandRef(Id.valueOf(1235), series.getPublisher()));
             
             store.writeContent(series);
         } finally {
@@ -257,12 +257,12 @@ public class CassandraContentStoreIT {
         try {
                 
             Series series = create(new Series());
-            series.setParentRef(new ParentRef(666, EntityType.BRAND));
+            series.setBrandRef(new BrandRef(Id.valueOf(666), series.getPublisher()));
             
             Episode episode = create(new Episode());
     
-            episode.setParentRef(new ParentRef(666, EntityType.BRAND));
-            episode.setSeriesRef(new ParentRef(999, EntityType.SERIES));
+            episode.setContainerRef(new BrandRef(Id.valueOf(666), episode.getPublisher()));
+            episode.setSeriesRef(new SeriesRef(Id.valueOf(999), episode.getPublisher()));
             
             store.writeContent(episode);
         
@@ -277,12 +277,12 @@ public class CassandraContentStoreIT {
             Brand brand = create(new Brand());
 
             Series series = create(new Series());
-            series.setParentRef(new ParentRef(666, EntityType.BRAND));
+            series.setBrandRef(new BrandRef(Id.valueOf(666), series.getPublisher()));
 
             Episode episode = create(new Episode());
 
-            episode.setParentRef(new ParentRef(666, EntityType.BRAND));
-            episode.setSeriesRef(new ParentRef(999, EntityType.SERIES));
+            episode.setContainerRef(new BrandRef(Id.valueOf(666), episode.getPublisher()));
+            episode.setSeriesRef(new SeriesRef(Id.valueOf(999), episode.getPublisher()));
 
             when(clock.now()).thenReturn(new DateTime(DateTimeZones.UTC));
             when(idGenerator.generateRaw()).thenReturn(1234L);
@@ -311,7 +311,7 @@ public class CassandraContentStoreIT {
         store.writeContent(brand);
         
         Brand resolvedBrand = (Brand) resolve(1234L);
-        assertThat(resolvedBrand.getChildRefs(), is(empty()));
+        assertThat(resolvedBrand.getItemRefs(), is(empty()));
         
         Item item = create(new Item());
         item.setContainer(resolvedBrand);
@@ -320,7 +320,7 @@ public class CassandraContentStoreIT {
         
         Item resolvedItem = (Item) resolve(1235L);
         
-        assertThat(resolvedItem.getContainer().getId().longValue(), is(1234L));
+        assertThat(resolvedItem.getContainerRef().getId().longValue(), is(1234L));
         
     }
     
@@ -336,14 +336,14 @@ public class CassandraContentStoreIT {
         WriteResult<Brand> brandWriteResult = store.writeContent(brand);
         
         Series series1 = create(new Series());
-        series1.setParent(brandWriteResult.getResource());
+        series1.setBrand(brandWriteResult.getResource());
         
         when(clock.now()).thenReturn(now.plusHours(1));
         when(idGenerator.generateRaw()).thenReturn(1235L);
         WriteResult<Series> series1WriteResult = store.writeContent(series1);
 
         Series series2 = create(new Series());
-        series2.setParent(brandWriteResult.getResource());
+        series2.setBrand(brandWriteResult.getResource());
         
         when(clock.now()).thenReturn(now.plusHours(1));
         when(idGenerator.generateRaw()).thenReturn(1236L);
@@ -378,27 +378,27 @@ public class CassandraContentStoreIT {
         assertThat(resolvedBrand.getLastUpdated(), is(now));
         assertThat(resolvedBrand.getThisOrChildLastUpdated(), is(now.plusHours(3)));
         assertThat(resolvedBrand.getSeriesRefs().size(), is(2));
-        assertThat(resolvedBrand.getChildRefs().size(), is(3));
+        assertThat(resolvedBrand.getItemRefs().size(), is(3));
 
         Series resolvedSeries1 = (Series) resolve(1235L);
         assertThat(resolvedSeries1.getFirstSeen(), is(now.plusHours(1)));
         assertThat(resolvedSeries1.getLastUpdated(), is(now.plusHours(1)));
         assertThat(resolvedSeries1.getThisOrChildLastUpdated(), is(now.plusHours(3)));
-        assertThat(resolvedSeries1.getParent().getId().longValue(), is(1234L));
-        assertThat(resolvedSeries1.getChildRefs().size(), is(2));
+        assertThat(resolvedSeries1.getBrandRef().getId().longValue(), is(1234L));
+        assertThat(resolvedSeries1.getItemRefs().size(), is(2));
 
         Series resolvedSeries2 = (Series) resolve(1236L);
         assertThat(resolvedSeries2.getFirstSeen(), is(now.plusHours(1)));
         assertThat(resolvedSeries2.getLastUpdated(), is(now.plusHours(1)));
         assertThat(resolvedSeries2.getThisOrChildLastUpdated(), is(now.plusHours(2)));
-        assertThat(resolvedSeries2.getParent().getId().longValue(), is(1234L));
-        assertThat(resolvedSeries2.getChildRefs().size(), is(1));
+        assertThat(resolvedSeries2.getBrandRef().getId().longValue(), is(1234L));
+        assertThat(resolvedSeries2.getItemRefs().size(), is(1));
 
         Episode resolvedEpisode1 = (Episode) resolve(1237L);
         assertThat(resolvedEpisode1.getFirstSeen(), is(now.plusHours(2)));
         assertThat(resolvedEpisode1.getLastUpdated(), is(now.plusHours(2)));
         assertThat(resolvedEpisode1.getThisOrChildLastUpdated(), is(now.plusHours(2)));
-        assertThat(resolvedEpisode1.getContainer().getId().longValue(), is(1234L));
+        assertThat(resolvedEpisode1.getContainerRef().getId().longValue(), is(1234L));
         assertThat(resolvedEpisode1.getSeriesRef().getId().longValue(), is(1235L));
         assertThat(resolvedEpisode1.getContainerSummary().getTitle(), is("Brand"));
 
@@ -406,7 +406,7 @@ public class CassandraContentStoreIT {
         assertThat(resolvedEpisode2.getFirstSeen(), is(now.plusHours(2)));
         assertThat(resolvedEpisode2.getLastUpdated(), is(now.plusHours(2)));
         assertThat(resolvedEpisode2.getThisOrChildLastUpdated(), is(now.plusHours(2)));
-        assertThat(resolvedEpisode2.getContainer().getId().longValue(), is(1234L));
+        assertThat(resolvedEpisode2.getContainerRef().getId().longValue(), is(1234L));
         assertThat(resolvedEpisode2.getSeriesRef().getId().longValue(), is(1236L));
         assertThat(resolvedEpisode2.getContainerSummary().getTitle(), is("Brand"));
         
@@ -414,7 +414,7 @@ public class CassandraContentStoreIT {
         assertThat(resolvedEpisode3.getFirstSeen(), is(now.plusHours(3)));
         assertThat(resolvedEpisode3.getLastUpdated(), is(now.plusHours(3)));
         assertThat(resolvedEpisode3.getThisOrChildLastUpdated(), is(now.plusHours(3)));
-        assertThat(resolvedEpisode3.getContainer().getId().longValue(), is(1234L));
+        assertThat(resolvedEpisode3.getContainerRef().getId().longValue(), is(1234L));
         assertThat(resolvedEpisode3.getSeriesRef().getId().longValue(), is(1235L));
         assertThat(resolvedEpisode3.getContainerSummary().getTitle(), is("Brand"));
     }
@@ -431,7 +431,7 @@ public class CassandraContentStoreIT {
         WriteResult<Brand> brandWriteResult = store.writeContent(brand);
         
         Series series = create(new Series());
-        series.setParent(brandWriteResult.getResource());
+        series.setBrand(brandWriteResult.getResource());
         
         when(clock.now()).thenReturn(now.plusHours(1));
         when(idGenerator.generateRaw()).thenReturn(1235L);
@@ -454,7 +454,7 @@ public class CassandraContentStoreIT {
         brandWriteResult = store.writeContent(writtenBrand);
         writtenBrand = brandWriteResult.getResource();
         
-        assertThat(writtenBrand.getChildRefs().size(), is(1));
+        assertThat(writtenBrand.getItemRefs().size(), is(1));
         assertThat(writtenBrand.getSeriesRefs().size(), is(1));
 
         Series writtenSeries = seriesWriteResult.getResource();
@@ -466,8 +466,8 @@ public class CassandraContentStoreIT {
         seriesWriteResult = store.writeContent(writtenSeries);
         writtenSeries = seriesWriteResult.getResource();
         
-        assertThat(writtenSeries.getParent().getId(), is(writtenBrand.getId()));
-        assertThat(writtenSeries.getChildRefs().size(), is(1));
+        assertThat(writtenSeries.getBrandRef().getId(), is(writtenBrand.getId()));
+        assertThat(writtenSeries.getItemRefs().size(), is(1));
         
     }
     

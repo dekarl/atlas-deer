@@ -1,25 +1,19 @@
 package org.atlasapi.content;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
 import java.util.List;
 
-import javax.annotation.Nullable;
-
 import org.atlasapi.entity.Id;
-import org.atlasapi.entity.Identifiable;
+import org.atlasapi.media.entity.Publisher;
 import org.joda.time.DateTime;
 
-import com.google.common.base.Function;
-import com.google.common.base.Objects;
+import com.google.common.base.Objects.ToStringHelper;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Ordering;
 
-public class SeriesRef implements Identifiable, Comparable<SeriesRef> {
+public class SeriesRef extends ContainerRef implements Comparable<SeriesRef> {
 
     private static final Ordering<SeriesRef> NATURAL = Ordering.natural().reverse();
     
-    private final Id id;
     private final String title;
     private final DateTime updated;
     private final Integer seriesNumber;
@@ -28,16 +22,20 @@ public class SeriesRef implements Identifiable, Comparable<SeriesRef> {
         return NATURAL.immutableSortedCopy(ImmutableSet.copyOf(seriesRefs));
     }
     
-    public SeriesRef(Id id, String title, Integer seriesNumber, DateTime updated) {
-        this.id = checkNotNull(id);
+    public SeriesRef(Id id, Publisher source) {
+        this(id, source, null, null, null);
+    }
+    
+    public SeriesRef(Id id, Publisher source, String title, Integer seriesNumber, DateTime updated) {
+        super(id, source);
         this.title =  title;
         this.updated = updated;
         this.seriesNumber = seriesNumber;
     }
     
-    @Nullable
-    public Id getId() {
-        return id;
+    @Override
+    public ContentType getContentType() {
+        return ContentType.SERIES;
     }
 
     public String getTitle() {
@@ -62,34 +60,24 @@ public class SeriesRef implements Identifiable, Comparable<SeriesRef> {
     }
     
     @Override
-    public String toString() {
-        return Objects.toStringHelper(this)
-                .addValue(id)
-                .addValue(seriesNumber)
-                .addValue(updated).toString();
+    protected ToStringHelper toStringHelper() {
+        return super.toStringHelper()
+            .add("number", seriesNumber)
+            .add("title", title)
+            .add("updated", updated);
+            
     }
     
     @Override
     public boolean equals(Object that) {
-        if(this == that) {
+        if (this == that) {
             return true;
         }
-        if(that instanceof SeriesRef) {
+        if (that instanceof SeriesRef) {
             SeriesRef other = (SeriesRef) that;
             return id.equals(other.id);
         }
         return false;
     }
-    
-    @Override
-    public int hashCode() {
-        return id.hashCode();
-    }
-    
-    public static Function<SeriesRef, Id> TO_ID = new Function<SeriesRef, Id>() {
-        @Override
-        public Id apply(SeriesRef input) {
-            return input.getId();
-        }
-    };
+
 }

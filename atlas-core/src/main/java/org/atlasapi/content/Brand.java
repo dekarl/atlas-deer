@@ -73,4 +73,9 @@ public class Brand extends Container {
         return visitor.visit(this);
     }
     
+    @Override
+    public BrandRef toRef() {
+        return new BrandRef(getId(), getPublisher());
+    }
+    
 }

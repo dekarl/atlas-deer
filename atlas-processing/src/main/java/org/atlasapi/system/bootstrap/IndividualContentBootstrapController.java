@@ -64,14 +64,14 @@ public class IndividualContentBootstrapController {
             public String visit(Brand brand) {
                 WriteResult<?> brandWrite = write(brand.copy());
                 int series = resolveAndWrite(Iterables.transform(brand.getSeriesRefs(), Identifiables.toId()));
-                int childs = resolveAndWrite(Iterables.transform(brand.getChildRefs(), Identifiables.toId()));
+                int childs = resolveAndWrite(Iterables.transform(brand.getItemRefs(), Identifiables.toId()));
                 return String.format("%s s:%s c:%s", brandWrite, series, childs);
             }
             
             @Override
             public String visit(Series series) {
                 WriteResult<?> seriesWrite = write(series.copy());
-                int childs = resolveAndWrite(Iterables.transform(series.getChildRefs(), Identifiables.toId()));
+                int childs = resolveAndWrite(Iterables.transform(series.getItemRefs(), Identifiables.toId()));
                 return String.format("%s c:%s", seriesWrite, childs);
             }
 

@@ -34,7 +34,7 @@ import com.metabroadcast.common.intl.Country;
  */
 public class Item extends Content {
 
-    private ParentRef parent;
+    private ContainerRef containerRef;
     private Set<Version> versions = Sets.newHashSet();
     private boolean isLongForm = false;
     private Boolean blackAndWhite;
@@ -52,20 +52,22 @@ public class Item extends Content {
 
     public Item() {
     }
+    
+    @Override
+    public ItemRef toRef() {
+        return new ItemRef(getId(), getPublisher(), SortKey.keyFrom(this), getThisOrChildLastUpdated());
+    }
 
-    public void setParentRef(ParentRef parentRef) {
-        this.parent = parentRef;
+    public void setContainerRef(ContainerRef containerRef) {
+        this.containerRef = containerRef;
     }
 
     public void setContainer(Container container) {
-        setParentRef(ParentRef.parentRefFrom(container));
+        setContainerRef(container.toRef());
     }
 
-    public ParentRef getContainer() {
-        if (parent == null) {
-            return null;
-        }
-        return this.parent;
+    public ContainerRef getContainerRef() {
+        return containerRef;
     }
     public boolean getIsLongForm() {
         return isLongForm;
@@ -186,8 +188,8 @@ public class Item extends Content {
 
     public static void copyToWithVersions(Item from, Item to, Set<Version> versions) {
         Content.copyTo(from, to);
-        if (from.parent != null) {
-            to.parent = from.parent;
+        if (from.containerRef != null) {
+            to.containerRef = from.containerRef;
         }
         to.isLongForm = from.isLongForm;
         to.versions = versions;
@@ -205,15 +207,9 @@ public class Item extends Content {
     }
 
     public boolean isChild() {
-        return this.parent == null;
+        return this.containerRef == null;
     }
-    public static final Function<Item, ChildRef> TO_CHILD_REF = new Function<Item, ChildRef>() {
 
-        @Override
-        public ChildRef apply(Item input) {
-            return input.childRef();
-        }
-    };
     public static final Function<Item, Item> COPY = new Function<Item, Item>() {
 
         @Override

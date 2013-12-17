@@ -7,31 +7,31 @@ import java.math.BigInteger;
 
 import javax.annotation.Nonnull;
 
-import org.atlasapi.content.ParentRef;
+import org.atlasapi.content.ContainerRef;
 import org.atlasapi.output.EntityWriter;
 import org.atlasapi.output.FieldWriter;
 import org.atlasapi.output.OutputContext;
 
 import com.metabroadcast.common.ids.NumberToShortStringCodec;
 
-public final class ParentRefWriter implements EntityWriter<ParentRef> {
+public final class ContainerRefWriter implements EntityWriter<ContainerRef> {
     
     private NumberToShortStringCodec idCodec;
     private final String fieldName;
 
-    public ParentRefWriter(String fieldName, NumberToShortStringCodec idCodec) {
+    public ContainerRefWriter(String fieldName, NumberToShortStringCodec idCodec) {
         this.idCodec = checkNotNull(idCodec);
         this.fieldName = checkNotNull(fieldName);
     }
 
     @Override
-    public void write(@Nonnull ParentRef entity, FieldWriter writer, OutputContext ctxt) throws IOException {
+    public void write(@Nonnull ContainerRef entity, FieldWriter writer, OutputContext ctxt) throws IOException {
         BigInteger id = entity.getId().toBigInteger();
         writer.writeField("id", idCodec.encode(id));
     }
 
     @Override
-    public String fieldName(ParentRef entity) {
+    public String fieldName(ContainerRef entity) {
         return fieldName;
     }
 }

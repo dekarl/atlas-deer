@@ -54,11 +54,6 @@ public abstract class Content extends Described implements Aliased, Sourced, Equ
         super(id, source);
     }
 
-    public ChildRef childRef() {
-        return new ChildRef(this.getId(), this.getSortKey(), 
-            this.getThisOrChildLastUpdated(), EntityType.from(this.getClass()));
-    }
-
     public List<Clip> getClips() {
         return clips;
     }
@@ -186,6 +181,22 @@ public abstract class Content extends Described implements Aliased, Sourced, Equ
     };
 
     public abstract <V> V accept(ContentVisitor<V> visitor);
+    
+    public abstract ContentRef toRef();
+    
+    public static final Function<Content, ContentRef> toContentRef() {
+        return ToContentRefFunction.INSTANCE;
+    }
+    
+    private enum ToContentRefFunction implements Function<Content, ContentRef> {
+        INSTANCE;
+
+        @Override
+        public ContentRef apply(Content input) {
+            return input.toRef();
+        }
+        
+    }
     
     @Override
     public Content copyWithEquivalentTo(Iterable<EquivalenceRef> refs) {

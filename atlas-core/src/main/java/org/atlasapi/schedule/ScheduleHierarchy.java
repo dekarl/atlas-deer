@@ -85,7 +85,7 @@ public class ScheduleHierarchy {
         WriteResult<Series> secondaryContainerResult = null;
         if (possibleSeries.isPresent()) {
             if (primaryContainerResult != null && primaryContainerResult.getResource() instanceof Brand) {
-                possibleSeries.get().setParent((Brand)primaryContainer.get());
+                possibleSeries.get().setBrand((Brand)primaryContainer.get());
             }
             secondaryContainerResult = store.writeContent(possibleSeries.get());
             results.add(secondaryContainerResult);

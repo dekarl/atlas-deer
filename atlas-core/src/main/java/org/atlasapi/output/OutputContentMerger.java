@@ -9,11 +9,11 @@ import javax.annotation.Nullable;
 import org.atlasapi.application.ApplicationSources;
 import org.atlasapi.content.Broadcast;
 import org.atlasapi.content.Certificate;
-import org.atlasapi.content.ChildRef;
 import org.atlasapi.content.Clip;
 import org.atlasapi.content.Container;
 import org.atlasapi.content.Content;
 import org.atlasapi.content.ContentGroup;
+import org.atlasapi.content.ContentRef;
 import org.atlasapi.content.ContentVisitorAdapter;
 import org.atlasapi.content.Described;
 import org.atlasapi.content.Episode;
@@ -134,8 +134,8 @@ public class OutputContentMerger implements EquivalentsMergeStrategy<Content> {
     private <T extends ContentGroup> void mergeIn(ApplicationSources sources, T chosen, Iterable<T> notChosen) {
         mergeDescribed(sources, chosen, notChosen);
         for (ContentGroup contentGroup : notChosen) {
-            for (ChildRef childRef : contentGroup.getContents()) {
-                chosen.addContent(childRef);
+            for (ContentRef ref : contentGroup.getContents()) {
+                chosen.addContent(ref);
             }
         }
         if (chosen instanceof Person) {

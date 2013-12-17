@@ -4,10 +4,10 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.io.IOException;
 
+import org.atlasapi.content.ContainerRef;
 import org.atlasapi.content.Content;
 import org.atlasapi.content.Item;
 import org.atlasapi.content.Item.ContainerSummary;
-import org.atlasapi.content.ParentRef;
 import org.atlasapi.output.EntityWriter;
 import org.atlasapi.output.FieldWriter;
 import org.atlasapi.output.OutputContext;
@@ -30,7 +30,7 @@ public class BrandSummaryAnnotation extends OutputAnnotation<Content> {
 
         @Override
         public void write(Item entity, FieldWriter writer, OutputContext ctxt) throws IOException {
-            ParentRef container = entity.getContainer();
+            ContainerRef container = entity.getContainerRef();
             ContainerSummary summary = entity.getContainerSummary();
             writer.writeField("id", idCodec.encode(container.getId().toBigInteger()));
             if (summary != null) {
@@ -59,7 +59,7 @@ public class BrandSummaryAnnotation extends OutputAnnotation<Content> {
     public void write(Content entity, FieldWriter writer, OutputContext ctxt) throws IOException {
         if (entity instanceof Item) {
             Item item = (Item) entity;
-            if (item.getContainer() == null) {
+            if (item.getContainerRef() == null) {
                 writer.writeField("container", null);
             } else {
                 writer.writeObject(summaryWriter, item, ctxt);

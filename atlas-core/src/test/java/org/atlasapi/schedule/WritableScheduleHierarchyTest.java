@@ -14,6 +14,7 @@ import java.util.Map;
 
 import org.atlasapi.content.Brand;
 import org.atlasapi.content.Broadcast;
+import org.atlasapi.content.ContainerRef;
 import org.atlasapi.content.Content;
 import org.atlasapi.content.ContentStore;
 import org.atlasapi.content.Episode;
@@ -27,7 +28,6 @@ import org.atlasapi.entity.Id;
 import org.atlasapi.entity.util.WriteException;
 import org.atlasapi.entity.util.WriteResult;
 import org.atlasapi.media.channel.Channel;
-import org.atlasapi.content.ParentRef;
 import org.atlasapi.media.entity.Publisher;
 import org.joda.time.DateTime;
 import org.junit.Before;
@@ -191,7 +191,7 @@ public class WritableScheduleHierarchyTest {
         
         assertThat((Brand)contentCaptor.getAllValues().get(0), is(brand));
         for (Content content : contentCaptor.getAllValues().subList(1, 2)) {
-            assertThat(((Item)content).getContainer(), is(ParentRef.parentRefFrom(brand)));
+            assertThat(((Item)content).getContainerRef(), is((ContainerRef)brand.toRef()));
         }
         
     }
@@ -216,10 +216,10 @@ public class WritableScheduleHierarchyTest {
         assertThat((Brand)contentCaptor.getAllValues().get(0), is(brand));
         Series writtenSeries = (Series) contentCaptor.getAllValues().get(1);
         assertThat(writtenSeries, is(series));
-        assertThat(writtenSeries.getParent(), is(ParentRef.parentRefFrom(brand)));
+        assertThat(writtenSeries.getBrandRef(), is(brand.toRef()));
         for (Content content : contentCaptor.getAllValues().subList(2, 3)) {
-            assertThat(((Item)content).getContainer(), is(ParentRef.parentRefFrom(brand)));
-            assertThat(((Episode)content).getSeriesRef(), is(ParentRef.parentRefFrom(series)));
+            assertThat(((Item)content).getContainerRef(), is((ContainerRef)brand.toRef()));
+            assertThat(((Episode)content).getSeriesRef(), is(series.toRef()));
         }
         
     }

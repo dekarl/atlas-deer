@@ -6,9 +6,9 @@ import java.util.Map;
 
 import javax.annotation.Nullable;
 
+import org.atlasapi.content.ContentRef;
 import org.atlasapi.content.Described;
 import org.atlasapi.content.Item;
-import org.atlasapi.content.ParentRef;
 import org.atlasapi.content.Series;
 import org.atlasapi.entity.Id;
 import org.atlasapi.entity.Identifiable;
@@ -39,10 +39,10 @@ public class EquivalenceSummary {
             Id id = content.getId();
             Id parentId = null;
             if (content instanceof Item) {
-                parentId = idOrNull(((Item)content).getContainer());
+                parentId = idOrNull(((Item)content).getContainerRef());
             }
             if (content instanceof Series) {
-                parentId = idOrNull(((Series)content).getParent());
+                parentId = idOrNull(((Series)content).getBrandRef());
             }
             return new Ref(id, publisher, parentId);
         }
@@ -54,7 +54,7 @@ public class EquivalenceSummary {
             };
         };
 
-        protected static Id idOrNull(@Nullable ParentRef parent) {
+        protected static Id idOrNull(@Nullable ContentRef parent) {
             return parent == null ? null : parent.getId();
         }
         
