@@ -31,14 +31,17 @@ import org.atlasapi.media.entity.Song;
 import org.atlasapi.media.entity.Subtitles;
 import org.atlasapi.segment.SegmentEvent;
 import org.atlasapi.segment.SegmentRef;
+import org.joda.time.DateTime;
 import org.joda.time.Duration;
 
 import com.google.common.base.Function;
+import com.google.common.base.Objects;
 import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Sets;
+import com.metabroadcast.common.time.DateTimeZones;
 
 public class LegacyContentTransformer extends DescribedLegacyResourceTransformer<Content, org.atlasapi.content.Content> {
 
@@ -74,7 +77,9 @@ public class LegacyContentTransformer extends DescribedLegacyResourceTransformer
         org.atlasapi.content.Series series = new org.atlasapi.content.Series();
         series.withSeriesNumber(input.getSeriesNumber());
         series.setTotalEpisodes(input.getTotalEpisodes());
-        series.setParentRef(transformParentRef(input.getParent(), EntityType.BRAND));
+        if (input.getParent() != null) {
+            series.setParentRef(transformParentRef(input.getParent(), EntityType.BRAND));
+        }
         return setContainerFields(series, input);
     }
 
@@ -84,7 +89,7 @@ public class LegacyContentTransformer extends DescribedLegacyResourceTransformer
             new Function<org.atlasapi.media.entity.SeriesRef, SeriesRef>() {
                 @Override
                 public SeriesRef apply(org.atlasapi.media.entity.SeriesRef input) {
-                    return new SeriesRef(Id.valueOf(input.getId()), "", input.getSeriesNumber(), input.getUpdated());
+                    return new SeriesRef(Id.valueOf(input.getId()), input.getTitle(), input.getSeriesNumber(), input.getUpdated());
                 }
             }
         ));
@@ -97,7 +102,8 @@ public class LegacyContentTransformer extends DescribedLegacyResourceTransformer
                 @Override
                 public ChildRef apply(org.atlasapi.media.entity.ChildRef input) {
                     EntityType type = transformEnum(input.getType(), org.atlasapi.content.EntityType.class);
-                    return new ChildRef(input.getId(), input.getSortKey(), input.getUpdated(), type);
+                    DateTime updated = Objects.firstNonNull(input.getUpdated(),new DateTime(DateTimeZones.UTC));
+                    return new ChildRef(input.getId(), input.getSortKey(), updated, type);
                 }
             }
         ));
@@ -114,7 +120,9 @@ public class LegacyContentTransformer extends DescribedLegacyResourceTransformer
     }
 
     private <I extends org.atlasapi.content.Item> I setItemFields(I i, Item input) {
-        i.setParentRef(transformParentRef(input.getContainer(), EntityType.BRAND));
+        if (input.getContainer() != null) {
+            i.setParentRef(transformParentRef(input.getContainer(), EntityType.BRAND));
+        }
         i.setVersions(transformVersions(input.getVersions()));
         i.setIsLongForm(input.getIsLongForm());
         i.setBlackAndWhite(input.getBlackAndWhite());
@@ -140,7 +148,9 @@ public class LegacyContentTransformer extends DescribedLegacyResourceTransformer
         setIdentifiedFields(v, input);
         
         v.setPublishedDuration(input.getPublishedDuration());
-        v.setDuration(Duration.standardSeconds(input.getDuration()));
+        if (input.getDuration() != null) {
+            v.setDuration(Duration.standardSeconds(input.getDuration()));
+        }
         v.setProvider(input.getProvider());
         v.setRestriction(transformRestriction(input.getRestriction()));
         v.set3d(input.is3d());
