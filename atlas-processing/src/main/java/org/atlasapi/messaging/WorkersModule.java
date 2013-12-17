@@ -20,7 +20,8 @@ public class WorkersModule {
     private static final String INDEXER_CONSUMER = "Indexer";
     private String contentChanges = Configurer.get("messaging.destination.content.changes").get();
     private String topicChanges = Configurer.get("messaging.destination.topics.changes").get();
-    private int indexingConsumers = Integer.parseInt(Configurer.get("messaging.consumers.indexing").get());
+    private Integer defaultIndexingConsumers = Configurer.get("messaging.indexing.consumers.default").toInt();
+    private Integer maxIndexingConsumers = Configurer.get("messaging.indexing.consumers.max").toInt();
     
 //    private String loggerDestination = Configurer.get("messaging.destination.logger").get();
 //    private int loggerConsumers = Integer.parseInt(Configurer.get("messaging.consumers.logger").get());
@@ -38,7 +39,7 @@ public class WorkersModule {
     @Bean
     @Lazy(true)
     public DefaultMessageListenerContainer contentIndexerMessageListener() {
-        return messaging.queueHelper().makeVirtualTopicConsumer(contentIndexingWorker(), INDEXER_CONSUMER, contentChanges, indexingConsumers, indexingConsumers);
+        return messaging.queueHelper().makeVirtualTopicConsumer(contentIndexingWorker(), INDEXER_CONSUMER, contentChanges, defaultIndexingConsumers, maxIndexingConsumers);
     }
 
     @Bean
@@ -56,7 +57,7 @@ public class WorkersModule {
     @Bean
     @Lazy(true)
     public DefaultMessageListenerContainer topicIndexerMessageListener() {
-        return messaging.queueHelper().makeVirtualTopicConsumer(topicIndexingWorker(), INDEXER_CONSUMER, topicChanges, indexingConsumers, indexingConsumers);
+        return messaging.queueHelper().makeVirtualTopicConsumer(topicIndexingWorker(), INDEXER_CONSUMER, topicChanges, defaultIndexingConsumers, maxIndexingConsumers);
     }
     
     @Bean

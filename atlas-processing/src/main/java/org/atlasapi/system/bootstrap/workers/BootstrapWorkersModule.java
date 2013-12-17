@@ -26,6 +26,8 @@ public class BootstrapWorkersModule {
     private static final String CHANGES_EQUIV_PRODUCER = "Changes.Equiv";
 
     private String originSystem = Configurer.get("messaging.bootstrap.system").get();
+    private Integer consumers = Configurer.get("messaging.bootstrap.consumers.default").toInt();
+    private Integer maxConsumers = Configurer.get("messaging.bootstrap.consumers.max").toInt();
 
     @Autowired private AtlasPersistenceModule persistence;
     @Autowired private LegacyPersistenceModule legacy;
@@ -43,7 +45,7 @@ public class BootstrapWorkersModule {
         BootstrapContentPersistor persistor = new BootstrapContentPersistor(
             persistence.contentStore(), persistence.scheduleStore(), persistence.channelStore());
         ContentReadWriteWorker worker = new ContentReadWriteWorker(legacyResolver, persistor);
-        return bootstrapQueueFactory().makeVirtualTopicConsumer(worker, "Bootstrap", messaging.contentChanges, 1, 1);
+        return bootstrapQueueFactory().makeVirtualTopicConsumer(worker, "Bootstrap", messaging.contentChanges, consumers, maxConsumers);
     }
 
     @Bean
@@ -52,7 +54,7 @@ public class BootstrapWorkersModule {
         TopicResolver legacyResolver = legacy.legacyTopicResolver();
         TopicStore writer = persistence.topicStore();
         TopicReadWriteWorker worker = new TopicReadWriteWorker(legacyResolver, writer);
-        return bootstrapQueueFactory().makeVirtualTopicConsumer(worker, "Bootstrap", messaging.topicChanges, 1, 1);
+        return bootstrapQueueFactory().makeVirtualTopicConsumer(worker, "Bootstrap", messaging.topicChanges, consumers, maxConsumers);
     }
     
     @Bean
@@ -61,7 +63,7 @@ public class BootstrapWorkersModule {
         LookupEntryStore legacyResolver = legacy.legacyeEquiavlenceStore();
         EquivalenceRecordStore writer = persistence.equivalenceRecordStore();
         LookupEntryReadWriteWorker worker = new LookupEntryReadWriteWorker(legacyResolver, writer);
-        return bootstrapQueueFactory().makeVirtualTopicConsumer(worker, "Bootstrap", CHANGES_EQUIV_PRODUCER, 1, 1);
+        return bootstrapQueueFactory().makeVirtualTopicConsumer(worker, "Bootstrap", CHANGES_EQUIV_PRODUCER, consumers, maxConsumers);
     }
     
 }
