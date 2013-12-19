@@ -4,17 +4,14 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.metabroadcast.common.time.Timestamp;
 
-import org.atlasapi.messaging.Message;
 
-/**
- */
-public abstract class ReplayMessageConfiguration {
+public class BasicMessageConfiguration {
 
     @JsonCreator
-    ReplayMessageConfiguration(
+    BasicMessageConfiguration(
             @JsonProperty("messageId") String messageId,
-            @JsonProperty("timestamp") Timestamp timestamp,
-            @JsonProperty("original") Message original) {
+            @JsonProperty("timestamp") Timestamp timestamp) {
     }
+    
     
 }

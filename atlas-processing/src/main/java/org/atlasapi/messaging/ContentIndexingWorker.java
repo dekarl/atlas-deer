@@ -3,9 +3,7 @@ package org.atlasapi.messaging;
 import org.atlasapi.content.Content;
 import org.atlasapi.content.ContentIndex;
 import org.atlasapi.content.ContentResolver;
-import org.atlasapi.entity.Id;
 import org.atlasapi.entity.util.Resolved;
-import org.atlasapi.messaging.EntityUpdatedMessage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -15,7 +13,7 @@ import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 
-public class ContentIndexingWorker extends BaseWorker {
+public class ContentIndexingWorker extends BaseWorker<ResourceUpdatedMessage> {
 
     private final Logger log = LoggerFactory.getLogger(this.getClass());
 
@@ -28,7 +26,7 @@ public class ContentIndexingWorker extends BaseWorker {
     }
 
     @Override
-    public void process(final EntityUpdatedMessage message) {
+    public void process(final ResourceUpdatedMessage message) {
         Futures.addCallback(resolveContent(message), 
             new FutureCallback<Resolved<Content>>() {
     
@@ -53,7 +51,7 @@ public class ContentIndexingWorker extends BaseWorker {
         });
     }
 
-    private ListenableFuture<Resolved<Content>> resolveContent(final EntityUpdatedMessage message) {
-        return contentResolver.resolveIds(ImmutableList.of(Id.valueOf(message.getEntityId())));
+    private ListenableFuture<Resolved<Content>> resolveContent(final ResourceUpdatedMessage message) {
+        return contentResolver.resolveIds(ImmutableList.of(message.getUpdatedResource().getId()));
     }
 }

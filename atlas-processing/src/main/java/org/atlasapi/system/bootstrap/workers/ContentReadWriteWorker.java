@@ -8,7 +8,7 @@ import org.atlasapi.entity.util.MissingResourceException;
 import org.atlasapi.entity.util.Resolved;
 import org.atlasapi.entity.util.WriteException;
 import org.atlasapi.messaging.BaseWorker;
-import org.atlasapi.messaging.EntityUpdatedMessage;
+import org.atlasapi.messaging.ResourceUpdatedMessage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -18,7 +18,7 @@ import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 
-public class ContentReadWriteWorker extends BaseWorker {
+public class ContentReadWriteWorker extends BaseWorker<ResourceUpdatedMessage> {
     
     private static final int maxAttempts = 3;
 
@@ -33,8 +33,8 @@ public class ContentReadWriteWorker extends BaseWorker {
     }
 
     @Override
-    public void process(EntityUpdatedMessage message) {
-        readAndWrite(Id.valueOf(message.getEntityId()));
+    public void process(ResourceUpdatedMessage message) {
+        readAndWrite(message.getUpdatedResource().getId());
     }
 
     private void readAndWrite(Id id) {

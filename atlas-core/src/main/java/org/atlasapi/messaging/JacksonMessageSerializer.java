@@ -2,6 +2,11 @@ package org.atlasapi.messaging;
 
 import java.io.IOException;
 
+import org.atlasapi.content.BrandRef;
+import org.atlasapi.content.ItemRef;
+import org.atlasapi.content.SeriesRef;
+import org.atlasapi.entity.Id;
+
 import com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
@@ -9,9 +14,11 @@ import com.fasterxml.jackson.annotation.PropertyAccessor;
 import com.fasterxml.jackson.databind.Module;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.databind.module.SimpleDeserializers;
 import com.fasterxml.jackson.databind.module.SimpleModule;
+import com.fasterxml.jackson.datatype.joda.JodaModule;
 import com.google.common.io.ByteSource;
-
+import com.metabroadcast.common.time.Timestamp;
 
 public class JacksonMessageSerializer implements MessageSerializer {
     
@@ -26,10 +33,29 @@ public class JacksonMessageSerializer implements MessageSerializer {
         @Override
         public void setupModule(Module.SetupContext context) {
             super.setupModule(context);
-            context.setMixInAnnotations(EntityUpdatedMessage.class, AbstractMessageConfiguration.class);
-            context.setMixInAnnotations(BeginReplayMessage.class, AbstractMessageConfiguration.class);
+            context.setMixInAnnotations(ResourceUpdatedMessage.class, ResourceUpdatedMessageConfiguration.class);
+            context.setMixInAnnotations(BeginReplayMessage.class, BasicMessageConfiguration.class);
+            context.setMixInAnnotations(EndReplayMessage.class, BasicMessageConfiguration.class);
             context.setMixInAnnotations(ReplayMessage.class, ReplayMessageConfiguration.class);
-            context.setMixInAnnotations(EndReplayMessage.class, AbstractMessageConfiguration.class);
+        }
+    }
+
+    public class AtlasModelModule extends SimpleModule {
+        
+        public AtlasModelModule() {
+            super("Model Module", new com.fasterxml.jackson.core.Version(0, 0, 1, null, null, null));
+        }
+        
+        @Override
+        public void setupModule(Module.SetupContext context) {
+            super.setupModule(context);
+            context.setMixInAnnotations(Id.class, IdConfiguration.class);
+            context.setMixInAnnotations(BrandRef.class, ResourceRefConfiguration.class);
+            context.setMixInAnnotations(ItemRef.class, ItemRefConfiguration.class);
+            context.setMixInAnnotations(SeriesRef.class, SeriesRefConfiguration.class);
+            context.setMixInAnnotations(Timestamp.class, TimestampConfiguration.class);
+            SimpleDeserializers desers = new SimpleDeserializers();
+            context.addDeserializers(desers);
         }
     }
 
@@ -54,6 +80,8 @@ public class JacksonMessageSerializer implements MessageSerializer {
         ObjectMapper mapper = new ObjectMapper();
         mapper.disable(SerializationFeature.WRITE_EMPTY_JSON_ARRAYS, SerializationFeature.WRITE_NULL_MAP_VALUES);
         mapper.registerModule(new GenericModule());
+        mapper.registerModule(new JodaModule());
+        mapper.registerModule(new AtlasModelModule());
         mapper.registerModule(new MessagingModule());
         mapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
         mapper.setVisibility(PropertyAccessor.CREATOR, Visibility.ANY);
@@ -74,9 +102,10 @@ public class JacksonMessageSerializer implements MessageSerializer {
     }
 
     @Override
-    public Message deserialize(ByteSource bytes) throws MessageException {
+    @SuppressWarnings("unchecked")
+    public <M extends Message> M deserialize(ByteSource bytes) throws MessageException {
         try {
-            return mapper.readValue(bytes.openStream(), Message.class);
+            return (M) mapper.readValue(bytes.openStream(), Message.class);
         } catch (IOException e) {
             throw new MessageException(e);
         }

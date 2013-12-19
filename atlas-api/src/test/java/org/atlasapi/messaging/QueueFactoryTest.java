@@ -10,11 +10,16 @@ import javax.jms.JMSException;
 import javax.jms.Session;
 
 import org.apache.activemq.ActiveMQConnectionFactory;
+import org.atlasapi.content.BrandRef;
+import org.atlasapi.entity.Id;
+import org.atlasapi.media.entity.Publisher;
 import org.atlasapi.serialization.json.JsonFactory;
 import org.junit.Test;
 import org.springframework.jms.core.JmsTemplate;
 import org.springframework.jms.core.MessageCreator;
 import org.springframework.jms.listener.DefaultMessageListenerContainer;
+
+import com.metabroadcast.common.time.Timestamp;
 
 public class QueueFactoryTest {
 
@@ -29,12 +34,12 @@ public class QueueFactoryTest {
         MessageSender sender = pqf.makeMessageSender(destinationName);
         
         final CountDownLatch latch = new CountDownLatch(1);
-        final AtomicReference<EntityUpdatedMessage> reciever
-            = new AtomicReference<EntityUpdatedMessage>();
+        final AtomicReference<ResourceUpdatedMessage> reciever
+            = new AtomicReference<ResourceUpdatedMessage>();
 
-        Worker w = new BaseWorker() {
+        Worker<ResourceUpdatedMessage> w = new BaseWorker<ResourceUpdatedMessage>() {
             @Override
-            public void process(EntityUpdatedMessage message) {
+            public void process(ResourceUpdatedMessage message) {
                 reciever.set(message);
                 latch.countDown();
             }
@@ -44,17 +49,16 @@ public class QueueFactoryTest {
         container.initialize();
         container.start();
         
-        Message msg = new EntityUpdatedMessage("1", 1L, "eid", "etype", "esrc");
+        BrandRef updated = new BrandRef(Id.valueOf(1), Publisher.BBC);
+        ResourceUpdatedMessage msg = new ResourceUpdatedMessage("1", Timestamp.of(1L), updated);
         sender.sendMessage(msg);
         
         latch.await();
-        EntityUpdatedMessage received = reciever.get();
+        ResourceUpdatedMessage received = reciever.get();
         
         assertEquals(msg.getMessageId(), received.getMessageId());
         assertEquals(msg.getTimestamp(), received.getTimestamp());
-        assertEquals(msg.getEntityId(), received.getEntityId());
-        assertEquals(msg.getEntityType(), received.getEntityType());
-        assertEquals(msg.getEntitySource(), received.getEntitySource());
+        assertEquals(msg.getUpdatedResource(), received.getUpdatedResource());
         
     }
     
@@ -63,12 +67,12 @@ public class QueueFactoryTest {
         String destinationName = "destination1";
         
         final CountDownLatch latch = new CountDownLatch(1);
-        final AtomicReference<EntityUpdatedMessage> reciever
-            = new AtomicReference<EntityUpdatedMessage>();
+        final AtomicReference<ResourceUpdatedMessage> reciever
+            = new AtomicReference<ResourceUpdatedMessage>();
 
-        Worker w = new BaseWorker() {
+        Worker<ResourceUpdatedMessage> w = new BaseWorker<ResourceUpdatedMessage>() {
             @Override
-            public void process(EntityUpdatedMessage message) {
+            public void process(ResourceUpdatedMessage message) {
                 reciever.set(message);
                 latch.countDown();
             }
@@ -77,8 +81,9 @@ public class QueueFactoryTest {
             = cqf.makeVirtualTopicConsumer(w, "consumer1", destinationName, 1, 1);
         container.initialize();
         container.start();
-        
-        final Message msg = new EntityUpdatedMessage("2", 2L, "fid", "ftype", "fsrc");
+
+        BrandRef updated = new BrandRef(Id.valueOf(2), Publisher.BBC);
+        final ResourceUpdatedMessage msg = new ResourceUpdatedMessage("2", Timestamp.of(2L), updated);
         
         JmsTemplate template = new JmsTemplate(cf);
         template.setPubSubDomain(true);
@@ -95,13 +100,11 @@ public class QueueFactoryTest {
         });
         
         latch.await();
-        EntityUpdatedMessage received = reciever.get();
+        ResourceUpdatedMessage received = reciever.get();
         
         assertEquals(msg.getMessageId(), received.getMessageId());
         assertEquals(msg.getTimestamp(), received.getTimestamp());
-        assertEquals(msg.getEntityId(), received.getEntityId());
-        assertEquals(msg.getEntityType(), received.getEntityType());
-        assertEquals(msg.getEntitySource(), received.getEntitySource());
+        assertEquals(msg.getUpdatedResource(), received.getUpdatedResource());
         
     }
 }

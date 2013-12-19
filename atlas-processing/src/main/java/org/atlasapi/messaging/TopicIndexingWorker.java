@@ -1,9 +1,7 @@
 package org.atlasapi.messaging;
 
 import org.atlasapi.content.IndexException;
-import org.atlasapi.entity.Id;
 import org.atlasapi.entity.util.Resolved;
-import org.atlasapi.messaging.EntityUpdatedMessage;
 import org.atlasapi.topic.Topic;
 import org.atlasapi.topic.TopicIndex;
 import org.atlasapi.topic.TopicResolver;
@@ -16,7 +14,7 @@ import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 
-public class TopicIndexingWorker extends BaseWorker {
+public class TopicIndexingWorker extends BaseWorker<ResourceUpdatedMessage> {
 
     private final Logger log = LoggerFactory.getLogger(this.getClass());
 
@@ -29,7 +27,7 @@ public class TopicIndexingWorker extends BaseWorker {
     }
 
     @Override
-    public void process(final EntityUpdatedMessage message) {
+    public void process(final ResourceUpdatedMessage message) {
         Futures.addCallback(resolveContent(message), 
             new FutureCallback<Resolved<Topic>>() {
     
@@ -50,15 +48,15 @@ public class TopicIndexingWorker extends BaseWorker {
                             onFailure(ie);
                         }
                     } else {
-                        log.warn("{}: failed to resolved {} {}",
-                            new Object[]{message.getMessageId(), message.getEntityType(), message.getEntityId()});
+                        log.warn("{}: failed to resolved {} ",
+                            new Object[]{message.getMessageId(), message.getUpdatedResource()});
                     }
                 }
             }
         );
     }
 
-    private ListenableFuture<Resolved<Topic>> resolveContent(final EntityUpdatedMessage message) {
-        return topicResolver.resolveIds(ImmutableList.of(Id.valueOf(message.getEntityId())));
+    private ListenableFuture<Resolved<Topic>> resolveContent(final ResourceUpdatedMessage message) {
+        return topicResolver.resolveIds(ImmutableList.of(message.getUpdatedResource().getId()));
     }
 }

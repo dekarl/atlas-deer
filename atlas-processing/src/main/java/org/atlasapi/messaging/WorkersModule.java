@@ -23,6 +23,11 @@ public class WorkersModule {
     private Integer defaultIndexingConsumers = Configurer.get("messaging.indexing.consumers.default").toInt();
     private Integer maxIndexingConsumers = Configurer.get("messaging.indexing.consumers.max").toInt();
     
+    private String equivSystem = Configurer.get("equiv.update.producer.system").get();
+    private String equivTopic = Configurer.get("equiv.update.produce.topic").get();
+    private Integer equivDefltConsumers = Configurer.get("equiv.update.consumers.default").toInt();
+    private Integer equivMaxConsumers = Configurer.get("equiv.update.consumers.max").toInt();
+    
 //    private String loggerDestination = Configurer.get("messaging.destination.logger").get();
 //    private int loggerConsumers = Integer.parseInt(Configurer.get("messaging.consumers.logger").get());
 //    private long replayInterruptThreshold = Long.parseLong(Configurer.get("messaging.replay.interrupt.threshold").get());
@@ -32,8 +37,8 @@ public class WorkersModule {
 
     @Bean
     @Lazy(true)
-    public ReplayingWorker contentIndexingWorker() {
-        return new ReplayingWorker(new ContentIndexingWorker(persistence.contentStore(), persistence.contentIndex()));
+    public ReplayingWorker<ResourceUpdatedMessage> contentIndexingWorker() {
+        return new ReplayingWorker<>(new ContentIndexingWorker(persistence.contentStore(), persistence.contentIndex()));
     }
 
     @Bean
@@ -50,8 +55,8 @@ public class WorkersModule {
 
     @Bean
     @Lazy(true)
-    public ReplayingWorker topicIndexingWorker() {
-        return new ReplayingWorker(new TopicIndexingWorker(persistence.topicStore(), persistence.topicIndex()));
+    public ReplayingWorker<ResourceUpdatedMessage> topicIndexingWorker() {
+        return new ReplayingWorker<>(new TopicIndexingWorker(persistence.topicStore(), persistence.topicIndex()));
     }
     
     @Bean
@@ -78,14 +83,29 @@ public class WorkersModule {
 //        return makeContainer(messageLogger(), loggerDestination, loggerConsumers, loggerConsumers);
 //    }
 
+    @Bean
+    @Lazy(true)
+    public ReplayingWorker<ResourceUpdatedMessage> contentEquivalenceUpdater() {
+        return new ReplayingWorker<>(new ContentEquivalenceUpdatingWorker());
+    }
+    
+    @Bean
+    @Lazy(true)
+    public DefaultMessageListenerContainer equivUpdateListener() {
+        return messaging.consumerQueueFactory().makeVirtualTopicConsumer(contentEquivalenceUpdater(),
+                equivSystem, equivTopic, equivDefltConsumers, equivMaxConsumers);
+    }
+
     @PostConstruct
     public void start() {
         contentIndexingWorker().start();
+        topicIndexingWorker().start();
     }
 
     @PreDestroy
     public void stop() {
         contentIndexingWorker().stop();
+        topicIndexingWorker().start();
     }
 
 }

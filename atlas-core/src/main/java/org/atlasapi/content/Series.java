@@ -2,11 +2,9 @@ package org.atlasapi.content;
 
 import org.atlasapi.entity.Id;
 import org.atlasapi.media.entity.Publisher;
-import org.joda.time.DateTime;
 
 import com.google.common.base.Function;
 import com.google.common.base.Strings;
-import com.metabroadcast.common.time.DateTimeZones;
 
 public class Series extends Container {
 	
@@ -72,8 +70,8 @@ public class Series extends Container {
     };
     
     public SeriesRef toRef() {
-        return new SeriesRef(this.getId(), getPublisher(), Strings.nullToEmpty(this.getTitle()), 
-                this.seriesNumber, new DateTime(DateTimeZones.UTC));
+        return new SeriesRef(getId(), getPublisher(), Strings.nullToEmpty(this.getTitle()), 
+                this.seriesNumber, getThisOrChildLastUpdated());
     }
     
     public void setTotalEpisodes(Integer totalEpisodes) {

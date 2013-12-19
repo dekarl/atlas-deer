@@ -5,13 +5,13 @@ import org.joda.time.DateTime;
 
 import com.google.common.base.Optional;
 
-public interface MessageStore {
+public interface MessageStore<M extends Message> {
 
     /**
      *
      * @param message
      */
-    void add(Message message);
+    void add(M message);
 
     /**
      *
@@ -20,5 +20,5 @@ public interface MessageStore {
      * @param source 
      * @return
      */
-    Iterable<Message> get(DateTime from, DateTime to, Optional<String> source);
+    Iterable<M> get(DateTime from, DateTime to, Optional<String> source);
 }

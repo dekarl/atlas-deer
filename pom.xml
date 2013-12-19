@@ -121,6 +121,10 @@
             <groupId>org.jmock</groupId>
             <artifactId>jmock-junit4</artifactId>
           </exclusion>
+          <exclusion>
+            <groupId>com.google.guava</groupId>
+            <artifactId>guava</artifactId>
+          </exclusion>
         </exclusions>
       </dependency>
       <dependency>

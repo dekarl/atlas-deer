@@ -33,6 +33,10 @@ public final class ConsumerQueueFactory {
         return makeContainer(worker, virtualTopicConsumer(consumer, producer), consumers, maxConsumers);
     }
 
+    public DefaultMessageListenerContainer makeVirtualTopicConsumer(Worker worker, String consumer, String producerSystem, String producer, int consumers, int maxConsumers) {
+        return makeContainer(worker, virtualTopicConsumer(consumer, producer), consumers, maxConsumers);
+    }
+
     public DefaultMessageListenerContainer makeReplayContainer(Worker worker, String name, int consumers, int maxConsumers) {
         return makeContainer(worker, replayDestination(name), consumers, maxConsumers);
     }

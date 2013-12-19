@@ -9,16 +9,10 @@ import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
 
-import org.atlasapi.messaging.BeginReplayMessage;
-import org.atlasapi.messaging.EndReplayMessage;
-import org.atlasapi.messaging.EntityUpdatedMessage;
-import org.atlasapi.messaging.Message;
-import org.atlasapi.messaging.ReplayMessage;
-import org.atlasapi.messaging.Worker;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class ReplayingWorker extends BaseWorker {
+public class ReplayingWorker<M extends Message> extends BaseWorker<M> {
 
     private final Logger log = LoggerFactory.getLogger(this.getClass());
 
@@ -28,10 +22,10 @@ public class ReplayingWorker extends BaseWorker {
     private final AtomicLong latestReplayTime = new AtomicLong(0);
     private final ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
     
-    private final Worker delegate;
+    private final Worker<? super M> delegate;
     private long replayThreshold;
     
-    public ReplayingWorker(Worker delegate) {
+    public ReplayingWorker(Worker<? super M> delegate) {
         this.delegate = delegate;
         this.replayThreshold = 60000;
     }
@@ -49,22 +43,19 @@ public class ReplayingWorker extends BaseWorker {
     }
 
     @Override
-    public void process(EntityUpdatedMessage message) {
+    public void process(M message) {
         doProcess(message);
     }
 
-    @Override
     public void process(BeginReplayMessage message) {
         doBeginReplay();
     }
 
-    @Override
     public void process(EndReplayMessage message) {
         doEndReplay();
     }
 
-    @Override
-    public void process(ReplayMessage message) {
+    public void process(ReplayMessage<M> message) {
         doReplay(message);
     }
 
@@ -88,16 +79,16 @@ public class ReplayingWorker extends BaseWorker {
         }
     }
 
-    private void doReplay(ReplayMessage message) {
+    private void doReplay(ReplayMessage<M> message) {
         if (replaying.get()) {
             latestReplayTime.set(new Date().getTime());
-            message.getOriginal().dispatchTo(delegate);
+            delegate.process(message.getOriginal());
         } else {
             log.warn("Cannot replay message outside of BeginReplayMessage - EndReplayMessage boundaries.");
         }
     }
 
-    private void doProcess(Message message) {
+    private void doProcess(M message) {
         while (replaying.get()) {
             log.warn("In BeginReplayMessage - EndReplayMessage boundaries, waiting...");
             replayLock.lock();
@@ -107,7 +98,7 @@ public class ReplayingWorker extends BaseWorker {
                 replayLock.unlock();
             }
         }
-        message.dispatchTo(delegate);
+        delegate.process(message);
     }
 
     private class ReplayCircuitBreaker implements Runnable {

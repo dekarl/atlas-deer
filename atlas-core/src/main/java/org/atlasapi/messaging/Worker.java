@@ -2,27 +2,13 @@ package org.atlasapi.messaging;
 
 
 /**
- * Base interface for workers that need to process {@link org.atlasapi.persistence.messaging.Message}s.
+ * Base interface for workers that process {@link org.atlasapi.persistence.messaging.Message Message}s.
  */
-public interface Worker {
+public interface Worker<M extends Message> {
     
     /**
-     * Process a {@link org.atlasapi.persistence.messaging.EntityUpdatedMessage}.
+     * Process a {@link org.atlasapi.persistence.messaging.Message Message}.
      */
-    void process(EntityUpdatedMessage message);
-    
-    /**
-     * Process a {@link org.atlasapi.persistence.messaging.BeginReplayMessage}.
-     */
-    void process(BeginReplayMessage message);
-    
-    /**
-     * Process a {@link org.atlasapi.persistence.messaging.EndReplayMessage}.
-     */
-    void process(EndReplayMessage message);
-    
-    /**
-     * Process a {@link org.atlasapi.persistence.messaging.ReplayMessage}.
-     */
-    void process(ReplayMessage message);
+    void process(M message);
+
 }

@@ -11,6 +11,8 @@ import org.atlasapi.topic.TopicStore;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.metabroadcast.common.time.Timestamp;
+
 public class MessageQueueingTopicStore extends ForwardingTopicStore {
     
     private static final Logger log = LoggerFactory.getLogger(MessageQueueingContentStore.class);
@@ -38,20 +40,18 @@ public class MessageQueueingTopicStore extends ForwardingTopicStore {
     }
 
     private void writeMessage(final WriteResult<Topic> result) {
-        EntityUpdatedMessage message = createEntityUpdatedMessage(result);
+        ResourceUpdatedMessage message = createEntityUpdatedMessage(result);
         try {
             sender.sendMessage(message);
         } catch (Exception e) {
-            log.error(message.getEntityId(), e);
+            log.error(message.getUpdatedResource().toString(), e);
         }
     }
     
-    private <T extends Topic> EntityUpdatedMessage createEntityUpdatedMessage(WriteResult<T> result) {
-        return new EntityUpdatedMessage(
+    private <T extends Topic> ResourceUpdatedMessage createEntityUpdatedMessage(WriteResult<T> result) {
+        return new ResourceUpdatedMessage(
                 UUID.randomUUID().toString(),
-                result.getWriteTime().getMillis(),
-                result.getResource().getId().toString(),
-                result.getClass().getSimpleName().toLowerCase(),
-                result.getResource().getPublisher().key());
+                Timestamp.of(result.getWriteTime().getMillis()),
+                result.getResource().toRef());
     }
 }
