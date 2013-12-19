@@ -17,11 +17,15 @@ import org.atlasapi.media.channel.ChannelResolver;
 import org.atlasapi.schedule.ScheduleHierarchy;
 import org.atlasapi.schedule.ScheduleWriter;
 import org.joda.time.Interval;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.common.collect.ImmutableList;
 import com.metabroadcast.common.base.Maybe;
 
 public class BootstrapContentPersistor implements ContentWriter {
+    
+    private final Logger log = LoggerFactory.getLogger(getClass());
 
     private final ContentWriter contentWriter;
     private final ScheduleWriter scheduleWriter;
@@ -39,28 +43,33 @@ public class BootstrapContentPersistor implements ContentWriter {
 
         @Override
         protected WriteResult<Container> visitContainer(Container container) {
+            log.debug("bootstrapping {}", container);
             return contentWriter.writeContent(container);
         }
 
         @Override
         protected WriteResult<? extends Content> visitItem(Item item) {
-            try {
-                boolean written = false;
-                for (Version version : item.getVersions()) {
-                    for (Broadcast broadcast : version.getBroadcasts()) {
-                        if (broadcast.getSourceId() != null) {
-                            write(new ItemAndBroadcast(item, broadcast));
+            WriteResult<? extends Content> result = null;
+            boolean written = false;
+            for (Version version : item.getVersions()) {
+                for (Broadcast broadcast : version.getBroadcasts()) {
+                    if (broadcast.getSourceId() != null) {
+                        try {
+                            ItemAndBroadcast iab = new ItemAndBroadcast(item, broadcast);
+                            log.trace("bootstrapping {}", iab);
+                            result = write(iab);
+                            written = true;
+                        } catch (WriteException e) {
+                            throw new RuntimeException(e);
                         }
-                        written = true;
                     }
                 }
-                if (!written) {
-                    contentWriter.writeContent(item);
-                }
-            } catch (WriteException e) {
-                throw new RuntimeException(e);
             }
-            return null;
+            if (!written) {
+                log.trace("bootstrapping {}", item);
+                result = contentWriter.writeContent(item);
+            }
+            return result;
         }
 
     }

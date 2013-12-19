@@ -9,6 +9,7 @@ import javax.servlet.http.HttpServletResponse;
 import org.atlasapi.content.Brand;
 import org.atlasapi.content.Content;
 import org.atlasapi.content.ContentResolver;
+import org.atlasapi.content.ContentType;
 import org.atlasapi.content.ContentVisitorAdapter;
 import org.atlasapi.content.Identified;
 import org.atlasapi.content.Item;
@@ -18,6 +19,8 @@ import org.atlasapi.entity.Identifiables;
 import org.atlasapi.entity.util.Resolved;
 import org.atlasapi.entity.util.WriteResult;
 import org.atlasapi.system.bootstrap.workers.BootstrapContentPersistor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -32,6 +35,8 @@ import com.google.common.util.concurrent.ListenableFuture;
 
 @Controller
 public class IndividualContentBootstrapController {
+    
+    private final Logger log = LoggerFactory.getLogger(getClass());
 
     private final ContentResolver read;
     private final BootstrapContentPersistor write;
@@ -42,13 +47,17 @@ public class IndividualContentBootstrapController {
     }
  
     @RequestMapping(value="/system/bootstrap/content", method=RequestMethod.POST)
-    public void bootstrapContent(@RequestParam("id") String id, HttpServletResponse resp) throws IOException {
-        Identified identified = Iterables.getOnlyElement(resolve(ImmutableList.of(Id.valueOf(id))));
+    public void bootstrapContent(@RequestParam("id") final String id, final HttpServletResponse resp) throws IOException {
+        log.info("Bootstrapping: {}", id);
+        Identified identified = Iterables.getOnlyElement(resolve(ImmutableList.of(Id.valueOf(id))),null);
+        log.info("Bootstrapping: {} {}", id, identified);
         if (!(identified instanceof Content)) {
             resp.sendError(500, "Resolved not content");
             return;
         }
         Content content = (Content) identified;
+
+        resp.setStatus(HttpStatus.OK.value());
         String result = content.accept(new ContentVisitorAdapter<String>() {
             
             @Override
@@ -70,8 +79,9 @@ public class IndividualContentBootstrapController {
                 FluentIterable<Content> resolved = resolve(ids);
                 int i = 0;
                 for (Content content : Iterables.filter(resolved, Content.class)) {
-                    write(content);
-                    i++;
+                    if (write(content) != null) {
+                        i++;
+                    }
                 }
                 return i;
             }
@@ -82,13 +92,18 @@ public class IndividualContentBootstrapController {
             }
 
             private WriteResult<? extends Content> write(Content content) {
-                content.setReadHash(null);
-                return write.writeContent(content);
+                try {
+                    resp.getWriter().println(ContentType.fromContent(content).get() + " " + content.getId());
+                    resp.getWriter().flush();
+                    content.setReadHash(null);
+                    return write.writeContent(content);
+                } catch (IOException e) {
+                    log.error(String.format("Bootstrapping: %s %s", id, content), e);
+                    return null;
+                }
             }
             
         });
-        resp.setStatus(HttpStatus.OK.value());
-        resp.setContentLength(result.length());
         resp.getWriter().println(result);
         resp.getWriter().flush();
     }
