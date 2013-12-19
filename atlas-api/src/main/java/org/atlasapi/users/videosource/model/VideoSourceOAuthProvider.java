@@ -6,7 +6,7 @@ import com.metabroadcast.common.social.model.UserRef.UserNamespace;
 public enum VideoSourceOAuthProvider {
     YOUTUBE(UserNamespace.YOUTUBE,
             "Link your YouTube account",
-            "/4.0/videoprovider/youtube/login",
+            "/4.0/videosource/youtube/login",
             "youtube.png");
 
     private final UserNamespace namespace;
