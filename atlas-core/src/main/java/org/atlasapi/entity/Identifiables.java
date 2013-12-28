@@ -5,6 +5,7 @@ import java.util.Collection;
 import com.google.common.base.Function;
 import com.google.common.base.Predicate;
 import com.google.common.base.Predicates;
+import com.google.common.collect.Ordering;
 import com.metabroadcast.common.base.MorePredicates;
 
 
@@ -34,6 +35,12 @@ public final class Identifiables {
 
     public static Predicate<Identifiable> idFilter(Collection<Id> ids) {
         return MorePredicates.transformingPredicate(toId(), Predicates.in(ids));
+    }
+    
+    private static final Ordering<Identifiable> ORDER_BY_ID = Ordering.natural().onResultOf(toId());
+    
+    public static final Ordering<Identifiable> orderById() {
+        return ORDER_BY_ID;
     }
     
 }

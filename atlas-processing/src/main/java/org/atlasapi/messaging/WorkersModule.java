@@ -85,8 +85,8 @@ public class WorkersModule {
 
     @Bean
     @Lazy(true)
-    public ReplayingWorker<ResourceUpdatedMessage> contentEquivalenceUpdater() {
-        return new ReplayingWorker<>(new ContentEquivalenceUpdatingWorker());
+    public ReplayingWorker<EquivalenceAssertionMessage> contentEquivalenceUpdater() {
+        return new ReplayingWorker<>(new ContentEquivalenceUpdatingWorker(null));
     }
     
     @Bean
