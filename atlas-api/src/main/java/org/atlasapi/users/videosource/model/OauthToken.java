@@ -3,7 +3,7 @@ package org.atlasapi.users.videosource.model;
 import com.google.api.client.repackaged.com.google.common.base.Preconditions;
 import com.google.common.base.Objects;
 
-public class OauthTokenDetails {
+public class OauthToken {
 
     private final String accessToken;
     private final String tokenType;
@@ -11,7 +11,7 @@ public class OauthTokenDetails {
     private final String idToken;
     private final String refreshToken;
 
-    private OauthTokenDetails(String accessToken, String tokenType,
+    private OauthToken(String accessToken, String tokenType,
             Long expiresIn, String idToken, String refreshToken) {
         this.accessToken = accessToken;
         this.tokenType = tokenType;
@@ -87,13 +87,13 @@ public class OauthTokenDetails {
             return this;
         }
 
-        public OauthTokenDetails build() {
+        public OauthToken build() {
             Preconditions.checkNotNull(accessToken);
             Preconditions.checkNotNull(tokenType);
             Preconditions.checkNotNull(expiresIn);
             Preconditions.checkNotNull(idToken);
             Preconditions.checkNotNull(refreshToken);
-            return new OauthTokenDetails(accessToken, tokenType,
+            return new OauthToken(accessToken, tokenType,
                     expiresIn, idToken, refreshToken);
         }
     }
