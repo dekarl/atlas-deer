@@ -63,6 +63,13 @@ import org.atlasapi.query.common.Resource;
 import org.atlasapi.query.common.useraware.StandardUserAwareQueryParser;
 import org.atlasapi.query.common.useraware.UserAwareQueryContextParser;
 import org.atlasapi.query.common.useraware.UserAwareQueryExecutor;
+import org.atlasapi.users.videosource.VideoSourceChannelResultsListWriter;
+import org.atlasapi.users.videosource.VideoSourceChannelResultsQueryResultWriter;
+import org.atlasapi.users.videosource.VideoSourceController;
+import org.atlasapi.users.videosource.VideoSourceOAuthProvidersQueryResultWriter;
+import org.atlasapi.users.videosource.VideoSourceOauthProvidersListWriter;
+import org.atlasapi.users.videosource.remote.RemoteSourceUpdaterClient;
+import org.atlasapi.users.videosource.youtube.YouTubeLinkedServiceController;
 import org.joda.time.DateTime;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -76,6 +83,8 @@ import com.google.common.collect.ImmutableSet;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonDeserializer;
+import com.metabroadcast.common.http.HttpClients;
+import com.metabroadcast.common.http.SimpleHttpClient;
 import com.metabroadcast.common.ids.IdGenerator;
 import com.metabroadcast.common.ids.NumberToShortStringCodec;
 import com.metabroadcast.common.ids.SubstitutionTableNumberCodec;
@@ -109,6 +118,11 @@ public class ApplicationWebModule {
     
     @Value("${twitter.auth.consumerKey}") private String consumerKey;
     @Value("${twitter.auth.consumerSecret}") private String consumerSecret;
+    
+    @Value("${youtube.clientId}") private String youTubeClientId;
+    @Value("${youtube.clientSecret}") private String youTubeClientSecret;
+    
+    @Value("${youtube.handling.service}") private String handlingService;
     
     private final Gson gson = new GsonBuilder()
             .registerTypeAdapter(DateTime.class, datetimeDeserializer)
@@ -173,10 +187,14 @@ public class ApplicationWebModule {
                         "/4.0/sources",
                         "/4.0/requests",
                         "/4.0/users",
-                        "/4.0/auth/user"))
+                        "/4.0/auth/user",
+                        "/4.0/videosource"))
                .withUrlsNotNeedingCompleteProfile(ImmutableSet.of(
                 "/4.0/auth/user",
                 "/4.0/users/:uid"))
+               .withExemptions(ImmutableSet.of(
+                		"/4.0/videosource/youtube/token.json"
+                		))
                 .build();
     }
     
@@ -313,6 +331,35 @@ public class ApplicationWebModule {
     
     public @Bean AccessTokenProcessor accessTokenProcessor() {
         return new AccessTokenProcessor(accessTokenChecker(), appPersistence.credentialsStore());
+    }
+    
+    public @Bean VideoSourceController linkedServiceController() {
+    	return new VideoSourceController(new VideoSourceOAuthProvidersQueryResultWriter(new VideoSourceOauthProvidersListWriter()), userFetcher());
+    }
+    
+    VideoSourceChannelResultsQueryResultWriter videoSourceChannelResultsQueryResultWriter() {
+        return new VideoSourceChannelResultsQueryResultWriter(new VideoSourceChannelResultsListWriter());
+    }
+    
+    @Bean
+    public SimpleHttpClient httpClient() {
+        return HttpClients.webserviceClient();
+    }
+    
+    public @Bean YouTubeLinkedServiceController youTubeLinkedServiceController() {
+       
+    	RemoteSourceUpdaterClient sourceUpdaterClient = new RemoteSourceUpdaterClient(gson, 
+    	        handlingService,
+    	        httpClient());
+    	return new YouTubeLinkedServiceController(youTubeClientId, 
+    			youTubeClientSecret,
+    			new OAuthRequestQueryResultWriter(new OAuthRequestListWriter()), 
+    			userFetcher(),
+    			idCodec,
+    			sourceIdCodec,
+    			appPersistence.linkedOauthTokenUserStore(),
+    			sourceUpdaterClient,
+    			videoSourceChannelResultsQueryResultWriter());
     }
 
 }

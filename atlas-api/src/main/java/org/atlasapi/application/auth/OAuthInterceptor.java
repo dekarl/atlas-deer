@@ -76,7 +76,6 @@ public class OAuthInterceptor extends HandlerInterceptorAdapter {
         if (urlsToProtect.isEmpty()) {
             return true; 
         }
-        
         boolean protectedUrl = false;
         for (String uri : urlsToProtect) {
             if (requestUri.startsWith(uri)) {

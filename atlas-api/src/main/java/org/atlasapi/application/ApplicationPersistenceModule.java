@@ -7,6 +7,8 @@ import org.atlasapi.application.users.UserStore;
 import org.atlasapi.application.users.v3.MongoUserStore;
 import org.atlasapi.application.v3.MongoApplicationStore;
 import org.atlasapi.persistence.ids.MongoSequentialIdGenerator;
+import org.atlasapi.users.videosource.MongoUserVideoSourceStore;
+import org.atlasapi.users.videosource.UserVideoSourceStore;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -60,4 +62,8 @@ public class ApplicationPersistenceModule {
         return new LegacyAdaptingUserStore(legacy, applicationStore(), persistence.databasedMongo());
     }
     
+    @Bean
+    public UserVideoSourceStore linkedOauthTokenUserStore() {
+    	return new MongoUserVideoSourceStore(persistence.databasedMongo());
+    }
 }
