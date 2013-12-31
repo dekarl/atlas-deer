@@ -4,6 +4,7 @@ import org.atlasapi.entity.Id;
 import org.atlasapi.media.entity.Publisher;
 import org.atlasapi.users.videosource.model.UserVideoSource;
 
+import com.metabroadcast.common.persistence.mongo.MongoConstants;
 import com.metabroadcast.common.persistence.translator.TranslatorUtils;
 import com.metabroadcast.common.social.model.translator.UserRefTranslator;
 import com.mongodb.BasicDBObject;
@@ -11,17 +12,18 @@ import com.mongodb.DBObject;
 
 public class UserVideoSourceTranslator {
 
-    private static final String PUBLISHER_KEY = "publisher";
-    private static final String TOKEN_KEY = "token";
-    private static final String CHANNEL_IDS_KEYS = "channelIds";
-    private static final String NAME_KEY = "name";
-    private static final String ATLAS_USER_KEY = "atlasUser";
-    private static final String USER_REF_KEY = "userRef";
+    public static final String PUBLISHER_KEY = "publisher";
+    public static final String TOKEN_KEY = "token";
+    public static final String CHANNEL_IDS_KEYS = "channelIds";
+    public static final String NAME_KEY = "name";
+    public static final String ATLAS_USER_KEY = "atlasUser";
+    public static final String USER_REF_KEY = "userRef";
     private UserRefTranslator userRefTranslator = new UserRefTranslator();
     private OauthTokenTranslator tokenDetailsTranslator = new OauthTokenTranslator();
 
     public DBObject toDBObject(UserVideoSource tokenUser) {
         DBObject dbo = new BasicDBObject();
+        TranslatorUtils.from(dbo, MongoConstants.ID, tokenUser.getUserRef().toKey());
         TranslatorUtils.from(dbo,
                 USER_REF_KEY,
                 userRefTranslator.toDBObject(tokenUser.getUserRef()));
@@ -31,7 +33,7 @@ public class UserVideoSourceTranslator {
         TranslatorUtils.from(dbo,
                 TOKEN_KEY,
                 tokenDetailsTranslator.toDBObject(tokenUser.getToken()));
-        TranslatorUtils.from(dbo, PUBLISHER_KEY, tokenUser.getPublisher().key());
+        TranslatorUtils.from(dbo, PUBLISHER_KEY, tokenUser.getPublisher().name());
         return dbo;
     }
 

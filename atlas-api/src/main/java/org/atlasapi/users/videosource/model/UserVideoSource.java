@@ -4,6 +4,7 @@ import org.atlasapi.entity.Id;
 import org.atlasapi.media.entity.Publisher;
 
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Sets;
 import com.metabroadcast.common.social.model.UserRef;
 
 public class UserVideoSource {
@@ -48,6 +49,16 @@ public class UserVideoSource {
     public OauthToken getToken() {
         return token;
     }
+    
+    public Builder copy() {
+        return builder()
+                .withUserRef(this.getUserRef())
+                .withAtlasUser(this.getAtlasUser())
+                .withName(this.getName())
+                .withChannelIds(this.getChannelIds())
+                .withPublisher(this.getPublisher())
+                .withToken(this.getToken());
+    }
 
     public static Builder builder() {
         return new Builder();
@@ -79,6 +90,14 @@ public class UserVideoSource {
 
         public Builder withChannelIds(Iterable<String> channelIds) {
             this.channelIds = channelIds;
+            return this;
+        }
+        
+        public Builder addChannelId(String channelId) {
+            ImmutableSet.Builder<String> channelIdsCopy = ImmutableSet.builder();
+            channelIdsCopy.addAll(channelIds);
+            channelIdsCopy.add(channelId);
+            this.channelIds = channelIdsCopy.build();
             return this;
         }
 
