@@ -235,9 +235,10 @@ public class YouTubeLinkedServiceController {
             User user = userFetcher.userFor(request).get();
             UserVideoSource userVideoSource = store.sourceForRemoteuserRef(new UserRef(youtubeId, UserNamespace.YOUTUBE));
             if (userVideoSource.getAtlasUser().equals(user.getId())) {
-                store.store(userVideoSource.copy().withPublisher(source).build());
-                sourceUpdaterClient.register(userVideoSource);
-                sourceUpdaterClient.addToken(userVideoSource, userVideoSource.getToken());
+                UserVideoSource sourceWithPublisher = userVideoSource.copy().withPublisher(source).build();
+                store.store(sourceWithPublisher);
+                sourceUpdaterClient.register(sourceWithPublisher);
+                sourceUpdaterClient.addToken(sourceWithPublisher, userVideoSource.getToken());
             } else {
                 throw new NotAuthorizedException();
             }
