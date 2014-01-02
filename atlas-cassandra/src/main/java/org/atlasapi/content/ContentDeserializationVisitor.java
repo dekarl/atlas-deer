@@ -6,7 +6,6 @@ import org.atlasapi.entity.Alias;
 import org.atlasapi.entity.Id;
 import org.atlasapi.entity.ProtoBufUtils;
 import org.atlasapi.equivalence.EquivalenceRef;
-import org.atlasapi.media.entity.Publisher;
 import org.atlasapi.serialization.protobuf.CommonProtos;
 import org.atlasapi.serialization.protobuf.CommonProtos.Reference;
 import org.atlasapi.serialization.protobuf.ContentProtos;
@@ -16,8 +15,8 @@ import org.atlasapi.source.Sources;
 import org.joda.time.Duration;
 
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Ordering;
 import com.google.common.collect.ImmutableSet.Builder;
+import com.google.common.collect.Ordering;
 import com.metabroadcast.common.intl.Countries;
 
 public class ContentDeserializationVisitor implements ContentVisitor<Content> {
@@ -174,10 +173,10 @@ public class ContentDeserializationVisitor implements ContentVisitor<Content> {
 
     private <C extends Container> C visitContainer(C container) {
         container = visitContent(container);
-        ChildRefSerializer childRefSerializer = new ChildRefSerializer(container.getPublisher());
+        ContentRefSerializer refSerializer = new ContentRefSerializer(container.getPublisher());
         ImmutableSet.Builder<ItemRef> childRefs = ImmutableSet.builder();
         for (int i = 0; i < msg.getChildrenCount(); i++) {
-            childRefs.add(childRefSerializer.deserialize(msg.getChildren(i)));
+            childRefs.add((ItemRef)refSerializer.deserialize(msg.getChildren(i)));
         }
         container.setItemRefs(Ordering.natural().immutableSortedCopy(childRefs.build()));
         return container;
@@ -186,12 +185,12 @@ public class ContentDeserializationVisitor implements ContentVisitor<Content> {
     @Override
     public Brand visit(Brand brand) {
         brand = visitContainer(brand);
-        ImmutableSet.Builder<SeriesRef> childRefs = ImmutableSet.builder();
-        SeriesRefSerializer seriesRefSerializer = new SeriesRefSerializer(brand.getPublisher());
+        ImmutableSet.Builder<SeriesRef> seriesRefs = ImmutableSet.builder();
+        ContentRefSerializer refSerializer = new ContentRefSerializer(brand.getPublisher());
         for (int i = 0; i < msg.getSecondariesCount(); i++) {
-            childRefs.add(seriesRefSerializer.deserialize(msg.getSecondaries(i)));
+            seriesRefs.add((SeriesRef)refSerializer.deserialize(msg.getSecondaries(i)));
         }
-        brand.setSeriesRefs(SeriesRef.dedupeAndSort(childRefs.build()));
+        brand.setSeriesRefs(SeriesRef.dedupeAndSort(seriesRefs.build()));
         return brand;
     }
 
@@ -257,7 +256,8 @@ public class ContentDeserializationVisitor implements ContentVisitor<Content> {
     private <I extends Item> I visitItem(I item) {
         item = visitContent(item);
         if (msg.hasContainerRef()) {
-            item.setContainerRef(toContainerRef(msg.getContainerRef(), item.getPublisher()));
+            ContentRefSerializer refSerializer = new ContentRefSerializer(item.getPublisher());
+            item.setContainerRef((ContainerRef)refSerializer.deserialize(msg.getContainerRef()));
         }
         if (msg.hasContainerSummary()) {
             item.setContainerSummary(containerSummarySerializer.deserialize(msg.getContainerSummary()));
@@ -273,59 +273,9 @@ public class ContentDeserializationVisitor implements ContentVisitor<Content> {
         return item;
     }
     
-    private ContainerRef toContainerRef(Reference containerRef, final Publisher publisher) {
-        ContentType type = ContentType.fromKey(containerRef.getType()).get();
-        
-        return type.accept(new ContentType.Visitor<ContainerRef>() {
-            
-            @Override
-            public ContainerRef visitBrand(ContentType contentType) {
-                return new BrandRef(
-                    Id.valueOf(msg.getContainerRef().getId()),
-                    Sources.fromPossibleKey(msg.getContainerRef().getSource()).or(publisher)
-                );
-            }
-            
-            @Override
-            public ContainerRef visitSeries(ContentType contentType) {
-                return new SeriesRef(
-                    Id.valueOf(msg.getContainerRef().getId()),
-                    Sources.fromPossibleKey(msg.getContainerRef().getSource()).or(publisher)
-                );
-            }
-
-            @Override
-            public ContainerRef visitClip(ContentType type) {
-                throw new IllegalArgumentException("Can't create ContainerRef for type " + type);
-            }
-
-            @Override
-            public ContainerRef visitSong(ContentType type) {
-                throw new IllegalArgumentException("Can't create ContainerRef for type " + type);
-            }
-
-            @Override
-            public ContainerRef visitFilm(ContentType type) {
-                throw new IllegalArgumentException("Can't create ContainerRef for type " + type);
-            }
-
-            @Override
-            public ContainerRef visitEpisode(ContentType type) {
-                throw new IllegalArgumentException("Can't create ContainerRef for type " + type);
-            }
-
-            @Override
-            public ContainerRef visitItem(ContentType type) {
-                throw new IllegalArgumentException("Can't create ContainerRef for type " + type);
-            }
-            
-        });
-    }
-
     @Override
     public Content visit(Clip clip) {
         return visitItem(clip);
     }
-    
     
 }

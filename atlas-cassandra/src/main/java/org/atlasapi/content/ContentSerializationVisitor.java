@@ -4,7 +4,6 @@ import org.atlasapi.entity.Alias;
 import org.atlasapi.entity.ProtoBufUtils;
 import org.atlasapi.equivalence.EquivalenceRef;
 import org.atlasapi.serialization.protobuf.CommonProtos;
-import org.atlasapi.serialization.protobuf.CommonProtos.Reference;
 import org.atlasapi.serialization.protobuf.ContentProtos;
 import org.atlasapi.serialization.protobuf.ContentProtos.Content.Builder;
 
@@ -147,9 +146,8 @@ final class ContentSerializationVisitor implements ContentVisitor<Builder> {
     private Builder visitItem(Item item) {
         Builder builder = visitContent(item);
         if (item.getContainerRef() != null) {
-            builder.setContainerRef(Reference.newBuilder()
-                .setId(item.getContainerRef().getId().longValue())
-                .setType(item.getContainerRef().getContentType().toString()));
+            ContentRefSerializer refSerializer = new ContentRefSerializer(item.getPublisher());
+            builder.setContainerRef(refSerializer.serialize(item.getContainerRef()));
         }
         if (item.getContainerSummary() != null) {
             builder.setContainerSummary(containerSummarySerializer.serialize(item.getContainerSummary()));
@@ -170,9 +168,9 @@ final class ContentSerializationVisitor implements ContentVisitor<Builder> {
     
     private Builder visitContainer(Container container) {
         Builder builder = visitContent(container);
-        ChildRefSerializer childRefSerializer = new ChildRefSerializer(container.getPublisher());
+        ContentRefSerializer refSerializer = new ContentRefSerializer(container.getPublisher());
         for (ItemRef child : container.getItemRefs()) {
-            builder.addChildren(childRefSerializer.serialize(child));
+            builder.addChildren(refSerializer.serialize(child));
         }
         return builder;
     }
@@ -180,9 +178,9 @@ final class ContentSerializationVisitor implements ContentVisitor<Builder> {
     @Override
     public Builder visit(Brand brand) {
         Builder builder = visitContainer(brand);
-        SeriesRefSerializer seriesRefSerializer = new SeriesRefSerializer(brand.getPublisher());
+        ContentRefSerializer refSerializer = new ContentRefSerializer(brand.getPublisher());
         for (SeriesRef seriesRef : brand.getSeriesRefs()) {
-            builder.addSecondaries(seriesRefSerializer.serialize(seriesRef));
+            builder.addSecondaries(refSerializer.serialize(seriesRef));
         }
         return builder;
     }
@@ -191,9 +189,8 @@ final class ContentSerializationVisitor implements ContentVisitor<Builder> {
     public Builder visit(Series series) {
         Builder builder = visitContainer(series);
         if (series.getBrandRef() != null) {
-            builder.setContainerRef(Reference.newBuilder()
-                .setId(series.getBrandRef().getId().longValue())
-                .setType(series.getBrandRef().getContentType().toString()));
+            ContentRefSerializer refSerializer = new ContentRefSerializer(series.getPublisher());
+            builder.setContainerRef(refSerializer.serialize(series.getBrandRef()));
         }
         if (series.getSeriesNumber() != null) {
             builder.setSeriesNumber(series.getSeriesNumber());
@@ -208,9 +205,8 @@ final class ContentSerializationVisitor implements ContentVisitor<Builder> {
     public Builder visit(Episode episode) {
         Builder builder = visitItem(episode);
         if (episode.getSeriesRef() != null) {
-            builder.setSeriesRef(Reference.newBuilder()
-                .setId(episode.getSeriesRef().getId().longValue())
-                .setType(episode.getContainerRef().getContentType().toString()));
+            ContentRefSerializer refSerializer = new ContentRefSerializer(episode.getPublisher());
+            builder.setSeriesRef(refSerializer.serialize(episode.getSeriesRef()));
         }
         if (episode.getSeriesNumber() != null) {
             builder.setSeriesNumber(episode.getSeriesNumber());

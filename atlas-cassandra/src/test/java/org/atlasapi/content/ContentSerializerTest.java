@@ -93,7 +93,8 @@ public class ContentSerializerTest {
         episode.setEpisodeNumber(5);
         episode.setPartNumber(4);
         episode.setSeriesNumber(5);
-        episode.setSeriesRef(new SeriesRef(Id.valueOf(5), episode.getPublisher()));
+        SeriesRef seriesRef = new SeriesRef(Id.valueOf(5), episode.getPublisher(), "title", 5, new DateTime(DateTimeZones.LONDON));
+        episode.setSeriesRef(seriesRef);
         
         ContentProtos.Content serialized = serializer.serialize(episode);
         Content deserialized = serializer.deserialize(serialized);
