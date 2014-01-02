@@ -2,6 +2,7 @@ package org.atlasapi.users.videosource.remote;
 
 import javax.servlet.http.HttpServletResponse;
 
+import org.atlasapi.output.NotAcceptableException;
 import org.atlasapi.users.videosource.model.OauthToken;
 import org.atlasapi.users.videosource.model.UserVideoSource;
 import org.slf4j.Logger;
@@ -12,7 +13,6 @@ import com.metabroadcast.common.http.HttpException;
 import com.metabroadcast.common.http.HttpResponse;
 import com.metabroadcast.common.http.Payload;
 import com.metabroadcast.common.http.SimpleHttpClient;
-import com.metabroadcast.common.http.SimpleHttpClientBuilder;
 import com.metabroadcast.common.http.StringPayload;
 
 public class RemoteSourceUpdaterClient {
@@ -32,17 +32,17 @@ public class RemoteSourceUpdaterClient {
         this.server = server;
     }
 
-    public void register(UserVideoSource userVideoSource) throws HttpException {
+    public void register(UserVideoSource userVideoSource) throws HttpException, NotAcceptableException {
         postToHandlingService(ADD_USER_URL, new StringPayload(gson.toJson(userVideoSource)));
     }
 
-    public void addToken(UserVideoSource userVideoSource, OauthToken token) throws HttpException {
+    public void addToken(UserVideoSource userVideoSource, OauthToken token) throws HttpException, NotAcceptableException {
         String url = String.format(ADD_TOKEN_URL, userVideoSource.getUserRef().getUserId());
         postToHandlingService(url, new StringPayload(gson.toJson(token)));
     }
 
     public void addChannelId(UserVideoSource userVideoSource, String channelId)
-            throws HttpException {
+            throws HttpException, NotAcceptableException {
         String url = String.format(ADD_CHANNEL_URL,
                 userVideoSource.getUserRef().getUserId(),
                 channelId);
@@ -50,14 +50,14 @@ public class RemoteSourceUpdaterClient {
     }
 
     public void removeChannelIdFromUser(UserVideoSource userVideoSource, String channelId)
-            throws HttpException {
+            throws HttpException, NotAcceptableException {
         String url = String.format(REMOVE_CHANNEL_URL,
                 userVideoSource.getUserRef().getUserId(),
                 channelId);
         postToHandlingService(url, new StringPayload(""));
     }
 
-    private void postToHandlingService(String url, Payload payload) throws HttpException {
+    private void postToHandlingService(String url, Payload payload) throws HttpException, NotAcceptableException {
         HttpResponse response = httpClient.post(server + url, payload);
         if (response.statusCode() == HttpServletResponse.SC_OK) {
             log.trace(String.format("%s %s for url %s",
@@ -65,10 +65,12 @@ public class RemoteSourceUpdaterClient {
                     response.statusLine(),
                     url));
         } else {
+            // Log the error but do not reveal details about remote handling host
             log.error(String.format("%s %s when url %s",
                     response.statusCode(),
                     response.statusLine(),
                     url));
+            throw new NotAcceptableException("Handling service could not process request.");
         }
     }
 }
