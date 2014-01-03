@@ -86,7 +86,8 @@ public class ContentRefSerializer {
     
     public ContentRef deserialize(final Reference ref) {
         final Id id = Id.valueOf(ref.getId());
-        final Publisher src = Sources.fromPossibleKey(ref.getSource()).or(deflt);
+        final Publisher possibleSrc = Sources.fromPossibleKey(ref.getSource()).orNull();
+        final Publisher src = possibleSrc != null ? possibleSrc : deflt; 
         final String sortKey = ref.getSort();
         final DateTime updated = ProtoBufUtils.deserializeDateTime(ref.getUpdated());
         final int position = Ints.saturatedCast(ref.getPosition());
