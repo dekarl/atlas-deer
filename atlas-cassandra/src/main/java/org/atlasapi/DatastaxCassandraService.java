@@ -1,5 +1,7 @@
 package org.atlasapi;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -15,12 +17,18 @@ import com.google.common.util.concurrent.AbstractIdleService;
 public class DatastaxCassandraService extends AbstractIdleService {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
-    private final Iterable<String> nodes;
+    private final Cluster.Builder clusterBuilder;
 
     private Cluster cluster;
+    
+    public DatastaxCassandraService(Cluster.Builder clusterBuilder) {
+        this.clusterBuilder = checkNotNull(clusterBuilder);
+    }
 
     public DatastaxCassandraService(Iterable<String> nodes) {
-        this.nodes = nodes;
+        this.clusterBuilder = Cluster.builder()
+                .addContactPoints(FluentIterable.from(nodes).toArray(String.class))
+                .withCompression(Compression.SNAPPY);
     }
 
     @Override
@@ -29,11 +37,8 @@ public class DatastaxCassandraService extends AbstractIdleService {
     }
 
     private void connect() {
-        log.info("connecting to   nodes: {}", Joiner.on(", ").join(nodes));
-        this.cluster = Cluster.builder()
-                .addContactPoints(FluentIterable.from(nodes).toArray(String.class))
-                .withCompression(Compression.SNAPPY)
-                .build();
+        log.info("connecting to   nodes: {}", Joiner.on(", ").join(clusterBuilder.getContactPoints()));
+        this.cluster = clusterBuilder.build();
         Metadata metadata = cluster.getMetadata();
         log.info("connected  to cluster: {}", metadata.getClusterName());
         for (Host host : metadata.getAllHosts()) {
