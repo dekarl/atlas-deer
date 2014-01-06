@@ -1,9 +1,13 @@
 package org.atlasapi.equivalence;
 
 import static com.datastax.driver.core.querybuilder.QueryBuilder.bindMarker;
+import static com.datastax.driver.core.querybuilder.QueryBuilder.delete;
+import static com.datastax.driver.core.querybuilder.QueryBuilder.eq;
 import static com.datastax.driver.core.querybuilder.QueryBuilder.in;
 import static com.datastax.driver.core.querybuilder.QueryBuilder.insertInto;
 import static com.datastax.driver.core.querybuilder.QueryBuilder.select;
+import static com.google.common.base.Predicates.equalTo;
+import static com.google.common.base.Predicates.not;
 
 import java.nio.ByteBuffer;
 import java.util.Collection;
@@ -36,9 +40,11 @@ import com.datastax.driver.core.querybuilder.Insert;
 import com.datastax.driver.core.querybuilder.QueryBuilder;
 import com.google.common.base.Function;
 import com.google.common.base.Functions;
+import com.google.common.collect.Collections2;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Iterables;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Multimaps;
@@ -233,11 +239,49 @@ public final class CassandraEquivalenceGraphStore extends AbstractEquivalenceGra
             for (Entry<Id, Adjacents> adjacency : graph.entrySet()) {
                 updateBatch.add(preparedIndexInsert.bind(adjacency.getKey().longValue(),graphId));
                 updateBatch.add(graphAdjacencyUpdate(graphId, graph.getUpdated(), adjacency));
+                updateBatch.add(deleteZombieGraphsQuery(graph, graphId));
+                updateBatch.addAll(deleteZombieRowsQuery(graphId, graph, graphs));
             }
         }
         session.execute(updateBatch.setConsistencyLevel(write));
     }
+
+    private Iterable<Statement> deleteZombieRowsQuery(final Long graphId, EquivalenceGraph graph,
+            Set<EquivalenceGraph> graphs) {
+        Iterable<Long> otherIds = idsInOtherGraphs(graphs, graph);
+        return Iterables.transform(otherIds, new Function<Long, Statement>() {
+            @Override
+            public Statement apply(Long input) {
+                return delete().all().from(EQUIVALENCE_GRAPHS_TABLE)
+                        .where(eq(GRAPH_ID_KEY, graphId))
+                        .and(eq(RESOURCE_ID_KEY, input));
+            }
+        });
+    }
+
+    private Iterable<Long> idsInOtherGraphs(Set<EquivalenceGraph> graphs, EquivalenceGraph graph) {
+        Set<EquivalenceGraph> otherGraphs = Sets.filter(graphs, not(equalTo(graph)));
+        Collection<Set<Id>> ids = Collections2.transform(otherGraphs, 
+            new Function<EquivalenceGraph, Set<Id>>(){
+                @Override
+                public Set<Id> apply(EquivalenceGraph input) {
+                    return input.getEquivalenceSet();
+                }
+            }
+        );
+        return Iterables.transform(Iterables.concat(ids), Id.toLongValue());
+    }
+
+    private Statement deleteZombieGraphsQuery(EquivalenceGraph graph, Long graphId) {
+        return QueryBuilder.delete().all().from(EQUIVALENCE_GRAPHS_TABLE)
+                .where(in(GRAPH_ID_KEY, notGraphId(graph, graphId)));
+    }
     
+    private Object[] notGraphId(EquivalenceGraph graph, Long graphId) {
+        Collection<Long> ids = Collections2.transform(graph.keySet(), Id.toLongValue());
+        return Collections2.filter(ids, not(equalTo(graphId))).toArray();
+    }
+
     private Long lowestId(EquivalenceGraph graph) {
         return Ordering.natural().min(graph.keySet()).longValue();
     }
