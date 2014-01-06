@@ -21,30 +21,31 @@ public final class ConsumerQueueFactory {
         this.serializer = serializer;
     }
 
-    private String virtualTopicConsumer(String consumer, String producer) {
-        return String.format("Consumer.%s.VirtualTopic.%s.%s", consumer, system, producer);
+    private String virtualTopicConsumer(String consumer, String producerSystem, String producer) {
+        return String.format("Consumer.%s.VirtualTopic.%s.%s", consumer, producerSystem, producer);
     }
     
     private String replayDestination(String name) {
         return String.format("%s.Replay.%s", name, system);
     }
     
-    public DefaultMessageListenerContainer makeVirtualTopicConsumer(Worker worker, String consumer, String producer, int consumers, int maxConsumers) {
-        return makeContainer(worker, virtualTopicConsumer(consumer, producer), consumers, maxConsumers);
+    public <M extends Message> DefaultMessageListenerContainer makeVirtualTopicConsumer(Worker<M> worker, String consumer, String producer, int consumers, int maxConsumers) {
+        return makeContainer(worker, serializer, virtualTopicConsumer(consumer, system, producer), consumers, maxConsumers);
     }
 
-    public DefaultMessageListenerContainer makeVirtualTopicConsumer(Worker worker, String consumer, String producerSystem, String producer, int consumers, int maxConsumers) {
-        return makeContainer(worker, virtualTopicConsumer(consumer, producer), consumers, maxConsumers);
+    public <M extends Message> DefaultMessageListenerContainer makeVirtualTopicConsumer(Worker<M> worker, 
+            MessageSerializer serializer, String consumer, String producerSystem, String producer, int consumers, int maxConsumers) {
+        return makeContainer(worker, serializer, virtualTopicConsumer(consumer, producerSystem, producer), consumers, maxConsumers);
     }
 
-    public DefaultMessageListenerContainer makeReplayContainer(Worker worker, String name, int consumers, int maxConsumers) {
-        return makeContainer(worker, replayDestination(name), consumers, maxConsumers);
+    public <M extends Message> DefaultMessageListenerContainer makeReplayContainer(Worker<M> worker, String name, int consumers, int maxConsumers) {
+        return makeContainer(worker, serializer, replayDestination(name), consumers, maxConsumers);
     }
     
-    private DefaultMessageListenerContainer makeContainer(Worker worker, String destination, int consumers, int maxConsumers) {
+    private <M extends Message> DefaultMessageListenerContainer makeContainer(Worker<M> worker, MessageSerializer serializer, String destination, int consumers, int maxConsumers) {
         log.info("Reading {} with {}", destination, worker.getClass().getSimpleName());
         
-        JmsMessageAdapter messageAdapter = new JmsMessageAdapter(serializer, worker);
+        JmsMessageAdapter<M> messageAdapter = new JmsMessageAdapter<M>(serializer, worker);
         MessageListenerAdapter adapter = new MessageListenerAdapter(messageAdapter);
         adapter.setDefaultListenerMethod("onMessage");
 

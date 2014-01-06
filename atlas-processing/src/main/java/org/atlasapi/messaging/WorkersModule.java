@@ -4,6 +4,7 @@ import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 
 import org.atlasapi.AtlasPersistenceModule;
+import org.atlasapi.system.bootstrap.workers.LegacyMessageSerializer;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -24,7 +25,7 @@ public class WorkersModule {
     private Integer maxIndexingConsumers = Configurer.get("messaging.indexing.consumers.max").toInt();
     
     private String equivSystem = Configurer.get("equiv.update.producer.system").get();
-    private String equivTopic = Configurer.get("equiv.update.produce.topic").get();
+    private String equivTopic = Configurer.get("equiv.update.producer.topic").get();
     private Integer equivDefltConsumers = Configurer.get("equiv.update.consumers.default").toInt();
     private Integer equivMaxConsumers = Configurer.get("equiv.update.consumers.max").toInt();
     
@@ -86,14 +87,15 @@ public class WorkersModule {
     @Bean
     @Lazy(true)
     public ReplayingWorker<EquivalenceAssertionMessage> contentEquivalenceUpdater() {
-        return new ReplayingWorker<>(new ContentEquivalenceUpdatingWorker(null));
+        return new ReplayingWorker<>(new ContentEquivalenceUpdatingWorker(persistence.getContentEquivalenceGraphStore()));
     }
     
     @Bean
     @Lazy(true)
     public DefaultMessageListenerContainer equivUpdateListener() {
-        return messaging.consumerQueueFactory().makeVirtualTopicConsumer(contentEquivalenceUpdater(),
-                equivSystem, equivTopic, equivDefltConsumers, equivMaxConsumers);
+        return messaging.consumerQueueFactory().makeVirtualTopicConsumer(contentEquivalenceUpdater(), 
+                new LegacyMessageSerializer(),
+                "Equiv.Graph.Update", equivSystem, equivTopic, equivDefltConsumers, equivMaxConsumers);
     }
 
     @PostConstruct
