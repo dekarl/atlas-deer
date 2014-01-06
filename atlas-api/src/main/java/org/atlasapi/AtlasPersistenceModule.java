@@ -14,6 +14,7 @@ import org.atlasapi.content.ContentStore;
 import org.atlasapi.content.EquivalenceWritingContentStore;
 import org.atlasapi.content.EsContentIndex;
 import org.atlasapi.content.EsContentTitleSearcher;
+import org.atlasapi.equivalence.EquivalenceGraphStore;
 import org.atlasapi.equivalence.EquivalenceRecordStore;
 import org.atlasapi.equivalence.EquivalentsResolver;
 import org.atlasapi.equivalence.IdResolverBackedEquivalentResolver;
@@ -111,7 +112,13 @@ public class AtlasPersistenceModule {
         return persistenceModule().scheduleStore();
     }
     
-    @Bean
+
+    public EquivalenceGraphStore getContentEquivalenceGraphStore() {
+        return persistenceModule().contentEquivalenceGraphStore();
+    }
+    
+    
+    @Bean @Deprecated
     public EquivalenceRecordStore equivalenceRecordStore() {
         return persistenceModule().getEquivalenceRecordStore();
     }
@@ -217,5 +224,5 @@ public class AtlasPersistenceModule {
     HealthProbe mongoConnectionProbe() {
         return new MongoConnectionPoolProbe();
     }
-    
+
 }

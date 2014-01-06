@@ -5,7 +5,9 @@ import java.util.concurrent.Executors;
 import org.atlasapi.PersistenceModule;
 import org.atlasapi.content.CassandraContentStore;
 import org.atlasapi.content.ContentHasher;
+import org.atlasapi.equivalence.CassandraEquivalenceGraphStore;
 import org.atlasapi.equivalence.CassandraEquivalenceRecordStore;
+import org.atlasapi.equivalence.EquivalenceGraphStore;
 import org.atlasapi.schedule.CassandraScheduleStore;
 import org.atlasapi.topic.CassandraTopicStore;
 import org.atlasapi.topic.Topic;
@@ -28,15 +30,21 @@ import com.netflix.astyanax.thrift.ThriftFamilyFactory;
 
 public class CassandraPersistenceModule extends AbstractIdleService implements PersistenceModule {
 
+    private final String keyspace;
+
     private final AstyanaxContext<Keyspace> context;
     private final CassandraContentStore contentStore;
     private final CassandraTopicStore topicStore;
     private final CassandraScheduleStore scheduleStore;
     private final CassandraEquivalenceRecordStore equivalenceRecordStore;
+    private final DatastaxCassandraService dataStaxService;
+
+    private CassandraEquivalenceGraphStore equivalenceGraphStore;
     
     public CassandraPersistenceModule(Iterable<String> seeds, int port, 
       String cluster, String keyspace, int threadCount, int connectionTimeout, 
       IdGeneratorBuilder idGeneratorBuilder, ContentHasher hasher) {
+        this.keyspace = keyspace;
         context = new AstyanaxContext.Builder()
             .forCluster(cluster)
             .forKeyspace(keyspace)
@@ -78,11 +86,16 @@ public class CassandraPersistenceModule extends AbstractIdleService implements P
         this.equivalenceRecordStore = new CassandraEquivalenceRecordStore(
             context, "equivalence_record", ConsistencyLevel.CL_ONE, ConsistencyLevel.CL_QUORUM
         );
+        
+        this.dataStaxService = new DatastaxCassandraService(seeds);
     }
 
     @Override
     protected void startUp() throws Exception {
         context.start();
+        dataStaxService.startAsync().awaitRunning();
+        this.equivalenceGraphStore = new CassandraEquivalenceGraphStore(dataStaxService.getSession(keyspace),
+                com.datastax.driver.core.ConsistencyLevel.ONE, com.datastax.driver.core.ConsistencyLevel.QUORUM);
     }
 
     @Override
@@ -126,6 +139,10 @@ public class CassandraPersistenceModule extends AbstractIdleService implements P
     
     public CassandraEquivalenceRecordStore getEquivalenceRecordStore() {
         return this.equivalenceRecordStore;
+    }
+
+    public EquivalenceGraphStore contentEquivalenceGraphStore() {
+        return this.equivalenceGraphStore;
     }
     
 }
