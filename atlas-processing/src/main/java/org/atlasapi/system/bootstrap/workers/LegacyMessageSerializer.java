@@ -1,5 +1,6 @@
 package org.atlasapi.system.bootstrap.workers;
 
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
 
 import org.atlasapi.content.BrandRef;
@@ -13,11 +14,13 @@ import org.atlasapi.content.SongRef;
 import org.atlasapi.entity.Id;
 import org.atlasapi.entity.ResourceRef;
 import org.atlasapi.media.entity.Publisher;
+import org.atlasapi.messaging.EquivalenceAssertionMessage;
 import org.atlasapi.messaging.Message;
 import org.atlasapi.messaging.MessageException;
 import org.atlasapi.messaging.MessageSerializer;
-import org.atlasapi.messaging.v3.ContentEquivalenceAssertionMessage;
 import org.atlasapi.messaging.ResourceUpdatedMessage;
+import org.atlasapi.messaging.v3.ContentEquivalenceAssertionMessage;
+import org.atlasapi.messaging.v3.ContentEquivalenceAssertionMessage.AdjacentRef;
 import org.atlasapi.messaging.v3.EntityUpdatedMessage;
 import org.atlasapi.messaging.worker.v3.Worker;
 import org.atlasapi.serialization.json.JsonFactory;
@@ -26,6 +29,7 @@ import org.joda.time.DateTime;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Optional;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.io.ByteSource;
 import com.metabroadcast.common.time.DateTimeZones;
 import com.metabroadcast.common.time.Timestamp;
@@ -59,51 +63,16 @@ public class LegacyMessageSerializer implements MessageSerializer {
                 }
 
                 private ResourceRef resourceRef(EntityUpdatedMessage leg) {
-                    final Id id = Id.valueOf(leg.getEntityId());
-                    final Publisher source = Publisher.fromKey(leg.getEntitySource()).requireValue();
+                    final Long lid = Long.valueOf(leg.getEntityId());
+                    final Publisher src = Publisher.fromKey(leg.getEntitySource()).requireValue();
                     final DateTime updated = new DateTime(leg.getTimestamp(), DateTimeZones.UTC);
-                    String entityType = leg.getEntityType();
-                    Optional<ContentType> possContentType = ContentType.fromKey(entityType);
+                    String type = leg.getEntityType();
+                    Optional<ContentType> possContentType = ContentType.fromKey(type);
                     if (possContentType.isPresent()) {
-                        return possContentType.get().accept(new ContentType.Visitor<ResourceRef>() {
-
-                            @Override
-                            public ResourceRef visitBrand(ContentType contentType) {
-                                return new BrandRef(id, source);
-                            }
-
-                            @Override
-                            public ResourceRef visitClip(ContentType contentType) {
-                                return new ClipRef(id, source, "", updated);
-                            }
-
-                            @Override
-                            public ResourceRef visitSong(ContentType contentType) {
-                                return new SongRef(id, source, "", updated);
-                            }
-
-                            @Override
-                            public ResourceRef visitFilm(ContentType contentType) {
-                                return new FilmRef(id, source, "", updated);
-                            }
-
-                            @Override
-                            public ResourceRef visitEpisode(ContentType contentType) {
-                                return new EpisodeRef(id, source, "", updated);
-                            }
-
-                            @Override
-                            public ResourceRef visitItem(ContentType contentType) {
-                                return new ItemRef(id, source, "", updated);
-                            }
-
-                            @Override
-                            public ResourceRef visitSeries(ContentType contentType) {
-                                return new SeriesRef(id, source);
-                            }
-                        });
+                        return toResourceRef(lid, src, type, updated);
                     } else {
-                        return new TopicRef(id, source);
+                        Publisher source = Publisher.fromKey(leg.getEntitySource()).requireValue();
+                        return new TopicRef(Id.valueOf(lid), source);
                     }
                 }
 
@@ -123,9 +92,75 @@ public class LegacyMessageSerializer implements MessageSerializer {
                 }
                 
                 @Override
-                public void process(ContentEquivalenceAssertionMessage equivalenceAssertionMessage) {
-                    
+                public void process(org.atlasapi.messaging.v3.ContentEquivalenceAssertionMessage leg) {
+                    String mid = leg.getMessageId();
+                    Timestamp ts = Timestamp.of(leg.getTimestamp());
+                    ResourceRef subj = getSubject(leg);
+                    Set<ResourceRef> adjacents = toResourceRef(leg);
+                    Set<Publisher> srcs = leg.getSources();
+                    message.set(new EquivalenceAssertionMessage(mid, ts, subj, adjacents, srcs));
                 }
+
+                private Set<ResourceRef> toResourceRef(ContentEquivalenceAssertionMessage leg) {
+                    DateTime madeUpUpdatedTime = new DateTime(leg.getTimestamp(), DateTimeZones.UTC);
+                    ImmutableSet.Builder<ResourceRef> resourceRefs = ImmutableSet.builder();
+                    for (AdjacentRef adjacentRef : leg.getAdjacent()) {
+                        resourceRefs.add(toResourceRef(adjacentRef.getId(), adjacentRef.getSource(), 
+                                adjacentRef.getType(), madeUpUpdatedTime));
+                    }
+                    return resourceRefs.build();
+                }
+
+                private ResourceRef getSubject(ContentEquivalenceAssertionMessage leg) {
+                    DateTime madeUpUpdatedTime = new DateTime(leg.getTimestamp(), DateTimeZones.UTC);
+                    Long lid = Long.valueOf(leg.getEntityId());
+                    final Publisher src = Publisher.fromKey(leg.getEntitySource()).requireValue();
+                    return toResourceRef(lid, src, leg.getEntityType(), madeUpUpdatedTime);
+                }
+
+                private ResourceRef toResourceRef(final Long lid, final Publisher src,
+                        String type, final DateTime updated) {
+                    final Id rid = Id.valueOf(lid);
+                    ContentType contentType = ContentType.fromKey(type).get();
+                    return contentType.accept(new ContentType.Visitor<ResourceRef>(){
+
+                        @Override
+                        public BrandRef visitBrand(ContentType contentType) {
+                            return new BrandRef(rid, src);
+                        }
+
+                        @Override
+                        public ClipRef visitClip(ContentType contentType) {
+                            return new ClipRef(rid, src, "11", updated);
+                        }
+
+                        @Override
+                        public SongRef visitSong(ContentType contentType) {
+                            return new SongRef(rid, src, "11", updated);
+                        }
+
+                        @Override
+                        public FilmRef visitFilm(ContentType contentType) {
+                            return new FilmRef(rid, src, "11", updated);
+                        }
+
+                        @Override
+                        public EpisodeRef visitEpisode(ContentType contentType) {
+                            return new EpisodeRef(rid, src, "11", updated);
+                        }
+
+                        @Override
+                        public ItemRef visitItem(ContentType contentType) {
+                            return new ItemRef(rid, src, "11", updated);
+                        }
+
+                        @Override
+                        public SeriesRef visitSeries(ContentType contentType) {
+                            return new SeriesRef(rid, src);
+                        }
+                    });
+                }
+                
             });
             return (M) message.get();
         } catch (Exception e) {
