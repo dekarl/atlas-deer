@@ -6,6 +6,7 @@ import org.atlasapi.messaging.EntityUpdatedMessage;
 import org.atlasapi.messaging.Message;
 import org.atlasapi.messaging.MessageException;
 import org.atlasapi.messaging.MessageSerializer;
+import org.atlasapi.messaging.v3.ContentEquivalenceAssertionMessage;
 import org.atlasapi.messaging.worker.v3.Worker;
 import org.atlasapi.serialization.json.JsonFactory;
 
@@ -53,6 +54,11 @@ public class LegacyMessageSerializer implements MessageSerializer {
 
                 @Override
                 public void process(org.atlasapi.messaging.v3.ReplayMessage leg) {
+                    
+                }
+                
+                @Override
+                public void process(ContentEquivalenceAssertionMessage equivalenceAssertionMessage) {
                     
                 }
             });
