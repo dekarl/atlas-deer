@@ -53,10 +53,11 @@ public class CassandraEquivalenceGraphStoreTest {
         session.execute(
             "CREATE TABLE equivalence_graph_index (resource_id bigint, graph_id bigint, PRIMARY KEY (resource_id));"
         );
-        session.execute("CREATE TABLE equivalence_graph (graph_id bigint, resource_id bigint, "
-            + "resource_ref blob, created timestamp, "
-            + "updated timestamp, efferents set<blob>, afferents set<blob>,"
-            + "PRIMARY KEY (graph_id, resource_id));");
+        session.execute("CREATE TABLE equivalence_graph ("
+            + "graph_id bigint, "
+            + "graph blob, "
+            + "PRIMARY KEY (graph_id)"
+        + ");");
         store = new CassandraEquivalenceGraphStore(session , ConsistencyLevel.ONE, ConsistencyLevel.ONE);
     }
     

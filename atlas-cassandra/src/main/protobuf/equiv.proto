@@ -14,3 +14,15 @@ message EquivRecord {
     repeated common.Reference explicit = 6;
     repeated common.Reference equivalents = 7;
 }
+
+message Adjacency {
+    optional common.Reference ref = 1;
+    optional common.DateTime created = 2;
+    repeated common.Reference efferent = 3;
+    repeated common.Reference afferent = 4;
+}
+
+message EquivGraph {
+    optional common.DateTime updated = 1;
+    repeated Adjacency adjacency = 2;
+}

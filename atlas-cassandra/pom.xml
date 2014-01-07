@@ -24,9 +24,9 @@
             </goals>
             <configuration>
               <executable>sh</executable>
-              <commandlineArgs>-c "mkdir -p ${project.build.directory}/generated-sources/protoc &amp;&amp;\
-               protoc -I ./ -I /usr/include --java_out=${project.build.directory}/generated-sources/protoc *.proto"</commandlineArgs>
-              <sourceRoot>${project.build.directory}/generated-sources/protoc</sourceRoot> 
+              <commandlineArgs>-c "mkdir -p ${project.build.directory}/generated-sources/protoc &amp;&amp;
+               protoc -I ./ -I /usr/local/include --java_out=${project.build.directory}/generated-sources/protoc *.proto"</commandlineArgs>
+              <sourceRoot>${project.build.directory}/generated-sources/protoc</sourceRoot>
               <workingDirectory>${basedir}/src/main/protobuf</workingDirectory>
             </configuration>
           </execution>
