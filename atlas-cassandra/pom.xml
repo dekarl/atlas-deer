@@ -25,7 +25,7 @@
             <configuration>
               <executable>sh</executable>
               <commandlineArgs>-c "mkdir -p ${project.build.directory}/generated-sources/protoc &amp;&amp;\
-               protoc -I ./ -I /usr/include --java_out=${project.build.directory}/generated-sources/protoc *.proto"</commandlineArgs>
+               protoc -I ./ -I /usr/local/include --java_out=${project.build.directory}/generated-sources/protoc *.proto"</commandlineArgs>
               <sourceRoot>${project.build.directory}/generated-sources/protoc</sourceRoot> 
               <workingDirectory>${basedir}/src/main/protobuf</workingDirectory>
             </configuration>
@@ -57,7 +57,7 @@
     <dependency>
       <groupId>com.google.protobuf</groupId>
       <artifactId>protobuf-java</artifactId>
-      <version>2.5.0</version>
+      <version>2.4.1</version>
     </dependency>
     <dependency>
       <groupId>com.netflix.astyanax</groupId>
