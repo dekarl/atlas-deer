@@ -1,11 +1,11 @@
 package org.atlasapi.equivalence;
 
-import static com.datastax.driver.core.querybuilder.QueryBuilder.bindMarker;
 import static com.datastax.driver.core.querybuilder.QueryBuilder.in;
 import static com.datastax.driver.core.querybuilder.QueryBuilder.insertInto;
 import static com.datastax.driver.core.querybuilder.QueryBuilder.select;
 
 import java.nio.ByteBuffer;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
@@ -17,21 +17,20 @@ import org.atlasapi.util.GroupLock;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.datastax.driver.core.BatchStatement;
 import com.datastax.driver.core.ConsistencyLevel;
-import com.datastax.driver.core.PreparedStatement;
+import com.datastax.driver.core.Query;
 import com.datastax.driver.core.ResultSet;
 import com.datastax.driver.core.ResultSetFuture;
 import com.datastax.driver.core.Row;
 import com.datastax.driver.core.Session;
 import com.datastax.driver.core.Statement;
-import com.datastax.driver.core.querybuilder.Insert;
 import com.datastax.driver.core.querybuilder.QueryBuilder;
 import com.google.common.base.Function;
 import com.google.common.base.Functions;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Ordering;
 import com.google.common.util.concurrent.AsyncFunction;
@@ -60,28 +59,12 @@ public final class CassandraEquivalenceGraphStore extends AbstractEquivalenceGra
     private final ConsistencyLevel read;
     private final ConsistencyLevel write;
 
-    private final PreparedStatement preparedIndexInsert;
-    private final PreparedStatement preparedAdjacencyInsert;
-    
     public CassandraEquivalenceGraphStore(Session session, ConsistencyLevel read, ConsistencyLevel write) {
         this.session = session;
         this.read = read;
         this.write = write;
-        this.preparedIndexInsert = session.prepare(indexInsertQuery());
-        this.preparedAdjacencyInsert = session.prepare(adjacencyInsertQuery());
     }
 
-    private Insert indexInsertQuery() {
-        return insertInto(EQUIVALENCE_GRAPH_INDEX_TABLE)
-            .value(RESOURCE_ID_KEY, bindMarker())
-            .value(GRAPH_ID_KEY, bindMarker());
-    }
-
-    private Insert adjacencyInsertQuery() {
-        return insertInto(EQUIVALENCE_GRAPHS_TABLE)
-            .value(GRAPH_ID_KEY, bindMarker())
-            .value(GRAPH_KEY, bindMarker());
-    }
     
     private final Function<ResultSet, Map<Long, EquivalenceGraph>> toGraph
         = new Function<ResultSet, Map<Long, EquivalenceGraph>>() {
@@ -121,7 +104,7 @@ public final class CassandraEquivalenceGraphStore extends AbstractEquivalenceGra
         };
     }
     
-    private Statement queryForGraphRows(final Map<Id, Long> idIndex) {
+    private Query queryForGraphRows(final Map<Id, Long> idIndex) {
         return select().all()
                 .from(EQUIVALENCE_GRAPHS_TABLE)
                 .where(in(GRAPH_ID_KEY, idIndex.values().toArray()))
@@ -152,11 +135,11 @@ public final class CassandraEquivalenceGraphStore extends AbstractEquivalenceGra
         return Futures.transform(resultOf(queryForGraphIds(ids)), toGraphIdIndex);
     }
 
-    private ResultSetFuture resultOf(Statement query) {
+    private ResultSetFuture resultOf(Query query) {
         return session.executeAsync(query);
     }
 
-    private Statement queryForGraphIds(Iterable<Id> ids) {
+    private Query queryForGraphIds(Iterable<Id> ids) {
         Object[] lids = FluentIterable.from(ids).transform(Id.toLongValue()).toArray(Long.class);
         return QueryBuilder
             .select(RESOURCE_ID_KEY,GRAPH_ID_KEY)
@@ -167,16 +150,29 @@ public final class CassandraEquivalenceGraphStore extends AbstractEquivalenceGra
 
     @Override
     protected void doStore(ImmutableSet<EquivalenceGraph> graphs) {
-        BatchStatement updateBatch = new BatchStatement();
+        List<Statement> updates = Lists.newArrayList();
         for (EquivalenceGraph graph : graphs) {
             Long graphId = lowestId(graph); 
+            ByteBuffer serializedGraph = ByteBuffer.wrap(serializer.serialize(graph).toByteArray());
+            updates.add(graphInsert(graphId, serializedGraph));
             for (Entry<Id, Adjacents> adjacency : graph.entrySet()) {
-                updateBatch.add(preparedIndexInsert.bind(adjacency.getKey().longValue(), graphId));
-                ByteBuffer serializedGraph = ByteBuffer.wrap(serializer.serialize(graph).toByteArray());
-                updateBatch.add(preparedAdjacencyInsert.bind(graphId, serializedGraph));
+                updates.add(indexInsert(adjacency.getKey().longValue(), graphId));
             }
         }
+        Query updateBatch = QueryBuilder.batch(updates.toArray(new Statement[updates.size()]));
         session.execute(updateBatch.setConsistencyLevel(write));
+    }
+
+    private Statement indexInsert(Long resourceId, Long graphId) {
+        return insertInto(EQUIVALENCE_GRAPH_INDEX_TABLE)
+                .value(RESOURCE_ID_KEY, resourceId)
+                .value(GRAPH_ID_KEY, graphId);
+    }
+
+    private Statement graphInsert(Long graphId, ByteBuffer serializedGraph) {
+        return insertInto(EQUIVALENCE_GRAPHS_TABLE)
+                .value(GRAPH_ID_KEY, graphId)
+                .value(GRAPH_KEY, serializedGraph);
     }
 
     private Long lowestId(EquivalenceGraph graph) {
