@@ -20,12 +20,13 @@ public class QueueFactoryTest {
 
     private final ConnectionFactory cf = new ActiveMQConnectionFactory("vm://localhost");
     private final MessageSerializer serializer = new JacksonMessageSerializer();
-    private final QueueFactory qf = new QueueFactory(cf, "test.system", serializer);
+    private final ProducerQueueFactory pqf = new ProducerQueueFactory(cf, "test.system", serializer);
+    private final ConsumerQueueFactory cqf = new ConsumerQueueFactory(cf, "test.system", serializer);
     
     @Test
     public void testSendingAndReceivingAMessage() throws Exception {
         String destinationName = "destination";
-        MessageSender sender = qf.makeMessageSender(destinationName);
+        MessageSender sender = pqf.makeMessageSender(destinationName);
         
         final CountDownLatch latch = new CountDownLatch(1);
         final AtomicReference<EntityUpdatedMessage> reciever
@@ -39,7 +40,7 @@ public class QueueFactoryTest {
             }
         };
         DefaultMessageListenerContainer container
-            = qf.makeVirtualTopicConsumer(w, "consumer", destinationName, 1, 1);
+            = cqf.makeVirtualTopicConsumer(w, "consumer", destinationName, 1, 1);
         container.initialize();
         container.start();
         
@@ -73,7 +74,7 @@ public class QueueFactoryTest {
             }
         };
         DefaultMessageListenerContainer container
-            = qf.makeVirtualTopicConsumer(w, "consumer1", destinationName, 1, 1);
+            = cqf.makeVirtualTopicConsumer(w, "consumer1", destinationName, 1, 1);
         container.initialize();
         container.start();
         

@@ -4,28 +4,23 @@ import javax.jms.ConnectionFactory;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.jms.core.JmsTemplate;
 import org.springframework.jms.listener.DefaultMessageListenerContainer;
 import org.springframework.jms.listener.adapter.MessageListenerAdapter;
 
-public final class QueueFactory {
+public final class ConsumerQueueFactory {
 
-    private static final Logger log = LoggerFactory.getLogger(QueueFactory.class);
+    private static final Logger log = LoggerFactory.getLogger(ConsumerQueueFactory.class);
     
     private final String system;
     private final ConnectionFactory cf;
     private final MessageSerializer serializer;
 
-    public QueueFactory(ConnectionFactory cf, String system, MessageSerializer serializer) {
+    public ConsumerQueueFactory(ConnectionFactory cf, String system, MessageSerializer serializer) {
         this.cf = cf;
         this.system = system;
         this.serializer = serializer;
     }
 
-    private String virtualTopicProducer(String name) {
-        return String.format("VirtualTopic.%s.%s", system, name);
-    }
-    
     private String virtualTopicConsumer(String consumer, String producer) {
         return String.format("Consumer.%s.VirtualTopic.%s.%s", consumer, system, producer);
     }
@@ -58,14 +53,6 @@ public final class QueueFactory {
 
         return container;
     }
-    
-    public MessageSender makeMessageSender(String destinationName) {
-        String destination = this.virtualTopicProducer(destinationName);
-        log.info("Writing {}", destination);
-        JmsTemplate jmsTemplate = new JmsTemplate(cf);
-        jmsTemplate.setPubSubDomain(true);
-        jmsTemplate.setDefaultDestinationName(destination);
-        return new JmsMessageSender(jmsTemplate, serializer);
-    }
+   
     
 }

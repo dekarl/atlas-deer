@@ -39,13 +39,13 @@ public class WorkersModule {
     @Bean
     @Lazy(true)
     public DefaultMessageListenerContainer contentIndexerMessageListener() {
-        return messaging.queueHelper().makeVirtualTopicConsumer(contentIndexingWorker(), INDEXER_CONSUMER, contentChanges, defaultIndexingConsumers, maxIndexingConsumers);
+        return messaging.consumerQueueFactory().makeVirtualTopicConsumer(contentIndexingWorker(), INDEXER_CONSUMER, contentChanges, defaultIndexingConsumers, maxIndexingConsumers);
     }
 
     @Bean
     @Lazy(true)
     public DefaultMessageListenerContainer contentIndexerReplayListener() {
-        return messaging.queueHelper().makeReplayContainer(contentIndexingWorker(), "Content.Indexer", 1, 1);
+        return messaging.consumerQueueFactory().makeReplayContainer(contentIndexingWorker(), "Content.Indexer", 1, 1);
     }
 
     @Bean
@@ -57,13 +57,13 @@ public class WorkersModule {
     @Bean
     @Lazy(true)
     public DefaultMessageListenerContainer topicIndexerMessageListener() {
-        return messaging.queueHelper().makeVirtualTopicConsumer(topicIndexingWorker(), INDEXER_CONSUMER, topicChanges, defaultIndexingConsumers, maxIndexingConsumers);
+        return messaging.consumerQueueFactory().makeVirtualTopicConsumer(topicIndexingWorker(), INDEXER_CONSUMER, topicChanges, defaultIndexingConsumers, maxIndexingConsumers);
     }
     
     @Bean
     @Lazy(true)
     public DefaultMessageListenerContainer topicIndexerReplayListener() {
-        return messaging.queueHelper().makeReplayContainer(topicIndexingWorker(), "Topics.Indexer", 1, 1);
+        return messaging.consumerQueueFactory().makeReplayContainer(topicIndexingWorker(), "Topics.Indexer", 1, 1);
     }
 
 //    @Bean

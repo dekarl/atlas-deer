@@ -20,8 +20,13 @@ public class AtlasMessagingModule {
     @Value("${messaging.destination.topics.changes}") public String topicChanges;
 
     @Bean @Primary
-    public QueueFactory queueHelper() {
-        return new QueueFactory(activemqConnectionFactory(), messagingSystem, serializer());
+    public ConsumerQueueFactory consumerQueueFactory() {
+        return new ConsumerQueueFactory(connectionFactory(), messagingSystem, serializer());
+    }
+    
+    @Bean @Primary
+    public ProducerQueueFactory producerQueueFactory() {
+        return new ProducerQueueFactory(cachingConnectionFactory(), messagingSystem, serializer());
     }
     
     @Bean
@@ -31,7 +36,13 @@ public class AtlasMessagingModule {
     
     @Bean
     @Lazy(true)
-    public ConnectionFactory activemqConnectionFactory() {
+    public ConnectionFactory connectionFactory() {
+        return new ActiveMQConnectionFactory(brokerUrl);
+    }
+    
+    @Bean
+    @Lazy(true)
+    public ConnectionFactory cachingConnectionFactory() {
         ActiveMQConnectionFactory activeMQConnectionFactory = new ActiveMQConnectionFactory(brokerUrl);
         CachingConnectionFactory cachingConnectionFactory = new CachingConnectionFactory(activeMQConnectionFactory);
         return cachingConnectionFactory;
@@ -40,13 +51,13 @@ public class AtlasMessagingModule {
     @Bean
     @Lazy(true)
     public MessageSender contentChanges() {
-        return queueHelper().makeMessageSender(contentChanges);
+        return producerQueueFactory().makeMessageSender(contentChanges);
     }
     
     @Bean
     @Lazy(true)
     public MessageSender topicChanges() {
-        return queueHelper().makeMessageSender(topicChanges);
+        return producerQueueFactory().makeMessageSender(topicChanges);
     }
     
 //    @Bean 
