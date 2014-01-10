@@ -1,5 +1,7 @@
 package org.atlasapi.system.bootstrap.workers;
 
+import static org.atlasapi.content.Broadcast.ACTIVELY_PUBLISHED;
+
 import java.util.List;
 
 import org.atlasapi.content.Broadcast;
@@ -26,6 +28,7 @@ import org.slf4j.LoggerFactory;
 import com.google.common.base.Function;
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Iterables;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
@@ -83,7 +86,7 @@ public class BootstrapContentPersistor implements ContentWriter {
         private WriteResult<? extends Content> writeNewBroadcasts(Item item, Optional<Content> current) {
             WriteResult<? extends Content> result = null;
             for (Version version : item.getVersions()) {
-                for (Broadcast broadcast : version.getBroadcasts()) {
+                for (Broadcast broadcast : Iterables.filter(version.getBroadcasts(), ACTIVELY_PUBLISHED)) {
                     if (broadcast.getSourceId() != null && !hasBroadcast(current, broadcast)) {
                         try {
                             ItemAndBroadcast iab = new ItemAndBroadcast(item, broadcast);
@@ -99,7 +102,7 @@ public class BootstrapContentPersistor implements ContentWriter {
         }
         
         private boolean hasBroadcast(Optional<Content> current, Broadcast broadcast) {
-            if (current.isPresent()) {
+            if (!current.isPresent()) {
                 return false;
             }
             Content currentContent = current.get();
