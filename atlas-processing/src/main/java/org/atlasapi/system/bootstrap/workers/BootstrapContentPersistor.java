@@ -10,6 +10,7 @@ import org.atlasapi.content.ContentWriter;
 import org.atlasapi.content.Item;
 import org.atlasapi.content.ItemAndBroadcast;
 import org.atlasapi.content.Version;
+import org.atlasapi.entity.util.RuntimeWriteException;
 import org.atlasapi.entity.util.WriteException;
 import org.atlasapi.entity.util.WriteResult;
 import org.atlasapi.media.channel.Channel;
@@ -43,33 +44,43 @@ public class BootstrapContentPersistor implements ContentWriter {
 
         @Override
         protected WriteResult<Container> visitContainer(Container container) {
-            log.debug("bootstrapping {}", container);
-            return contentWriter.writeContent(container);
+            return writeContent(container);
         }
 
         @Override
         protected WriteResult<? extends Content> visitItem(Item item) {
+            WriteResult<? extends Content> result = writeBroadcasts(item);
+            if (result == null || !result.written()) {
+                log.debug("bootstrapping {}", item);
+                result = writeContent(item);
+            }
+            return result;
+        }
+
+        private WriteResult<? extends Content> writeBroadcasts(Item item) {
             WriteResult<? extends Content> result = null;
-            boolean written = false;
             for (Version version : item.getVersions()) {
                 for (Broadcast broadcast : version.getBroadcasts()) {
                     if (broadcast.getSourceId() != null) {
                         try {
                             ItemAndBroadcast iab = new ItemAndBroadcast(item, broadcast);
-                            log.trace("bootstrapping {}", iab);
+                            log.debug("bootstrapping {}", iab);
                             result = write(iab);
-                            written = true;
                         } catch (WriteException e) {
                             throw new RuntimeException(e);
                         }
                     }
                 }
             }
-            if (!written) {
-                log.trace("bootstrapping {}", item);
-                result = contentWriter.writeContent(item);
-            }
             return result;
+        }
+        
+        private <C extends Content> WriteResult<C> writeContent(C content) {
+            try {
+                return contentWriter.writeContent(content);
+            } catch (WriteException e) {
+                throw new RuntimeWriteException(e);
+            }
         }
 
     }
@@ -78,6 +89,7 @@ public class BootstrapContentPersistor implements ContentWriter {
     @SuppressWarnings("unchecked")
     public <C extends Content> WriteResult<C> writeContent(C content) {
         content.setReadHash(null);// force write
+        log.debug("bootstrapping {}", content);
         return (WriteResult<C>) content.accept(visitor);
     }
     

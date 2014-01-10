@@ -14,6 +14,7 @@ import org.atlasapi.content.Episode;
 import org.atlasapi.content.Item;
 import org.atlasapi.content.ItemAndBroadcast;
 import org.atlasapi.content.Series;
+import org.atlasapi.entity.util.WriteException;
 import org.atlasapi.entity.util.WriteResult;
 
 import com.google.common.base.Objects;
@@ -55,7 +56,7 @@ public class ScheduleHierarchy {
         return this.possibleSeries;
     }
     
-    List<WriteResult<? extends Content>> writeTo(ContentStore store) {
+    List<WriteResult<? extends Content>> writeTo(ContentStore store) throws WriteException {
         List<WriteResult<? extends Content>> results = Lists.newArrayListWithCapacity(3);
         WriteResult<Container> primaryContainerResult = null;
         if (primaryContainer.isPresent()) {

@@ -7,6 +7,7 @@ import java.util.UUID;
 import org.atlasapi.content.Content;
 import org.atlasapi.content.ContentStore;
 import org.atlasapi.content.ForwardingContentStore;
+import org.atlasapi.entity.util.WriteException;
 import org.atlasapi.entity.util.WriteResult;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -30,7 +31,7 @@ public class MessageQueueingContentStore extends ForwardingContentStore {
     }
 
     @Override
-    public <C extends Content> WriteResult<C> writeContent(C content) {
+    public <C extends Content> WriteResult<C> writeContent(C content) throws WriteException {
         WriteResult<C> result = super.writeContent(content);
         if (result.written()) {
             writeMessage(result);

@@ -21,6 +21,7 @@ import org.atlasapi.entity.Alias;
 import org.atlasapi.entity.CassandraHelper;
 import org.atlasapi.entity.Id;
 import org.atlasapi.entity.util.Resolved;
+import org.atlasapi.entity.util.WriteException;
 import org.atlasapi.entity.util.WriteResult;
 import org.atlasapi.media.entity.Publisher;
 import org.joda.time.DateTime;
@@ -215,8 +216,8 @@ public class CassandraContentStoreIT {
         verify(hasher, times(2)).hash(argThat(isA(Content.class)));
     }
 
-    @Test(expected=IllegalStateException.class)
-    public void testWritingItemWithMissingBrandFails() {
+    @Test(expected=WriteException.class)
+    public void testWritingItemWithMissingBrandFails() throws Exception {
         Item item = create(new Item());
         item.setParentRef(new ParentRef(1235, EntityType.BRAND));
         
@@ -226,8 +227,8 @@ public class CassandraContentStoreIT {
         
     }
 
-    @Test(expected=IllegalStateException.class)
-    public void testWritingSeriesWithMissingBrandFails() {
+    @Test(expected=WriteException.class)
+    public void testWritingSeriesWithMissingBrandFails() throws Exception {
         try {
             Series series = create(new Series());
             series.setParentRef(new ParentRef(1235, EntityType.BRAND));
@@ -239,7 +240,7 @@ public class CassandraContentStoreIT {
     }
     
     @Test(expected=IllegalArgumentException.class)
-    public void testWritingEpisodeWithoutBrandRefFails() {
+    public void testWritingEpisodeWithoutBrandRefFails() throws Exception {
         try {
                 
             Episode episode = create(new Episode());
@@ -251,8 +252,8 @@ public class CassandraContentStoreIT {
         }
     }
     
-    @Test(expected=IllegalStateException.class)
-    public void testWritingEpisodeWithoutBrandWrittenFails() {
+    @Test(expected=WriteException.class)
+    public void testWritingEpisodeWithoutBrandWrittenFails() throws Exception {
         try {
                 
             Series series = create(new Series());
@@ -270,8 +271,8 @@ public class CassandraContentStoreIT {
         }
     }
 
-    @Test(expected = IllegalStateException.class)
-    public void testWritingEpisodeWithSeriesRefWithoutSeriesWrittenFails() {
+    @Test(expected = WriteException.class)
+    public void testWritingEpisodeWithSeriesRefWithoutSeriesWrittenFails() throws Exception {
         try {
             Brand brand = create(new Brand());
 
@@ -419,7 +420,7 @@ public class CassandraContentStoreIT {
     }
     
     @Test
-    public void testRewritingBrandReturnsChildRefsInWriteResultBrand() {
+    public void testRewritingBrandReturnsChildRefsInWriteResultBrand() throws Exception {
         
         DateTime now = new DateTime(DateTimeZones.UTC);
         
@@ -471,7 +472,7 @@ public class CassandraContentStoreIT {
     }
     
     @Test
-    public void testResolvingByAlias() {
+    public void testResolvingByAlias() throws Exception {
         
         DateTime now = new DateTime(DateTimeZones.UTC);
 
@@ -508,7 +509,7 @@ public class CassandraContentStoreIT {
     }
 
     @Test
-    public void testResolvingByAliasDoesntResolveContentFromAnotherSource() {
+    public void testResolvingByAliasDoesntResolveContentFromAnotherSource() throws Exception {
         
         DateTime now = new DateTime(DateTimeZones.UTC);
         

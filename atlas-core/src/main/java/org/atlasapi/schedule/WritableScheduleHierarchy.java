@@ -11,6 +11,7 @@ import org.atlasapi.content.ContentStore;
 import org.atlasapi.content.Episode;
 import org.atlasapi.content.Item;
 import org.atlasapi.content.Series;
+import org.atlasapi.entity.util.WriteException;
 import org.atlasapi.entity.util.WriteResult;
 
 import com.google.common.base.Optional;
@@ -84,7 +85,7 @@ class WritableScheduleHierarchy {
         this.itemSeriesIndex = itemSeriesIndex;
     }
 
-    List<WriteResult<? extends Content>> writeTo(ContentStore contentStore) {
+    List<WriteResult<? extends Content>> writeTo(ContentStore contentStore) throws WriteException {
         ImmutableList.Builder<WriteResult<? extends Content>> results = ImmutableList.builder();
         Map<Container, Container> tlcWritten = writePrimaryContainers(contentStore, results);
         Map<Series, Series> seriesWritten
@@ -94,7 +95,7 @@ class WritableScheduleHierarchy {
     }
     
     private Map<Container, Container> writePrimaryContainers(ContentStore contentStore,
-            ImmutableList.Builder<WriteResult<? extends Content>> results) {
+            ImmutableList.Builder<WriteResult<? extends Content>> results) throws WriteException {
         Map<Container, Container> tlcWritten = Maps.newHashMap();
         for (Container container : topLevelContainers) {
             WriteResult<Container> written = contentStore.writeContent(container);
@@ -106,7 +107,7 @@ class WritableScheduleHierarchy {
     
     private Map<Series, Series> writeSecondaryContainers(ContentStore contentStore,
             ImmutableList.Builder<WriteResult<? extends Content>> results,
-            Map<Container, Container> tlcWritten) {
+            Map<Container, Container> tlcWritten) throws WriteException {
         Map<Series, Series> seriesWritten = Maps.newHashMap();
         for (Series sery : series) {
             Brand tlc = seriesBrandIndex.get(sery);
@@ -123,7 +124,7 @@ class WritableScheduleHierarchy {
 
     private void writeItems(ContentStore contentStore,
             ImmutableList.Builder<WriteResult<? extends Content>> results,
-            Map<Container, Container> tlcWritten, Map<Series, Series> seriesWritten) {
+            Map<Container, Container> tlcWritten, Map<Series, Series> seriesWritten) throws WriteException {
         for (Item item : items) {
             Container tlc = itemPrimaryContainerIndex.get(item);
             if (tlc != null) {

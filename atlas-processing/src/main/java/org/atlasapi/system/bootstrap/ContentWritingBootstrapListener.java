@@ -20,7 +20,7 @@ public class ContentWritingBootstrapListener extends AbstractMultiThreadedBootst
     }
 
     @Override
-    protected void onChange(Content content) {
+    protected void onChange(Content content) throws Exception {
         content.setReadHash(null);
         writer.writeContent(content);
     }

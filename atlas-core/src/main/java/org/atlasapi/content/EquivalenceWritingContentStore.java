@@ -3,6 +3,7 @@ package org.atlasapi.content;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import org.atlasapi.entity.Sourceds;
+import org.atlasapi.entity.util.WriteException;
 import org.atlasapi.entity.util.WriteResult;
 import org.atlasapi.equiv.EquivalenceRecordStore;
 import org.atlasapi.equiv.EquivalenceRecordWriter;
@@ -29,7 +30,7 @@ public class EquivalenceWritingContentStore extends ForwardingContentStore {
     }
 
     @Override
-    public <C extends Content> WriteResult<C> writeContent(C content) {
+    public <C extends Content> WriteResult<C> writeContent(C content) throws WriteException {
         WriteResult<C> writeResult = super.writeContent(content);
         writeEquivalences(content);
         return writeResult;
