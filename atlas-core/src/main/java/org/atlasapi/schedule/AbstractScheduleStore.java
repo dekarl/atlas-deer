@@ -21,7 +21,9 @@ import org.atlasapi.media.channel.Channel;
 import org.atlasapi.media.entity.Publisher;
 import org.joda.time.Interval;
 
+import com.google.common.base.Function;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.util.concurrent.Futures;
@@ -79,10 +81,40 @@ public abstract class AbstractScheduleStore implements ScheduleStore {
         for (ItemAndBroadcast staleEntry : updated.getStaleEntries()) {
             updateItemInContentStore(staleEntry);
         }
-        doWrite(source, updated.getUpdatedBlocks());
+        doWrite(source, removeAdditionalBroadcasts(updated.getUpdatedBlocks()));
         return writeResults;
     }
     
+    private List<ChannelSchedule> removeAdditionalBroadcasts(List<ChannelSchedule> updatedBlocks) {
+        ImmutableList.Builder<ChannelSchedule> blocks = ImmutableList.builder();
+        for (ChannelSchedule block : updatedBlocks) {
+            blocks.add(block.copyWithEntries(removeAdditionalBroadcasts(block.getEntries())));
+        }
+        return blocks.build();
+    }
+
+    private Iterable<ItemAndBroadcast> removeAdditionalBroadcasts(Iterable<ItemAndBroadcast> entries) {
+        return Iterables.transform(entries, new Function<ItemAndBroadcast, ItemAndBroadcast>() {
+            @Override
+            public ItemAndBroadcast apply(ItemAndBroadcast input) {
+                Item item = removeAllBroadcastsBut(input.getItem(), input.getBroadcast());
+                return new ItemAndBroadcast(item, input.getBroadcast());
+            }
+
+            private Item removeAllBroadcastsBut(Item item, Broadcast broadcast) {
+                Item copy = item.copy();
+                for (Version version : copy.getVersions()) {
+                    if (version.getBroadcasts().contains(broadcast)) {
+                        version.setBroadcasts(ImmutableSet.of(broadcast));
+                    } else {
+                        version.setBroadcasts(ImmutableSet.<Broadcast>of());
+                    }
+                }
+                return copy;
+            }
+        });
+    }
+
     /**
      * Resolve the current block(s) of schedule for a given source, channel and
      * interval. All the blocks overlapped, fully or partially, by the interval
@@ -147,11 +179,7 @@ public abstract class AbstractScheduleStore implements ScheduleStore {
     }
 
     private List<WriteResult<? extends Content>> writeContent(List<ScheduleHierarchy> contents) {
-        ImmutableList.Builder<WriteResult<? extends Content>> results = ImmutableList.builder();
-        for (ScheduleHierarchy content : contents) {
-            results.addAll(content.writeTo(contentStore));
-        }
-        return results.build();
+        return WritableScheduleHierarchy.from(contents).writeTo(contentStore);
     }
 
     private Publisher getSource(List<ScheduleHierarchy> content) {
