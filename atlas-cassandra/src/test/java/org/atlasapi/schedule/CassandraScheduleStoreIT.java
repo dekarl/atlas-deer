@@ -1,5 +1,9 @@
 package org.atlasapi.schedule;
 
+import static org.hamcrest.Matchers.any;
+import static org.hamcrest.Matchers.empty;
+import static org.hamcrest.Matchers.hasItem;
+import static org.hamcrest.Matchers.hasItems;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.isA;
 import static org.junit.Assert.assertFalse;
@@ -7,6 +11,8 @@ import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.argThat;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.util.List;
@@ -16,6 +22,7 @@ import org.atlasapi.content.Broadcast;
 import org.atlasapi.content.CassandraContentStore;
 import org.atlasapi.content.Content;
 import org.atlasapi.content.ContentHasher;
+import org.atlasapi.content.Identified;
 import org.atlasapi.content.Item;
 import org.atlasapi.content.ItemAndBroadcast;
 import org.atlasapi.content.Version;
@@ -36,7 +43,9 @@ import org.junit.Ignore;
 import org.junit.Test;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Iterables;
+import com.google.common.collect.Maps;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.metabroadcast.common.ids.SequenceGenerator;
@@ -94,19 +103,20 @@ public class CassandraScheduleStoreIT {
 
     @AfterClass
     public static void tearDown() throws ConnectionException {
-        context.getEntity().dropKeyspace();
+        context.getClient().dropKeyspace();
     }
     
     @Before
     public void setUp() {
         channel.setCanonicalUri("channel");
+        channel.setId(1234L);
     }
 
     @After
     public void clearCf() throws ConnectionException {
-        context.getEntity().truncateColumnFamily(SCHEDULE_CF_NAME);
-        context.getEntity().truncateColumnFamily(CONTENT_CF_NAME);
-        context.getEntity().truncateColumnFamily(CONTENT_ALIASES_CF_NAME);
+        context.getClient().truncateColumnFamily(SCHEDULE_CF_NAME);
+        context.getClient().truncateColumnFamily(CONTENT_CF_NAME);
+        context.getClient().truncateColumnFamily(CONTENT_ALIASES_CF_NAME);
     }
 
     @Test
@@ -264,10 +274,73 @@ public class CassandraScheduleStoreIT {
         Item two = (Item) resolved.getResources().first().get();
         assertFalse(Iterables.getOnlyElement(Iterables.getOnlyElement(two.getVersions()).getBroadcasts()).isActivelyPublished());
     }
+    
+    @Test
+    public void testWritingAnItemWithManyBroadcastsOnlyHasTheRelevantBroadcastInTheResolvedSchedule() throws Exception {
+        
+        DateTime start = new DateTime(2013,05,31,14,0,0,0,DateTimeZones.LONDON);
+        DateTime middle = new DateTime(2013,05,31,20,0,0,0,DateTimeZones.LONDON);
+        DateTime end = new DateTime(2013,06,01,14,0,0,0,DateTimeZones.LONDON);
+        
+        Item item1 = item(1, source, "item");
+        Broadcast broadcast1 = broadcast("one", channel, start, middle);
+        Broadcast broadcast2 = broadcast("two", channel, middle, end);
+        Broadcast broadcast3 = broadcast("three", channel, new DateTime(DateTimeZones.LONDON), new DateTime(DateTimeZones.LONDON));
+        
+        Version version1 = new Version();
+        version1.setCanonicalUri("one");
+        version1.addBroadcast(broadcast1);
+        version1.addBroadcast(broadcast3);
+        item1.addVersion(version1);
+        
+        Version version2 = new Version();
+        version2.setCanonicalUri("two");
+        version2.addBroadcast(broadcast2);
+        item1.addVersion(version2);
+        
+        ItemAndBroadcast iab1 = new ItemAndBroadcast(item1, broadcast1);
+        ItemAndBroadcast iab2 = new ItemAndBroadcast(item1.copy(), broadcast2);
+        ImmutableList<ScheduleHierarchy> hiers = ImmutableList.<ScheduleHierarchy>of(
+            ScheduleHierarchy.itemOnly(iab1), 
+            ScheduleHierarchy.itemOnly(iab2)
+        );
+        Interval writtenInterval = new Interval(start, end);
+        
+        when(hasher.hash(argThat(any(Content.class)))).thenReturn("one", "two", "three");
+        
+        List<WriteResult<? extends Content>> results
+            = store.writeSchedule(hiers, channel, writtenInterval);
+
+        verify(hasher, never()).hash(argThat(is(any(Content.class))));
+        assertThat(results.size(), is(1));
+
+        Schedule schedule = future(store.resolve(ImmutableList.of(channel), writtenInterval, source));
+        ChannelSchedule channelSchedule = Iterables.getOnlyElement(schedule.channelSchedules());
+        assertThat(channelSchedule.getEntries().size(), is(2));
+        ItemAndBroadcast fst = channelSchedule.getEntries().get(0);
+        ItemAndBroadcast snd = channelSchedule.getEntries().get(1);
+        
+        Item resolved1 = fst.getItem();
+        ImmutableMap<String, Version> versionIndex = Maps.uniqueIndex(resolved1.getVersions(), Identified.TO_URI);
+        assertThat(Iterables.getOnlyElement(versionIndex.get("one").getBroadcasts()), is(fst.getBroadcast()));
+        assertThat(versionIndex.get("two").getBroadcasts(), is(empty()));
+
+        Item resolved2 = snd.getItem();
+        versionIndex = Maps.uniqueIndex(resolved2.getVersions(), Identified.TO_URI);
+        assertThat(versionIndex.get("one").getBroadcasts(), is(empty()));
+        assertThat(Iterables.getOnlyElement(versionIndex.get("two").getBroadcasts()), is(snd.getBroadcast()));
+        
+        Resolved<Content> resolved = future(contentStore.resolveIds(ImmutableList.of(Id.valueOf(1))));
+        Item item = (Item) resolved.toMap().get(Id.valueOf(1)).get();
+        assertThat(item.getVersions().size(), is(2));
+        versionIndex = Maps.uniqueIndex(item.getVersions(), Identified.TO_URI);
+        assertThat(versionIndex.get("one").getBroadcasts(), hasItems(broadcast1, broadcast3));
+        assertThat(versionIndex.get("two").getBroadcasts(), hasItem(broadcast2));
+    }
 
     @Test
     @Ignore
-    // Known issue: if the update interval doesn't cover a now stale broadcast
+    // TODO Known issue: if the update interval doesn't cover a now stale broadcast
     // in a subsequent segment then that broadcast won't be updated in the
     // subsequent segment, it will be updated in the store though.
     public void testReWritingScheduleUpdatesOverlappingBroadcastsInDifferentSegmentEvenWhenUpdateIntervalDoesntCoverSegment() throws Exception {

@@ -30,6 +30,7 @@ import com.google.common.base.Predicate;
 import com.google.common.base.Splitter;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Multimap;
@@ -188,7 +189,7 @@ public class CassandraScheduleStore extends AbstractScheduleStore {
         for (Entry<Channel, Collection<String>> channelAndKeys : channelKeys.asMap().entrySet()) {
             Channel channel = channelAndKeys.getKey();
             Iterable<ItemAndBroadcast> entries = entries(rows, channelAndKeys.getValue());
-            schedules.add(new ChannelSchedule(channel, interval, trim(filter, entries)));
+            schedules.add(new ChannelSchedule(channel, interval, ImmutableSet.copyOf(trim(filter, entries))));
         }
         return new Schedule(schedules.build(),interval);
     }

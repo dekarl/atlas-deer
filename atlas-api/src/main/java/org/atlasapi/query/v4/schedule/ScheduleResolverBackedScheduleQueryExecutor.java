@@ -7,9 +7,11 @@ import java.util.List;
 
 import org.atlasapi.annotation.Annotation;
 import org.atlasapi.application.ApplicationSources;
+import org.atlasapi.content.Broadcast;
 import org.atlasapi.content.Content;
 import org.atlasapi.content.Item;
 import org.atlasapi.content.ItemAndBroadcast;
+import org.atlasapi.content.Version;
 import org.atlasapi.entity.Id;
 import org.atlasapi.entity.Identifiables;
 import org.atlasapi.equiv.MergingEquivalentsResolver;
@@ -135,9 +137,20 @@ public class ScheduleResolverBackedScheduleQueryExecutor implements ScheduleQuer
             @Override
             public ItemAndBroadcast apply(ItemAndBroadcast input) {
                 Item item = (Item) Iterables.getOnlyElement(equivs.get(input.getItem().getId()));
+                replaceBroadcasts(item, input.getBroadcast());
                 return new ItemAndBroadcast(item, input.getBroadcast());
             }
+
         });
     }
-    
+
+    private void replaceBroadcasts(Item item, Broadcast broadcast) {
+        for (Version version : item.getVersions()) {
+            if (version.getBroadcasts().contains(broadcast)) {
+                version.setBroadcasts(ImmutableSet.of(broadcast));
+            } else {
+                version.setBroadcasts(ImmutableSet.<Broadcast>of());
+            }
+        }
+    }
 }
