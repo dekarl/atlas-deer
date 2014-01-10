@@ -178,7 +178,7 @@ public abstract class AbstractScheduleStore implements ScheduleStore {
         return Iterables.any(writeResults, WriteResult.<Content>writtenFilter());
     }
 
-    private List<WriteResult<? extends Content>> writeContent(List<ScheduleHierarchy> contents) {
+    private List<WriteResult<? extends Content>> writeContent(List<ScheduleHierarchy> contents) throws WriteException {
         return WritableScheduleHierarchy.from(contents).writeTo(contentStore);
     }
 

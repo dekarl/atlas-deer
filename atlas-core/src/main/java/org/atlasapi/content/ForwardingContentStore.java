@@ -3,6 +3,7 @@ package org.atlasapi.content;
 import org.atlasapi.entity.Alias;
 import org.atlasapi.entity.Id;
 import org.atlasapi.entity.util.Resolved;
+import org.atlasapi.entity.util.WriteException;
 import org.atlasapi.entity.util.WriteResult;
 import org.atlasapi.media.entity.Publisher;
 
@@ -27,7 +28,7 @@ public abstract class ForwardingContentStore implements ContentStore {
     }
 
     @Override
-    public <C extends Content> WriteResult<C> writeContent(C content) {
+    public <C extends Content> WriteResult<C> writeContent(C content) throws WriteException {
         return delegate().writeContent(content);
     }
 

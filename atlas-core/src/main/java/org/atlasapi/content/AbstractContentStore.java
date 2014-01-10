@@ -10,6 +10,9 @@ import javax.annotation.Nullable;
 import org.atlasapi.content.Item.ContainerSummary;
 import org.atlasapi.entity.Alias;
 import org.atlasapi.entity.Id;
+import org.atlasapi.entity.util.MissingResourceException;
+import org.atlasapi.entity.util.RuntimeWriteException;
+import org.atlasapi.entity.util.WriteException;
 import org.atlasapi.entity.util.WriteResult;
 import org.atlasapi.media.entity.Publisher;
 import org.joda.time.DateTime;
@@ -266,11 +269,14 @@ public abstract class AbstractContentStore implements ContentStore {
 
     @Override
     @SuppressWarnings("unchecked")
-    public final <C extends Content> WriteResult<C> writeContent(C content) {
+    public final <C extends Content> WriteResult<C> writeContent(C content) throws WriteException {
         checkNotNull(content, "write null content");
         checkNotNull(content.getPublisher(), "write unsourced content");
-        
-        return (WriteResult<C>)content.accept(writingVisitor);
+        try {
+            return (WriteResult<C>)content.accept(writingVisitor);
+        } catch (RuntimeWriteException rwe) {
+            throw rwe.getCause();
+        }
     }
 
     private Content getPreviousContent(Content c) {
@@ -297,7 +303,7 @@ public abstract class AbstractContentStore implements ContentStore {
         if (summary != null) {
             return summary;
         }
-        throw new IllegalStateException("Missing container " + primary);
+        throw new RuntimeWriteException(new MissingResourceException(primary.getId()));
     }
     
     protected abstract ContainerSummary summarize(ParentRef primary);

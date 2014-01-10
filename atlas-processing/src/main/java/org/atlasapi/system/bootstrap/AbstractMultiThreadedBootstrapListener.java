@@ -56,5 +56,5 @@ public abstract class AbstractMultiThreadedBootstrapListener<T> implements Boots
         }
     }
 
-    protected abstract void onChange(T change);
+    protected abstract void onChange(T change) throws Exception;
 }
