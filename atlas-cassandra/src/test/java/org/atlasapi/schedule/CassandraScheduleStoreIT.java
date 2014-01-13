@@ -146,8 +146,8 @@ public class CassandraScheduleStoreIT {
         assertThat(channelSchedule.getChannel(), is(channel));
         assertThat(channelSchedule.getInterval(), is(requestedInterval));
         assertThat(channelSchedule.getEntries().size(), is(2));
-        assertThat(channelSchedule.getEntries().get(0).getItem().getId().longValue(), is(1L));
-        assertThat(channelSchedule.getEntries().get(1).getItem().getId().longValue(), is(2L));
+        assertThat(channelSchedule.getEntries().get(0).getItem().getId().longValue(), is(2L));
+        assertThat(channelSchedule.getEntries().get(1).getItem().getId().longValue(), is(1L));
     }
 
     @Test
@@ -199,10 +199,10 @@ public class CassandraScheduleStoreIT {
         assertThat(channelSchedule.getChannel(), is(channel));
         assertThat(channelSchedule.getInterval(), is(requestedInterval));
         assertThat(channelSchedule.getEntries().size(), is(2));
-        assertThat(channelSchedule.getEntries().get(0).getItem().getId().longValue(), is(1L));
+        assertThat(channelSchedule.getEntries().get(0).getItem().getId().longValue(), is(2L));
         assertThat(channelSchedule.getEntries().get(1).getItem().getId().longValue(), is(3L));
         
-        Resolved<Content> resolved = future(contentStore.resolveIds(ImmutableList.of(Id.valueOf(2))));
+        Resolved<Content> resolved = future(contentStore.resolveIds(ImmutableList.of(Id.valueOf(1))));
         Item two = (Item) resolved.getResources().first().get();
         assertFalse(Iterables.getOnlyElement(Iterables.getOnlyElement(two.getVersions()).getBroadcasts()).isActivelyPublished());
     }
@@ -256,7 +256,7 @@ public class CassandraScheduleStoreIT {
         assertThat(channelSchedule.getChannel(), is(channel));
         assertThat(channelSchedule.getInterval(), is(requestedInterval));
         assertThat(channelSchedule.getEntries().size(), is(2));
-        assertThat(channelSchedule.getEntries().get(0).getItem().getId().longValue(), is(1L));
+        assertThat(channelSchedule.getEntries().get(0).getItem().getId().longValue(), is(2L));
         assertThat(channelSchedule.getEntries().get(1).getItem().getId().longValue(), is(3L));
         
         requestedInterval = new Interval(
@@ -270,7 +270,7 @@ public class CassandraScheduleStoreIT {
         assertThat(channelSchedule.getInterval(), is(requestedInterval));
         assertThat(channelSchedule.getEntries().size(), is(0));
         
-        Resolved<Content> resolved = future(contentStore.resolveIds(ImmutableList.of(Id.valueOf(2))));
+        Resolved<Content> resolved = future(contentStore.resolveIds(ImmutableList.of(Id.valueOf(1))));
         Item two = (Item) resolved.getResources().first().get();
         assertFalse(Iterables.getOnlyElement(Iterables.getOnlyElement(two.getVersions()).getBroadcasts()).isActivelyPublished());
     }

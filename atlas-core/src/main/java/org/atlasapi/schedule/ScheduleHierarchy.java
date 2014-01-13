@@ -1,5 +1,6 @@
 package org.atlasapi.schedule;
 
+import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.util.List;
@@ -27,11 +28,26 @@ public class ScheduleHierarchy {
         return new ScheduleHierarchy(item, (Container)null, null);
     }
     
+    public static final ScheduleHierarchy seriesAndItem(Series series, ItemAndBroadcast item) {
+        if (item.getItem() instanceof Episode) {
+            return new ScheduleHierarchy(item, series, series);
+        }
+        return new ScheduleHierarchy(item, series, null);
+    }
+
+    public static final ScheduleHierarchy brandAndItem(Brand brand, ItemAndBroadcast item) {
+        return new ScheduleHierarchy(item, brand, null);
+    }
+    
+    public static final ScheduleHierarchy brandSeriesAndItem(Brand brand, Series series, ItemAndBroadcast item) {
+        return new ScheduleHierarchy(item, brand, series);
+    }
+    
     private final ItemAndBroadcast itemAndBroadcast;
     private final Optional<Container> primaryContainer;
     private final Optional<Series> possibleSeries;
 
-    public ScheduleHierarchy(ItemAndBroadcast itemAndBroadcast, @Nullable Container primaryContainer,
+    ScheduleHierarchy(ItemAndBroadcast itemAndBroadcast, @Nullable Container primaryContainer,
             @Nullable Series secondaryContainer) {
         this(checkNotNull(itemAndBroadcast), Optional.fromNullable(primaryContainer), Optional.fromNullable(secondaryContainer));
     }
@@ -39,6 +55,9 @@ public class ScheduleHierarchy {
     @SuppressWarnings("unchecked")
     // http://stackoverflow.com/questions/7848789/how-to-use-guava-optional-as-naturally-covariant-object
     public ScheduleHierarchy(ItemAndBroadcast itemAndBroadcast, Optional<? extends Container> primaryContainer, Optional<Series> secondaryContainer) {
+        checkArgument(!secondaryContainer.isPresent() || itemAndBroadcast.getItem() instanceof Episode,
+                "Only an Episode can have a secondary container"
+            );
         this.itemAndBroadcast = checkNotNull(itemAndBroadcast);
         this.primaryContainer = checkNotNull((Optional<Container>)primaryContainer);
         this.possibleSeries = checkNotNull((Optional<Series>)secondaryContainer);

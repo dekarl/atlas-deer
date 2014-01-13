@@ -5,45 +5,41 @@ import java.util.Map;
 import java.util.Set;
 
 import org.atlasapi.content.Brand;
+import org.atlasapi.content.Broadcast;
 import org.atlasapi.content.Container;
 import org.atlasapi.content.Content;
 import org.atlasapi.content.ContentStore;
 import org.atlasapi.content.Episode;
 import org.atlasapi.content.Item;
+import org.atlasapi.content.ItemAndBroadcast;
 import org.atlasapi.content.Series;
+import org.atlasapi.content.Version;
+import org.atlasapi.entity.Id;
 import org.atlasapi.entity.util.WriteException;
 import org.atlasapi.entity.util.WriteResult;
 
 import com.google.common.base.Optional;
-import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableList.Builder;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Iterables;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import com.google.common.collect.Sets;
 
 /**
  * Convenience class to transform a number of schedule hierarchies into unique groups for writing.  
  */
 class WritableScheduleHierarchy {
-    
-    abstract class NestableContent {
-        
-        abstract Content getContent();
-        
-        abstract ImmutableSet<NestableContent> getNestedContent();
-        
-    }
 
     static WritableScheduleHierarchy from(List<ScheduleHierarchy> hierarchies) {
         ImmutableSet.Builder<Container> topLevelContainers = ImmutableSet.builder();
         ImmutableSet.Builder<Series> series = ImmutableSet.builder();
         Map<Series, Brand> seriesBrandIndex = Maps.newHashMap();
-        ImmutableSet.Builder<Item> items = ImmutableSet.builder();
+        Map<Id, Item> itemsIndex = Maps.newHashMapWithExpectedSize(hierarchies.size());
+        ImmutableSet.Builder<Item> unidentified = ImmutableSet.builder();
         Map<Item, Container> itemPrimaryContainerIndex = Maps.newHashMap();
         Map<Item, Series> itemSeriesIndex = Maps.newHashMap();
         
-        for (ScheduleHierarchy hierarchy : hierarchies) {
+        for (ScheduleHierarchy hierarchy : Lists.reverse(hierarchies)) {
             Optional<Container> tlc = hierarchy.getPrimaryContainer();
             if (tlc.isPresent()) {
                 topLevelContainers.add(tlc.get());
@@ -56,7 +52,15 @@ class WritableScheduleHierarchy {
                 }
             }
             Item item = hierarchy.getItemAndBroadcast().getItem();
-            items.add(item);
+            if (item.getId() == null) {
+                unidentified.add(item);
+            } else {
+                Item existing = itemsIndex.get(item.getId());
+                if (existing != null) {
+                    item = addBroadcast(existing, hierarchy.getItemAndBroadcast());
+                }
+                itemsIndex.put(item.getId(), item);
+            }
             if (tlc.isPresent()) {
                 itemPrimaryContainerIndex.put(item, tlc.get());
             }
@@ -64,9 +68,47 @@ class WritableScheduleHierarchy {
                 itemSeriesIndex.put(item, possibleSeries.get());
             }
         }
-        return new WritableScheduleHierarchy(topLevelContainers.build(), series.build(), items.build(), seriesBrandIndex, itemPrimaryContainerIndex, itemSeriesIndex);
+        return new WritableScheduleHierarchy(topLevelContainers.build(), series.build(), 
+            unidentified.addAll(itemsIndex.values()).build(), 
+            seriesBrandIndex, itemPrimaryContainerIndex, itemSeriesIndex);
     }
-    
+
+    private static Item addBroadcast(Item existing, ItemAndBroadcast itemAndBroadcast) {
+        Broadcast broadcast = itemAndBroadcast.getBroadcast();
+        Version versionOfBroadcast = versionOfBroadcast(itemAndBroadcast);
+        if (versionOfBroadcast.getCanonicalUri() == null) {
+            Iterables.getOnlyElement(existing.getVersions()).addBroadcast(broadcast);
+        } else {
+            Version found = findVersion(existing, versionOfBroadcast);
+            if (found == null) {
+                existing.addVersion(versionOfBroadcast);
+            } else {
+                found.addBroadcast(broadcast);
+            }
+        }
+        return existing;
+    }
+
+    private static Version findVersion(Item existing, Version versionOfBroadcast) {
+        for (Version version : existing.getVersions()) {
+            if (versionOfBroadcast.getCanonicalUri().equals(version.getCanonicalUri())) {
+                return version;
+            }
+        }
+        return null;
+    }
+
+    private static Version versionOfBroadcast(ItemAndBroadcast itemAndBroadcast) {
+        Item item = itemAndBroadcast.getItem();
+        for (Version version : item.getVersions()) {
+            if (version.getBroadcasts().contains(itemAndBroadcast.getBroadcast())) {
+                return version;
+            }
+        }
+        throw new IllegalStateException(
+                String.format("broadcast not found in item %s versions", item.toString()));
+    }
+
     private Set<Container> topLevelContainers;
     private Set<Series> series;
     private Set<Item> items;
@@ -74,7 +116,7 @@ class WritableScheduleHierarchy {
     private Map<Item, Container> itemPrimaryContainerIndex;
     private Map<Item, Series> itemSeriesIndex;
 
-    public WritableScheduleHierarchy(Set<Container> topLevelContainers, Set<Series> series,
+    WritableScheduleHierarchy(Set<Container> topLevelContainers, Set<Series> series,
             Set<Item> items, Map<Series, Brand> seriesBrandIndex,
             Map<Item, Container> itemPrimaryContainerIndex, Map<Item, Series> itemSeriesIndex) {
         this.topLevelContainers = topLevelContainers;
