@@ -4,7 +4,6 @@ import java.util.Set;
 
 import org.atlasapi.entity.Id;
 import org.atlasapi.entity.ResourceRef;
-import org.atlasapi.entity.util.ResolveException;
 import org.atlasapi.entity.util.WriteException;
 import org.atlasapi.media.entity.Publisher;
 
@@ -64,7 +63,6 @@ public interface EquivalenceGraphStore {
     Optional<ImmutableSet<EquivalenceGraph>> updateEquivalences(ResourceRef subject,
             Set<ResourceRef> assertedAdjacents, Set<Publisher> sources) throws WriteException;
 
-    ListenableFuture<OptionalMap<Id, EquivalenceGraph>> resolveIds(Iterable<Id> ids)
-            throws ResolveException;
+    ListenableFuture<OptionalMap<Id, EquivalenceGraph>> resolveIds(Iterable<Id> ids);
 
 }

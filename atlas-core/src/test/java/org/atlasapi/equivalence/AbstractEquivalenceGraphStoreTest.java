@@ -27,7 +27,6 @@ import org.atlasapi.entity.Id;
 import org.atlasapi.entity.ResourceRef;
 import org.atlasapi.entity.Sourced;
 import org.atlasapi.entity.Sourceds;
-import org.atlasapi.entity.util.ResolveException;
 import org.atlasapi.entity.util.WriteException;
 import org.atlasapi.equivalence.EquivalenceGraph.Adjacents;
 import org.atlasapi.media.entity.Publisher;
@@ -125,11 +124,7 @@ public class AbstractEquivalenceGraphStoreTest {
     }
 
     private EquivalenceGraph graphOf(Item item) {
-        try {
-            return get(store.resolveIds(ImmutableList.of(item.getId()))).get(item.getId()).get();
-        } catch (ResolveException e) {
-            throw new RuntimeException(item.toRef().toString(), e);
-        }
+        return get(store.resolveIds(ImmutableList.of(item.getId()))).get(item.getId()).get();
     }
     
     @Test
