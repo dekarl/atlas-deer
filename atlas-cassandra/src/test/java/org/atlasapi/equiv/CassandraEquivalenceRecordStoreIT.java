@@ -1,7 +1,13 @@
 package org.atlasapi.equiv;
 
-import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
+
+import org.testng.annotations.AfterClass;
+import org.testng.annotations.AfterMethod;
+import org.testng.annotations.Test;
+import org.testng.annotations.BeforeClass;
+
+import static org.hamcrest.Matchers.is;
 
 import java.util.List;
 
@@ -14,10 +20,6 @@ import org.atlasapi.equivalence.EquivalenceRecord;
 import org.atlasapi.equivalence.EquivalenceRecordStore;
 import org.atlasapi.equivalence.EquivalenceRef;
 import org.atlasapi.media.entity.Publisher;
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.Test;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
@@ -52,7 +54,7 @@ public class CassandraEquivalenceRecordStoreIT {
         context.getClient().dropKeyspace();
     }
 
-    @After
+    @AfterMethod
     public void clearCf() throws ConnectionException {
         CassandraHelper.clearColumnFamily(context, CF_NAME);
     }

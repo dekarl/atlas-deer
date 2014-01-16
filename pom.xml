@@ -7,6 +7,7 @@
 
   <modules>
     <module>atlas-core</module>
+    <module>atlas-testlib</module>
     <module>atlas-cassandra</module>
     <module>atlas-elasticsearch</module>
     <module>atlas-processing</module>
@@ -45,6 +46,11 @@
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-source-plugin</artifactId>
           <version>2.2.1</version>
+        </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-surefire-plugin</artifactId>
+          <version>2.16</version>
         </plugin>
       </plugins>
     </pluginManagement>
@@ -101,6 +107,24 @@
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>
       <version>4.11</version>
+      <scope>test</scope>
+      <exclusions>
+        <exclusion>
+          <groupId>org.hamcrest</groupId>
+          <artifactId>hamcrest-core</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+    <dependency>
+      <groupId>org.testng</groupId>
+      <artifactId>testng</artifactId>
+      <version>6.8.7</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.mockito</groupId>
+      <artifactId>mockito-testng</artifactId>
+      <version>1.0-c17169c</version>
       <scope>test</scope>
     </dependency>
     <dependency>

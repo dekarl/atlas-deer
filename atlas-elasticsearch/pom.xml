@@ -24,4 +24,6 @@
       <artifactId>slf4j-log4j12</artifactId>
     </dependency>
   </dependencies>
+  <name>Atlas ElasticSearch</name>
+  <description>ElasticSearch implementations of core Atlas index interfaces</description>
 </project>

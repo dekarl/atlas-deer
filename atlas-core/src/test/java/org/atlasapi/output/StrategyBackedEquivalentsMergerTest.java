@@ -3,7 +3,6 @@ package org.atlasapi.output;
 import static org.hamcrest.Matchers.any;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.anyCollectionOf;
 import static org.mockito.Matchers.argThat;
 import static org.mockito.Mockito.mock;
@@ -11,6 +10,7 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.testng.AssertJUnit.assertTrue;
 
 import java.util.List;
 
@@ -20,10 +20,9 @@ import org.atlasapi.application.SourceStatus;
 import org.atlasapi.content.Brand;
 import org.atlasapi.content.Content;
 import org.atlasapi.media.entity.Publisher;
-import org.atlasapi.output.EquivalentsMergeStrategy;
-import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.runners.MockitoJUnitRunner;
+import org.testng.annotations.Test;
 
 import com.google.common.collect.Collections2;
 import com.google.common.collect.ImmutableList;

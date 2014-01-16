@@ -14,7 +14,7 @@ import org.atlasapi.content.BrandRef;
 import org.atlasapi.entity.Id;
 import org.atlasapi.media.entity.Publisher;
 import org.atlasapi.serialization.json.JsonFactory;
-import org.junit.Test;
+import org.testng.annotations.Test;
 import org.springframework.jms.core.JmsTemplate;
 import org.springframework.jms.core.MessageCreator;
 import org.springframework.jms.listener.DefaultMessageListenerContainer;

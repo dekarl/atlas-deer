@@ -14,8 +14,8 @@ import org.atlasapi.query.annotation.ActiveAnnotations;
 import org.atlasapi.query.common.QueryExecutionException;
 import org.atlasapi.query.common.useraware.UserAwareQuery;
 import org.atlasapi.query.common.useraware.UserAwareQueryContext;
-import org.junit.Before;
-import org.junit.Test;
+import org.testng.annotations.BeforeClass;
+import org.testng.annotations.Test;
 
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableSet;
@@ -28,7 +28,7 @@ public class SourcesQueryExecutorTest {
     private final SourceIdCodec sourceIdCodec = new SourceIdCodec(idCodec);
     private SourcesQueryExecutor executor;
     
-    @Before
+    @BeforeClass
     public void setUp() {
         executor = new SourcesQueryExecutor(sourceIdCodec);
     }
@@ -69,7 +69,7 @@ public class SourcesQueryExecutorTest {
      * Test regular user can access source they do not manage
      * @throws QueryExecutionException
      */
-    @Test(expected=ResourceForbiddenException.class)
+    @Test(expectedExceptions=ResourceForbiddenException.class)
     public void testNoAccessToNotManagedSource() throws QueryExecutionException {
         User user = User.builder()
                 .withId(Id.valueOf(5000))

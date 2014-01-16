@@ -4,12 +4,11 @@ import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.hasItems;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.argThat;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.testng.AssertJUnit.assertTrue;
 
 import java.util.List;
 
@@ -26,9 +25,11 @@ import org.atlasapi.equivalence.EquivalentsResolver;
 import org.atlasapi.equivalence.IdResolverBackedEquivalentResolver;
 import org.atlasapi.equivalence.ResolvedEquivalents;
 import org.atlasapi.media.entity.Publisher;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.Mock;
+import org.mockito.testng.MockitoTestNGListener;
+import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.Listeners;
+import org.testng.annotations.Test;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
@@ -36,14 +37,18 @@ import com.google.common.collect.Iterables;
 import com.google.common.util.concurrent.Futures;
 import com.metabroadcast.common.collect.ImmutableOptionalMap;
 
-@RunWith(MockitoJUnitRunner.class)
+@Listeners(MockitoTestNGListener.class)
 public class IdResolverBackedEquivalentResolverTest {
 
-    @SuppressWarnings("unchecked")
-    private IdResolver<Content> resolver = mock(IdResolver.class);
-    private EquivalenceRecordStore store = mock(EquivalenceRecordStore.class);
-    private final EquivalentsResolver<Content> equivResolver = 
-        IdResolverBackedEquivalentResolver.valueOf(store, resolver);
+    @Mock private IdResolver<Content> resolver;
+    @Mock private EquivalenceRecordStore store;
+    
+    private EquivalentsResolver<Content> equivResolver;
+    
+    @BeforeMethod
+    public void setUp() {
+        equivResolver = IdResolverBackedEquivalentResolver.valueOf(store, resolver);
+    }
     
     @Test
     public void testResolvesEquivalentContent() throws Exception {

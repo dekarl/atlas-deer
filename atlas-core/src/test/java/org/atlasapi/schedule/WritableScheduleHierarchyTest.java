@@ -3,11 +3,11 @@ package org.atlasapi.schedule;
 import static org.hamcrest.Matchers.any;
 import static org.hamcrest.Matchers.hasItems;
 import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.testng.AssertJUnit.assertEquals;
 
 import java.util.List;
 import java.util.Map;
@@ -30,28 +30,29 @@ import org.atlasapi.entity.util.WriteResult;
 import org.atlasapi.media.channel.Channel;
 import org.atlasapi.media.entity.Publisher;
 import org.joda.time.DateTime;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.invocation.InvocationOnMock;
-import org.mockito.runners.MockitoJUnitRunner;
 import org.mockito.stubbing.Answer;
+import org.mockito.testng.MockitoTestNGListener;
+import org.testng.annotations.AfterMethod;
+import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.Listeners;
+import org.testng.annotations.Test;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Maps;
 import com.metabroadcast.common.time.DateTimeZones;
 
-@RunWith(MockitoJUnitRunner.class)
+@Listeners(MockitoTestNGListener.class)
 public class WritableScheduleHierarchyTest {
     
     @Mock private ContentStore store;
     private final Channel channel = Channel.builder().build();
     
-    @Before
+    @BeforeMethod
     public void setup() throws WriteException {
         when(store.writeContent(Mockito.argThat(any(Content.class))))
             .then(new Answer<WriteResult<Content>>() {
@@ -65,6 +66,11 @@ public class WritableScheduleHierarchyTest {
                     return WriteResult.written(copy).withPrevious(written).build();
                 }
             });
+    }
+    
+    @AfterMethod
+    public void reset() {
+//        Mockito.reset(store);
     }
     
     @Test

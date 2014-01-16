@@ -44,6 +44,9 @@
             </goals>
           </execution>
         </executions>
+        <configuration>
+            <useManifestOnlyJar>false</useManifestOnlyJar>
+        </configuration>
       </plugin>
     </plugins>
   </build>
@@ -63,6 +66,12 @@
       <groupId>org.atlasapi</groupId>
       <version>${atlas.version}</version>
       <artifactId>atlas-core</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.atlasapi</groupId>
+      <version>${atlas.version}</version>
+      <artifactId>atlas-testlib</artifactId>
+      <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>com.google.protobuf</groupId>
@@ -92,4 +101,6 @@
       <artifactId>cassandra-driver-core</artifactId>
     </dependency>
   </dependencies>
+  <name>Atlas Cassandra</name>
+  <description>Apache Cassandra implementations of core Atlas persistence interfaces.</description>
 </project>

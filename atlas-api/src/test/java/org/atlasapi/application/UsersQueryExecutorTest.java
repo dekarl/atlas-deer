@@ -15,8 +15,8 @@ import org.atlasapi.output.useraware.UserAwareQueryResult;
 import org.atlasapi.query.annotation.ActiveAnnotations;
 import org.atlasapi.query.common.useraware.UserAwareQuery;
 import org.atlasapi.query.common.useraware.UserAwareQueryContext;
-import org.junit.Before;
-import org.junit.Test;
+import org.testng.annotations.BeforeClass;
+import org.testng.annotations.Test;
 
 import com.google.common.base.Optional;
 
@@ -25,7 +25,7 @@ public class UsersQueryExecutorTest {
     
     private UsersQueryExecutor executor;
     
-    @Before
+    @BeforeClass
     public void setUp() {
         User user1 = User.builder()
                 .withId(Id.valueOf(5000))
@@ -75,7 +75,7 @@ public class UsersQueryExecutorTest {
      * Make sure a regular user cannot see someone else's profile
      * @throws Exception
      */
-    @Test(expected=ResourceForbiddenException.class)
+    @Test(expectedExceptions=ResourceForbiddenException.class)
     public void testCannotSeeOtherProfile() throws Exception {
         User user = User.builder().withId(Id.valueOf(5000)).withRole(Role.REGULAR).build();
         UserAwareQueryContext context = new UserAwareQueryContext(ApplicationSources.defaults(), 

@@ -240,4 +240,6 @@
     </snapshotRepository>
   </distributionManagement>
 
+  <name>Atlas API Server</name>
+  <description>HTTP Atlas API server</description>
 </project>

@@ -1,7 +1,9 @@
 package org.atlasapi.model.translators;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.testng.AssertJUnit.assertEquals;
+import static org.testng.AssertJUnit.assertTrue;
+import org.testng.annotations.Test;
+import org.testng.annotations.BeforeMethod;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -14,9 +16,6 @@ import org.atlasapi.application.users.User;
 import org.atlasapi.entity.Id;
 import org.atlasapi.entity.util.Resolved;
 import org.atlasapi.media.entity.Publisher;
-import org.junit.Before;
-import org.junit.Test;
-
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.util.concurrent.Futures;
@@ -40,7 +39,7 @@ public class UserModelTranslatorTest {
     
     private LegacyApplicationStore store;
     
-    @Before
+    @BeforeMethod
     public void setUp() {
     	store = mock(LegacyApplicationStore.class);
     	when(store.applicationIdsForSlugs(APP_SLUGS)).thenReturn(APP_IDS);

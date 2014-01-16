@@ -16,10 +16,10 @@ public class ResponseWriterFactory {
     
     private final Map<String, MimeType> extensionMap = ImmutableMap.of(".json", MimeType.APPLICATION_JSON);
 
-    public ResponseWriter writerFor(HttpServletRequest request, HttpServletResponse response) throws IOException, UnsupportedFormatException, NotAcceptableException {
+    public ResponseWriter writerFor(HttpServletRequest request, HttpServletResponse response)
+            throws IOException, UnsupportedFormatException, NotAcceptableException {
         ResponseWriter writerFromExtension = writerFromExtension(request, response);
         response.addHeader("Access-Control-Allow-Origin", "*");
-        
         
         if (writerFromExtension != null) {
             return writerFromExtension;
@@ -28,7 +28,7 @@ public class ResponseWriterFactory {
     }
 
     private ResponseWriter writerFromAcceptHeader(HttpServletRequest request, HttpServletResponse response)
-        throws NotAcceptableException {
+            throws NotAcceptableException {
         String acceptHeader = request.getHeader(HttpHeaders.ACCEPT);
         if (acceptHeader != null) {
             Optional<MimeType> mimeType = MimeType.possibleFromString(acceptHeader);

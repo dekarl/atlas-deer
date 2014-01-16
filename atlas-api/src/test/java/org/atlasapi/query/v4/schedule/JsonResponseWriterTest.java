@@ -16,8 +16,8 @@ import org.atlasapi.output.JsonResponseWriter;
 import org.atlasapi.output.OutputContext;
 import org.atlasapi.query.common.QueryContext;
 import org.codehaus.jackson.map.ObjectMapper;
-import org.junit.Before;
-import org.junit.Test;
+import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.Test;
 
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
@@ -25,18 +25,22 @@ import com.google.common.collect.ImmutableMap;
 import com.metabroadcast.common.servlet.StubHttpServletRequest;
 import com.metabroadcast.common.servlet.StubHttpServletResponse;
 
-
 public class JsonResponseWriterTest {
 
-    private final ObjectMapper mapper = new ObjectMapper();
-    private final HttpServletRequest request = new StubHttpServletRequest();
-    private final StubHttpServletResponse response = new StubHttpServletResponse();
+    private ObjectMapper mapper;
+    private HttpServletRequest request;
+    private StubHttpServletResponse response;
     
-    private final JsonResponseWriter formatter = new JsonResponseWriter(request, response);
-    private final OutputContext ctxt = OutputContext.valueOf(QueryContext.standard()); 
+    private JsonResponseWriter formatter;
+    private OutputContext ctxt; 
             
-    @Before
+    @BeforeMethod
     public void setup() throws IOException {
+        mapper = new ObjectMapper();
+        request = new StubHttpServletRequest();
+        response = new StubHttpServletResponse();
+        ctxt = OutputContext.valueOf(QueryContext.standard());
+        formatter = new JsonResponseWriter(request, response);
         formatter.startResponse();
     }
     

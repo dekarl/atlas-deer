@@ -8,8 +8,8 @@ import static org.atlasapi.topic.EsTopic.TITLE;
 import static org.atlasapi.util.ElasticSearchHelper.refresh;
 import static org.atlasapi.util.EsAlias.VALUE;
 import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
+import static org.testng.AssertJUnit.assertEquals;
 
 import java.util.List;
 import java.util.Map;
@@ -29,10 +29,11 @@ import org.atlasapi.util.ElasticSearchHelper;
 import org.elasticsearch.action.get.GetResponse;
 import org.elasticsearch.client.Requests;
 import org.elasticsearch.node.Node;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.testng.annotations.AfterClass;
+import org.testng.annotations.AfterMethod;
+import org.testng.annotations.BeforeClass;
+import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.Test;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
@@ -43,7 +44,8 @@ public class EsTopicIndexTest {
 
     private final Node esClient = ElasticSearchHelper.testNode();
     private final String indexName = "topics";
-    private final EsTopicIndex index = new EsTopicIndex(esClient, indexName, 60, TimeUnit.SECONDS);
+    
+    private EsTopicIndex index;
     
     @BeforeClass
     public static void before() throws Exception {
@@ -53,15 +55,20 @@ public class EsTopicIndexTest {
         root.setLevel(Level.WARN);
     }
     
-    @Before
+    @AfterClass
+    public void after() {
+        esClient.close();
+    }
+    
+    @BeforeMethod
     public void setup() throws Exception {
+        index = new EsTopicIndex(esClient, indexName, 60, TimeUnit.SECONDS);
         index.startAsync().awaitRunning();
     }
     
-    @After
-    public void after() throws Exception {
+    @AfterMethod
+    public void tearDown() throws Exception {
         ElasticSearchHelper.clearIndices(esClient);
-        esClient.close();
     }
     
     @Test

@@ -1,8 +1,8 @@
 package org.atlasapi.output;
 
-import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
-
+import org.testng.annotations.Test;
+import static org.hamcrest.Matchers.is;
 import java.util.List;
 
 import org.atlasapi.application.ApplicationSources;
@@ -14,8 +14,6 @@ import org.atlasapi.entity.Id;
 import org.atlasapi.equivalence.EquivalenceRef;
 import org.atlasapi.media.entity.Publisher;
 import org.atlasapi.output.OutputContentMerger;
-import org.junit.Test;
-
 import com.google.common.base.Function;
 import com.google.common.collect.Collections2;
 import com.google.common.collect.ImmutableList;

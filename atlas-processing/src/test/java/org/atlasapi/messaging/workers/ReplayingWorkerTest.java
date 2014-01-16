@@ -19,15 +19,15 @@ import org.atlasapi.messaging.ReplayMessage;
 import org.atlasapi.messaging.ReplayingWorker;
 import org.atlasapi.messaging.ResourceUpdatedMessage;
 import org.atlasapi.messaging.Worker;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
 import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.testng.MockitoTestNGListener;
+import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.Listeners;
+import org.testng.annotations.Test;
 
 import com.metabroadcast.common.time.Timestamp;
 
-@RunWith(MockitoJUnitRunner.class)
+@Listeners(MockitoTestNGListener.class)
 public class ReplayingWorkerTest {
 
     private final ExecutorService executor = Executors.newCachedThreadPool();
@@ -37,7 +37,7 @@ public class ReplayingWorkerTest {
         = new ResourceUpdatedMessage("1", Timestamp.of(0L), new BrandRef(Id.valueOf(1), Publisher.BBC));
     
     
-    @Before
+    @BeforeMethod
     public void setup() {
         replayingWorker = new ReplayingWorker<>(delegate);
     }
@@ -160,7 +160,4 @@ public class ReplayingWorkerTest {
         }
     }
 
-    private ResourceUpdatedMessage mockedMessageDispatchingTo(final Worker<ResourceUpdatedMessage> worker) {
-        return mock(ResourceUpdatedMessage.class);
-    }
 }

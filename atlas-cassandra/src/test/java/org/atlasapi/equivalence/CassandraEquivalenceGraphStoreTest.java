@@ -1,8 +1,8 @@
 package org.atlasapi.equivalence;
 
 import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.assertThat;
+import static org.testng.AssertJUnit.assertTrue;
 
 import java.util.Set;
 
@@ -14,11 +14,10 @@ import org.atlasapi.entity.ResourceRef;
 import org.atlasapi.entity.util.ResolveException;
 import org.atlasapi.media.entity.Publisher;
 import org.joda.time.DateTime;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.JUnit4;
+import org.testng.annotations.AfterClass;
+import org.testng.annotations.AfterMethod;
+import org.testng.annotations.BeforeClass;
+import org.testng.annotations.Test;
 
 import com.datastax.driver.core.ConsistencyLevel;
 import com.datastax.driver.core.Session;
@@ -30,7 +29,6 @@ import com.google.common.util.concurrent.ListenableFuture;
 import com.metabroadcast.common.collect.OptionalMap;
 import com.metabroadcast.common.time.DateTimeZones;
 
-@RunWith(JUnit4.class)
 public class CassandraEquivalenceGraphStoreTest {
 
     private DatastaxCassandraService service
@@ -38,7 +36,7 @@ public class CassandraEquivalenceGraphStoreTest {
     private CassandraEquivalenceGraphStore store;
     private Session session;
 
-    @Before
+    @BeforeClass
     public void setUp() {
         bbcItem.setThisOrChildLastUpdated(new DateTime(DateTimeZones.UTC));
         paItem.setThisOrChildLastUpdated(new DateTime(DateTimeZones.UTC));
@@ -59,11 +57,18 @@ public class CassandraEquivalenceGraphStoreTest {
             + "PRIMARY KEY (graph_id)"
         + ");");
         store = new CassandraEquivalenceGraphStore(session , ConsistencyLevel.ONE, ConsistencyLevel.ONE);
+        System.out.println("blah " + store);
     }
     
-    @After
+    @AfterClass
     public void tearDown() {
         session.execute("DROP KEYSPACE atlas_testing");
+    }
+    
+    @AfterMethod
+    public void truncate() {
+        session.execute("TRUNCATE equivalence_graph_index");
+        session.execute("TRUNCATE equivalence_graph");
     }
     
     private final Item bbcItem = new Item(Id.valueOf(1), Publisher.BBC);
@@ -99,6 +104,8 @@ public class CassandraEquivalenceGraphStoreTest {
     
     @Test
     public void testCreatingEquivalences() throws Exception {
+
+        System.out.println("bleh " + store);
         
         ResourceRef subject = new BrandRef(Id.valueOf(1), Publisher.BBC);
         BrandRef equiv = new BrandRef(Id.valueOf(2), Publisher.PA);

@@ -55,7 +55,7 @@ public final class ConsumerQueueFactory {
         container.setDestinationName(destination);
         container.setConcurrentConsumers(consumers);
         container.setMaxConcurrentConsumers(maxConsumers);
-
+        
         return container;
     }
    

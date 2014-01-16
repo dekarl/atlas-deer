@@ -6,7 +6,6 @@ import static org.hamcrest.Matchers.hasItems;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Matchers.argThat;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -31,9 +30,11 @@ import org.atlasapi.schedule.ScheduleRef;
 import org.atlasapi.schedule.ScheduleRef.ScheduleRefEntry;
 import org.joda.time.DateTime;
 import org.joda.time.Interval;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.Mock;
+import org.mockito.testng.MockitoTestNGListener;
+import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.Listeners;
+import org.testng.annotations.Test;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
@@ -43,15 +44,18 @@ import com.google.common.util.concurrent.ListenableFuture;
 import com.metabroadcast.common.base.Maybe;
 import com.metabroadcast.common.time.DateTimeZones;
 
-@RunWith(MockitoJUnitRunner.class)
+@Listeners(MockitoTestNGListener.class)
 public class IndexBackedScheduleQueryExecutorTest {
 
-    private final ChannelResolver channelResolver = mock(ChannelResolver.class);
-    private final ScheduleIndex index = mock(ScheduleIndex.class);
-    private final ContentResolver contentResolver = mock(ContentResolver.class);
-    private final IndexBackedScheduleQueryExecutor queryExecutor
-            = new IndexBackedScheduleQueryExecutor(channelResolver, index, contentResolver);
+    @Mock private ChannelResolver channelResolver;
+    @Mock private ScheduleIndex index;
+    @Mock private ContentResolver contentResolver;
+    private IndexBackedScheduleQueryExecutor queryExecutor;
     
+    @BeforeMethod
+    public void setup() {
+        queryExecutor = new IndexBackedScheduleQueryExecutor(channelResolver, index, contentResolver);
+    }
     
     @Test
     @SuppressWarnings("unchecked")

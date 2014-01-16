@@ -21,7 +21,7 @@ import org.atlasapi.query.common.QueryResult;
 import org.atlasapi.schedule.ChannelSchedule;
 import org.joda.time.DateTime;
 import org.joda.time.Interval;
-import org.junit.Test;
+import org.testng.annotations.Test;
 
 import com.google.common.collect.ImmutableList;
 import com.metabroadcast.common.servlet.StubHttpServletRequest;

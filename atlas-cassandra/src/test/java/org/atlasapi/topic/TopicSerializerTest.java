@@ -1,11 +1,10 @@
 package org.atlasapi.topic;
 
-import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
-
+import org.testng.annotations.Test;
+import static org.hamcrest.Matchers.is;
 import org.atlasapi.entity.Alias;
 import org.atlasapi.media.entity.Publisher;
-import org.junit.Test;
 
 public class TopicSerializerTest {
 

@@ -1,12 +1,13 @@
 package org.atlasapi.schedule;
 
+import org.testng.annotations.Test;
+
 import static org.hamcrest.Matchers.hasItems;
 import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertThat;
 
 import org.joda.time.DateTime;
 import org.joda.time.Interval;
-import org.junit.Test;
 
 import com.google.common.collect.Iterables;
 import com.metabroadcast.common.time.DateTimeZones;

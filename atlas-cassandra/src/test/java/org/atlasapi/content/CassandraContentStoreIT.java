@@ -3,20 +3,24 @@ package org.atlasapi.content;
 import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.isA;
-import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.argThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.testng.AssertJUnit.assertFalse;
+import static org.testng.AssertJUnit.assertTrue;
 
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
+import org.apache.log4j.ConsoleAppender;
+import org.apache.log4j.Level;
+import org.apache.log4j.Logger;
+import org.apache.log4j.PatternLayout;
 import org.atlasapi.entity.Alias;
 import org.atlasapi.entity.CassandraHelper;
 import org.atlasapi.entity.Id;
@@ -25,12 +29,14 @@ import org.atlasapi.entity.util.WriteException;
 import org.atlasapi.entity.util.WriteResult;
 import org.atlasapi.media.entity.Publisher;
 import org.joda.time.DateTime;
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.Mock;
+import org.mockito.testng.MockitoTestNGListener;
+import org.testng.annotations.AfterClass;
+import org.testng.annotations.AfterMethod;
+import org.testng.annotations.BeforeClass;
+import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.Listeners;
+import org.testng.annotations.Test;
 
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
@@ -48,24 +54,35 @@ import com.netflix.astyanax.model.ConsistencyLevel;
 import com.netflix.astyanax.serializers.LongSerializer;
 import com.netflix.astyanax.serializers.StringSerializer;
 
-@RunWith(MockitoJUnitRunner.class)
+@Listeners(MockitoTestNGListener.class)
 public class CassandraContentStoreIT {
 
     private static final AstyanaxContext<Keyspace> context = 
         CassandraHelper.testCassandraContext();
     
-    private final ContentHasher hasher = mock(ContentHasher.class);
-    private final IdGenerator idGenerator = mock(IdGenerator.class);
-    private final Clock clock = mock(Clock.class);
-    private final CassandraContentStore store = CassandraContentStore
-        .builder(context, "Content", hasher, idGenerator)
-        .withReadConsistency(ConsistencyLevel.CL_ONE)
-        .withWriteConsistency(ConsistencyLevel.CL_ONE)
-        .withClock(clock)
-        .build();
+    @Mock private ContentHasher hasher = mock(ContentHasher.class);
+    @Mock private IdGenerator idGenerator = mock(IdGenerator.class);
+    @Mock private Clock clock = mock(Clock.class);
+    
+    private CassandraContentStore store;
+    
+    @BeforeMethod
+    public void before() {
+        store = CassandraContentStore
+                .builder(context, "Content", hasher, idGenerator)
+                .withReadConsistency(ConsistencyLevel.CL_ONE)
+                .withWriteConsistency(ConsistencyLevel.CL_ONE)
+                .withClock(clock)
+                .build();
+    }
+    
+    Logger root = Logger.getRootLogger();
     
     @BeforeClass
-    public static void setup() throws ConnectionException {
+    public void setup() throws ConnectionException {
+        root.addAppender(new ConsoleAppender(
+            new PatternLayout(PatternLayout.TTCC_CONVERSION_PATTERN)));
+        root.setLevel(Level.WARN);
         context.start();
         CassandraHelper.createKeyspace(context);
         CassandraHelper.createColumnFamily(context, "Content", LongSerializer.get(), StringSerializer.get());
@@ -77,7 +94,7 @@ public class CassandraContentStoreIT {
         context.getClient().dropKeyspace();
     }
     
-    @After
+    @AfterMethod
     public void clearCf() throws ConnectionException {
         context.getClient().truncateColumnFamily("Content");
         context.getClient().truncateColumnFamily("Content_aliases");
@@ -216,7 +233,7 @@ public class CassandraContentStoreIT {
         verify(hasher, times(2)).hash(argThat(isA(Content.class)));
     }
 
-    @Test(expected=WriteException.class)
+    @Test(expectedExceptions=WriteException.class)
     public void testWritingItemWithMissingBrandFails() throws Exception {
         Item item = create(new Item());
         item.setContainerRef(new BrandRef(Id.valueOf(1235), item.getPublisher()));
@@ -227,7 +244,7 @@ public class CassandraContentStoreIT {
         
     }
 
-    @Test(expected=WriteException.class)
+    @Test(expectedExceptions=WriteException.class)
     public void testWritingSeriesWithMissingBrandFails() throws Exception {
         try {
             Series series = create(new Series());
@@ -239,7 +256,7 @@ public class CassandraContentStoreIT {
         }
     }
     
-    @Test(expected=IllegalArgumentException.class)
+    @Test(expectedExceptions=IllegalArgumentException.class)
     public void testWritingEpisodeWithoutBrandRefFails() throws Exception {
         try {
                 
@@ -252,7 +269,7 @@ public class CassandraContentStoreIT {
         }
     }
     
-    @Test(expected=WriteException.class)
+    @Test(expectedExceptions=WriteException.class)
     public void testWritingEpisodeWithoutBrandWrittenFails() throws Exception {
         try {
                 
@@ -271,7 +288,7 @@ public class CassandraContentStoreIT {
         }
     }
 
-    @Test(expected = WriteException.class)
+    @Test(expectedExceptions = WriteException.class)
     public void testWritingEpisodeWithSeriesRefWithoutSeriesWrittenFails() throws Exception {
         try {
             Brand brand = create(new Brand());

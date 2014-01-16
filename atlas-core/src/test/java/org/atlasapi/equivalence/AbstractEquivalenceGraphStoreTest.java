@@ -1,5 +1,14 @@
 package org.atlasapi.equivalence;
 
+import static org.testng.AssertJUnit.assertFalse;
+import static org.junit.Assert.assertThat;
+import static org.testng.AssertJUnit.assertEquals;
+import static org.testng.AssertJUnit.assertTrue;
+
+import org.testng.annotations.AfterMethod;
+import org.testng.annotations.Test;
+import org.testng.annotations.BeforeMethod;
+
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasEntry;
 import static org.hamcrest.Matchers.hasItem;
@@ -7,10 +16,6 @@ import static org.hamcrest.Matchers.hasItems;
 import static org.hamcrest.Matchers.hasKey;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
 
 import java.util.Map;
 import java.util.Set;
@@ -34,8 +39,6 @@ import org.atlasapi.util.GroupLock;
 import org.hamcrest.FeatureMatcher;
 import org.hamcrest.Matcher;
 import org.joda.time.DateTime;
-import org.junit.Before;
-import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -65,11 +68,10 @@ public class AbstractEquivalenceGraphStoreTest {
     private final Item c4Item = new Item(Id.valueOf(4), Publisher.C4);
     private final Item fiveItem = new Item(Id.valueOf(5), Publisher.FIVE);
     
-    private final EquivalenceGraphStore store = new AbstractEquivalenceGraphStore(){
-
+    private final class InMemoryEquivalenceGraphStore extends AbstractEquivalenceGraphStore {
+        
         private final Logger log = LoggerFactory.getLogger(getClass());
-        private final ConcurrentMap<Id, EquivalenceGraph> store =
-                Maps.newConcurrentMap();
+        private final ConcurrentMap<Id, EquivalenceGraph> store = Maps.newConcurrentMap();
         private final Function<Id, EquivalenceGraph> storeFn = Functions.forMap(store, null);
         private final GroupLock<Id> lock = GroupLock.natural();
         
@@ -85,7 +87,7 @@ public class AbstractEquivalenceGraphStoreTest {
             OptionalMap<Id, EquivalenceGraph> optionalMap = ImmutableOptionalMap.fromMap(result.build());
             return Futures.immediateFuture(optionalMap);
         }
-
+        
         @Override
         protected void doStore(ImmutableSet<EquivalenceGraph> graphs) {
             for (EquivalenceGraph graph : graphs) {
@@ -94,24 +96,32 @@ public class AbstractEquivalenceGraphStoreTest {
                 }
             }
         }
-
+        
         @Override
         protected Logger log() {
             return log;
         }
+        
         @Override
         protected GroupLock<Id> lock() {
             return lock;
         }
-    };
+    }
     
-    @Before
+    private final InMemoryEquivalenceGraphStore store = new InMemoryEquivalenceGraphStore();
+    
+    @BeforeMethod
     public void setup() {
         bbcItem.setThisOrChildLastUpdated(new DateTime(DateTimeZones.UTC));
         paItem.setThisOrChildLastUpdated(new DateTime(DateTimeZones.UTC));
         itvItem.setThisOrChildLastUpdated(new DateTime(DateTimeZones.UTC));
         c4Item.setThisOrChildLastUpdated(new DateTime(DateTimeZones.UTC));
         fiveItem.setThisOrChildLastUpdated(new DateTime(DateTimeZones.UTC));
+    }
+    
+    @AfterMethod
+    public void tearDown() {
+        store.store.clear();
     }
     
     @Test

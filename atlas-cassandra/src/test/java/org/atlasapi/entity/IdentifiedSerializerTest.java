@@ -1,15 +1,13 @@
 package org.atlasapi.entity;
 
-import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
-
+import org.testng.annotations.Test;
+import static org.hamcrest.Matchers.is;
 import org.atlasapi.content.Item;
 import org.atlasapi.equivalence.EquivalenceRef;
 import org.atlasapi.media.entity.Publisher;
 import org.atlasapi.serialization.protobuf.CommonProtos;
 import org.joda.time.DateTime;
-import org.junit.Test;
-
 import com.google.common.collect.ImmutableSet;
 import com.metabroadcast.common.time.DateTimeZones;
 

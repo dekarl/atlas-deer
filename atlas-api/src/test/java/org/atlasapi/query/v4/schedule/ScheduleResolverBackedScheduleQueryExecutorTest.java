@@ -10,7 +10,6 @@ import static org.junit.Assert.fail;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.argThat;
 import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyZeroInteractions;
 import static org.mockito.Mockito.when;
@@ -41,9 +40,11 @@ import org.atlasapi.schedule.ChannelSchedule;
 import org.atlasapi.schedule.Schedule;
 import org.atlasapi.schedule.ScheduleResolver;
 import org.joda.time.Interval;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.Mock;
+import org.mockito.testng.MockitoTestNGListener;
+import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.Listeners;
+import org.testng.annotations.Test;
 
 import com.google.common.base.Function;
 import com.google.common.collect.ImmutableList;
@@ -54,16 +55,19 @@ import com.google.common.util.concurrent.Futures;
 import com.metabroadcast.common.base.Maybe;
 import com.metabroadcast.common.time.DateTimeZones;
 
-@RunWith(MockitoJUnitRunner.class)
+@Listeners(MockitoTestNGListener.class)
 public class ScheduleResolverBackedScheduleQueryExecutorTest {
 
-    @SuppressWarnings("unchecked")
-    private final MergingEquivalentsResolver<Content> equivalentContentResolver = mock(MergingEquivalentsResolver.class); 
-    private final ChannelResolver channelResolver = mock(ChannelResolver.class);
-    private final ScheduleResolver scheduleResolver = mock(ScheduleResolver.class);
+    @Mock private MergingEquivalentsResolver<Content> equivalentContentResolver; 
+    @Mock private ChannelResolver channelResolver;
+    @Mock private ScheduleResolver scheduleResolver;
     
-    private final ScheduleResolverBackedScheduleQueryExecutor executor
-            = new ScheduleResolverBackedScheduleQueryExecutor(channelResolver, scheduleResolver, equivalentContentResolver);
+    private ScheduleResolverBackedScheduleQueryExecutor executor;
+    
+    @BeforeMethod
+    public void setup() {
+        executor = new ScheduleResolverBackedScheduleQueryExecutor(channelResolver, scheduleResolver, equivalentContentResolver);
+    }
     
     @Test
     public void testExecutingSingleScheduleQuery() throws Exception {

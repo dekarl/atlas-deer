@@ -1,9 +1,9 @@
 package org.atlasapi.content;
 
+import static org.junit.Assert.assertThat;
+import org.testng.annotations.Test;
 import static org.hamcrest.Matchers.instanceOf;
 import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertThat;
-
 import org.atlasapi.entity.Alias;
 import org.atlasapi.entity.Id;
 import org.atlasapi.entity.Serializer;
@@ -13,8 +13,6 @@ import org.atlasapi.serialization.protobuf.ContentProtos;
 import org.joda.time.DateTime;
 import org.joda.time.Duration;
 import org.joda.time.LocalDate;
-import org.junit.Test;
-
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.metabroadcast.common.intl.Countries;

@@ -27,4 +27,6 @@
       <scope>test</scope>
     </dependency>
   </dependencies>
+  <name>Atlas Core</name>
+  <description>Contains the core types and interfaces which define Atlas. Should be technology agnostic.</description>
 </project>
