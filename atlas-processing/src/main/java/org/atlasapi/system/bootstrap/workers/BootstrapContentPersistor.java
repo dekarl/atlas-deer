@@ -29,7 +29,6 @@ import com.google.common.base.Function;
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
-import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.metabroadcast.common.base.Maybe;
@@ -143,10 +142,14 @@ public class BootstrapContentPersistor implements ContentWriter {
 
     @Override
     @SuppressWarnings("unchecked")
-    public <C extends Content> WriteResult<C> writeContent(C content) {
+    public <C extends Content> WriteResult<C> writeContent(C content) throws WriteException {
         content.setReadHash(null);// force write
         log.debug("bootstrapping {}", content);
-        return (WriteResult<C>) content.accept(visitor);
+        try {
+            return (WriteResult<C>) content.accept(visitor);
+        } catch (RuntimeWriteException rwe) {
+            throw rwe.getCause();
+        }
     }
     
     private WriteResult<? extends Content> write(ItemAndBroadcast iab) throws WriteException {
