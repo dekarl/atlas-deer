@@ -7,6 +7,7 @@ import org.atlasapi.content.EquivalentContentStore;
 import org.atlasapi.equivalence.CassandraEquivalenceGraphStore;
 import org.atlasapi.equivalence.CassandraEquivalenceRecordStore;
 import org.atlasapi.equivalence.EquivalenceGraphStore;
+import org.atlasapi.messaging.ProducerQueueFactory;
 import org.atlasapi.schedule.CassandraScheduleStore;
 import org.atlasapi.topic.CassandraTopicStore;
 import org.atlasapi.topic.Topic;
@@ -15,6 +16,7 @@ import com.datastax.driver.core.Session;
 import com.google.common.base.Equivalence;
 import com.google.common.util.concurrent.AbstractIdleService;
 import com.metabroadcast.common.ids.IdGeneratorBuilder;
+import com.metabroadcast.common.properties.Configurer;
 import com.netflix.astyanax.AstyanaxContext;
 import com.netflix.astyanax.Keyspace;
 import com.netflix.astyanax.model.ConsistencyLevel;
@@ -22,6 +24,8 @@ import com.netflix.astyanax.model.ConsistencyLevel;
 
 public class CassandraPersistenceModule extends AbstractIdleService implements PersistenceModule {
 
+    private String contentEquivalenceGraphChanges = Configurer.get("messaging.destination.equivalence.content.graph.changes").get();
+    
     private final String keyspace;
 
     private final AstyanaxContext<Keyspace> context;
@@ -31,11 +35,15 @@ public class CassandraPersistenceModule extends AbstractIdleService implements P
     private final CassandraEquivalenceRecordStore equivalenceRecordStore;
     private final DatastaxCassandraService dataStaxService;
 
-    private CassandraEquivalenceGraphStore equivalenceGraphStore;
+    private CassandraEquivalenceGraphStore contentEquivalenceGraphStore;
     private CassandraEquivalentContentStore equivalentContentStore;
+
+    private ProducerQueueFactory messageSenderFactory;
     
-    public CassandraPersistenceModule(AstyanaxContext<Keyspace> context, DatastaxCassandraService datastaxCassandraService, 
-      String keyspace, IdGeneratorBuilder idGeneratorBuilder, ContentHasher hasher) {
+    public CassandraPersistenceModule(ProducerQueueFactory messageSenderFactory, 
+            AstyanaxContext<Keyspace> context, DatastaxCassandraService datastaxCassandraService, 
+            String keyspace, IdGeneratorBuilder idGeneratorBuilder, ContentHasher hasher) {
+        this.messageSenderFactory = messageSenderFactory;
         this.keyspace = keyspace;
         this.context = context;
         this.contentStore = CassandraContentStore.builder(context, "content", 
@@ -63,8 +71,8 @@ public class CassandraPersistenceModule extends AbstractIdleService implements P
         Session session = dataStaxService.getSession(keyspace);
         com.datastax.driver.core.ConsistencyLevel read = com.datastax.driver.core.ConsistencyLevel.ONE;
         com.datastax.driver.core.ConsistencyLevel write = com.datastax.driver.core.ConsistencyLevel.QUORUM;
-        this.equivalenceGraphStore = new CassandraEquivalenceGraphStore(session, read, write);
-        this.equivalentContentStore = new CassandraEquivalentContentStore(contentStore, equivalenceGraphStore, session, read, write);
+        this.contentEquivalenceGraphStore = new CassandraEquivalenceGraphStore(messageSenderFactory.makeMessageSender(contentEquivalenceGraphChanges), session, read, write);
+        this.equivalentContentStore = new CassandraEquivalentContentStore(contentStore, contentEquivalenceGraphStore, session, read, write);
     }
 
     @Override
@@ -111,7 +119,7 @@ public class CassandraPersistenceModule extends AbstractIdleService implements P
     }
 
     public EquivalenceGraphStore contentEquivalenceGraphStore() {
-        return this.equivalenceGraphStore;
+        return this.contentEquivalenceGraphStore;
     }
 
     public EquivalentContentStore equivalentContentStore() {

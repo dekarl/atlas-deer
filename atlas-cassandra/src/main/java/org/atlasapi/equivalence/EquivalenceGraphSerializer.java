@@ -31,7 +31,7 @@ public class EquivalenceGraphSerializer implements Serializer<EquivalenceGraph, 
     public ByteBuffer serialize(EquivalenceGraph src) {
         EquivProtos.EquivGraph.Builder dest = EquivProtos.EquivGraph.newBuilder();
         dest.setUpdated(serialize(src.getUpdated()));
-        for (Adjacents adjs : src.values()) {
+        for (Adjacents adjs : src.getAdjacencyList().values()) {
             dest.addAdjacency(serialize(adjs));
         }
         return ByteBuffer.wrap(dest.build().toByteArray());

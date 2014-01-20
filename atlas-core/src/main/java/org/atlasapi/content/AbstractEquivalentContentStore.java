@@ -38,7 +38,7 @@ public abstract class AbstractEquivalentContentStore implements EquivalentConten
             = ImmutableSetMultimap.builder();
         Function<Id, Optional<Content>> toContent = Functions.forMap(contentFor(graphs));
         for (EquivalenceGraph graph : graphs) {
-            Iterable<Optional<Content>> content = Collections2.transform(graph.keySet(), toContent);
+            Iterable<Optional<Content>> content = Collections2.transform(graph.getEquivalenceSet(), toContent);
             graphsAndContent.putAll(graph, Optional.presentInstances(content));
         }
         updateEquivalences(graphsAndContent.build());
@@ -51,7 +51,7 @@ public abstract class AbstractEquivalentContentStore implements EquivalentConten
             new Function<EquivalenceGraph, Set<Id>>() {
                 @Override
                 public Set<Id> apply(EquivalenceGraph input) {
-                    return input.keySet();
+                    return input.getEquivalenceSet();
                 }
             }
         ));

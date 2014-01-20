@@ -17,6 +17,7 @@ import static org.hamcrest.Matchers.hasKey;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;
 
+import java.io.IOException;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Callable;
@@ -35,6 +36,8 @@ import org.atlasapi.entity.Sourceds;
 import org.atlasapi.entity.util.WriteException;
 import org.atlasapi.equivalence.EquivalenceGraph.Adjacents;
 import org.atlasapi.media.entity.Publisher;
+import org.atlasapi.messaging.Message;
+import org.atlasapi.messaging.MessageSender;
 import org.atlasapi.util.GroupLock;
 import org.hamcrest.FeatureMatcher;
 import org.hamcrest.Matcher;
@@ -74,6 +77,15 @@ public class AbstractEquivalenceGraphStoreTest {
         private final ConcurrentMap<Id, EquivalenceGraph> store = Maps.newConcurrentMap();
         private final Function<Id, EquivalenceGraph> storeFn = Functions.forMap(store, null);
         private final GroupLock<Id> lock = GroupLock.natural();
+        
+        public InMemoryEquivalenceGraphStore() {
+            super(new MessageSender() {
+                @Override
+                public void sendMessage(Message message) throws IOException {
+                    //no-op
+                }
+            });
+        }
         
         @Override
         public ListenableFuture<OptionalMap<Id, EquivalenceGraph>> resolveIds(Iterable<Id> ids) {
@@ -345,8 +357,8 @@ public class AbstractEquivalenceGraphStoreTest {
         EquivalenceGraph initialBbcGraph = graphOf(bbcItem);
         EquivalenceGraph initialPaGraph = graphOf(paItem);
 
-        assertThat(initialBbcGraph.size(), is(41));
-        assertThat(initialPaGraph.size(), is(41));
+        assertThat(initialBbcGraph.getAdjacencyList().size(), is(41));
+        assertThat(initialPaGraph.getAdjacencyList().size(), is(41));
         assertThat(initialBbcGraph, adjacencyList(not(hasKey(paItem.getId()))));
         assertThat(initialPaGraph, adjacencyList(not(hasKey(bbcItem.getId()))));
 
@@ -354,8 +366,8 @@ public class AbstractEquivalenceGraphStoreTest {
         assertTrue(update.isPresent());
         assertEquals(1, update.get().size());
         
-        assertThat(graphOf(bbcItem).size(), is(82));
-        assertThat(graphOf(paItem).size(), is(82));
+        assertThat(graphOf(bbcItem).getAdjacencyList().size(), is(82));
+        assertThat(graphOf(paItem).getAdjacencyList().size(), is(82));
         assertThat(graphOf(bbcItem), adjacents(bbcItem.getId(), efferents(hasItem(paItem.toRef()))));
         assertThat(graphOf(bbcItem), adjacencyList(hasKey(paItem.getId())));
         assertThat(graphOf(paItem), adjacents(paItem.getId(), afferents(hasItem(bbcItem.toRef()))));
@@ -365,8 +377,8 @@ public class AbstractEquivalenceGraphStoreTest {
         assertTrue(update.isPresent());
         assertEquals(2, update.get().size());
         
-        assertThat(graphOf(bbcItem).size(), is(41));
-        assertThat(graphOf(paItem).size(), is(41));
+        assertThat(graphOf(bbcItem).getAdjacencyList().size(), is(41));
+        assertThat(graphOf(paItem).getAdjacencyList().size(), is(41));
         assertThat(graphOf(bbcItem), adjacents(bbcItem.getId(), efferents(not(hasItem(paItem.toRef())))));
         assertThat(graphOf(bbcItem), adjacencyList(not(hasKey(paItem.getId()))));
         assertThat(graphOf(paItem), adjacents(paItem.getId(), afferents(not(hasItem(bbcItem.toRef())))));
@@ -388,8 +400,8 @@ public class AbstractEquivalenceGraphStoreTest {
         EquivalenceGraph initialBbcGraph = graphOf(bbcItem);
         EquivalenceGraph initialPaGraph = graphOf(paItem);
 
-        assertThat(initialBbcGraph.size(), is(101));
-        assertThat(initialPaGraph.size(), is(101));
+        assertThat(initialBbcGraph.getAdjacencyList().size(), is(101));
+        assertThat(initialPaGraph.getAdjacencyList().size(), is(101));
         assertThat(initialBbcGraph, adjacencyList(not(hasKey(paItem.getId()))));
         assertThat(initialPaGraph, adjacencyList(not(hasKey(bbcItem.getId()))));
 
@@ -528,7 +540,7 @@ public class AbstractEquivalenceGraphStoreTest {
 
         @Override
         protected Adjacents featureValueOf(EquivalenceGraph actual) {
-            return actual.get(id);
+            return actual.getAdjacents(id);
         }
         
     }
@@ -545,7 +557,7 @@ public class AbstractEquivalenceGraphStoreTest {
 
         @Override
         protected Map<Id, Adjacents> featureValueOf(EquivalenceGraph actual) {
-            return actual;
+            return actual.getAdjacencyList();
         }
         
     }

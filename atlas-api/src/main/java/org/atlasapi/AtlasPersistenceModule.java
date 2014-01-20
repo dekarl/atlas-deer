@@ -10,6 +10,7 @@ import org.atlasapi.content.Content;
 import org.atlasapi.content.ContentHasher;
 import org.atlasapi.content.ContentStore;
 import org.atlasapi.content.EquivalenceWritingContentStore;
+import org.atlasapi.content.EquivalentContentStore;
 import org.atlasapi.content.EsContentIndex;
 import org.atlasapi.content.EsContentTitleSearcher;
 import org.atlasapi.equivalence.EquivalenceGraphStore;
@@ -88,7 +89,7 @@ public class AtlasPersistenceModule {
                 Integer.parseInt(cassandraClientThreads), Integer.parseInt(cassandraConnectionTimeout));
         DatastaxCassandraService cassandraService = new DatastaxCassandraService(seeds);
         cassandraService.startAsync().awaitRunning();
-        return new CassandraPersistenceModule(
+        return new CassandraPersistenceModule(messaging.producerQueueFactory(),
                 contextSupplier.get(),
                 cassandraService,
                 cassandraKeyspace,
@@ -117,18 +118,22 @@ public class AtlasPersistenceModule {
         return persistenceModule().scheduleStore();
     }
     
-
+    @Bean
     public EquivalenceGraphStore getContentEquivalenceGraphStore() {
         return persistenceModule().contentEquivalenceGraphStore();
     }
     
+    @Bean
+    public EquivalentContentStore getEquivalentContentStore() {
+        return persistenceModule().equivalentContentStore();
+    }
     
     @Bean @Deprecated
     public EquivalenceRecordStore equivalenceRecordStore() {
         return persistenceModule().getEquivalenceRecordStore();
     }
     
-    @Bean
+    @Bean @Deprecated
     public EquivalentsResolver<Content> equivalentContentResolver() {
         return new IdResolverBackedEquivalentResolver<Content>(equivalenceRecordStore(), contentStore());
     }

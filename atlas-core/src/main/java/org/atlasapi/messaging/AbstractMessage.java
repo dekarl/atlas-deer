@@ -13,12 +13,12 @@ public abstract class AbstractMessage implements Message {
     }
 
     @Override
-    public String getMessageId() {
+    public final String getMessageId() {
         return messageId;
     }
 
     @Override
-    public Timestamp getTimestamp() {
+    public final Timestamp getTimestamp() {
         return timestamp;
     }
 

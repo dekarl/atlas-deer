@@ -144,7 +144,7 @@ public class CassandraEquivalentContentStore extends AbstractEquivalentContentSt
     }
 
     private FluentIterable<Long> enabledIds(EquivalenceGraph graph, Set<Publisher> selectedSources) {
-        return FluentIterable.from(graph.values())
+        return FluentIterable.from(graph.getAdjacencyList().values())
                 .filter(Sourceds.sourceFilter(selectedSources))
                 .transform(Identifiables.toId())
                 .transform(Id.toLongValue());
@@ -199,12 +199,12 @@ public class CassandraEquivalentContentStore extends AbstractEquivalentContentSt
 
     private Collection<Statement> insertIntoIndex(EquivalenceGraph graph) {
         Long setId = setId(graph);
-        Iterable<Long> setMembers = Iterables.transform(graph.keySet(),Id.toLongValue());
+        Iterable<Long> setMembers = Iterables.transform(graph.getEquivalenceSet(),Id.toLongValue());
         return index.insertStatements(setMembers, setId);
     }
 
     private long setId(EquivalenceGraph graph) {
-        return Ordering.natural().min(graph.keySet()).longValue();
+        return Ordering.natural().min(graph.getEquivalenceSet()).longValue();
     }
 
     @Override

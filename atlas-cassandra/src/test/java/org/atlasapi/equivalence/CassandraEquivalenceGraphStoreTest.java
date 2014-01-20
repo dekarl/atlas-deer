@@ -4,6 +4,7 @@ import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
 import static org.testng.AssertJUnit.assertTrue;
 
+import java.io.IOException;
 import java.util.Set;
 
 import org.atlasapi.DatastaxCassandraService;
@@ -13,6 +14,8 @@ import org.atlasapi.entity.Id;
 import org.atlasapi.entity.ResourceRef;
 import org.atlasapi.entity.util.ResolveException;
 import org.atlasapi.media.entity.Publisher;
+import org.atlasapi.messaging.Message;
+import org.atlasapi.messaging.MessageSender;
 import org.joda.time.DateTime;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.AfterMethod;
@@ -35,6 +38,13 @@ public class CassandraEquivalenceGraphStoreTest {
         = new DatastaxCassandraService(ImmutableList.of("localhost"));
     private CassandraEquivalenceGraphStore store;
     private Session session;
+    
+    private MessageSender messageSender = new MessageSender() {
+        @Override
+        public void sendMessage(Message message) throws IOException {
+            //no-op;
+        }
+    };
 
     @BeforeClass
     public void setUp() {
@@ -56,7 +66,7 @@ public class CassandraEquivalenceGraphStoreTest {
             + "graph blob, "
             + "PRIMARY KEY (graph_id)"
         + ");");
-        store = new CassandraEquivalenceGraphStore(session , ConsistencyLevel.ONE, ConsistencyLevel.ONE);
+        store = new CassandraEquivalenceGraphStore(messageSender, session , ConsistencyLevel.ONE, ConsistencyLevel.ONE);
         System.out.println("blah " + store);
     }
     

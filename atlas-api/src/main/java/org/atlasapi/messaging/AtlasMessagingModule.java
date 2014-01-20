@@ -20,13 +20,13 @@ public class AtlasMessagingModule {
     @Value("${messaging.destination.topics.changes}") public String topicChanges;
 
     @Bean @Primary
-    public ConsumerQueueFactory consumerQueueFactory() {
-        return new ConsumerQueueFactory(connectionFactory(), messagingSystem, serializer());
+    public JmsConsumerQueueFactory consumerQueueFactory() {
+        return new JmsConsumerQueueFactory(connectionFactory(), messagingSystem, serializer());
     }
     
     @Bean @Primary
     public ProducerQueueFactory producerQueueFactory() {
-        return new ProducerQueueFactory(cachingConnectionFactory(), messagingSystem, serializer());
+        return new JmsProducerQueueFactory(cachingConnectionFactory(), messagingSystem, serializer());
     }
     
     @Bean

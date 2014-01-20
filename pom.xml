@@ -295,6 +295,31 @@
         <artifactId>spring-test</artifactId>
         <version>${spring.version}</version>
       </dependency>
+      <dependency>
+        <groupId>com.fasterxml.jackson.core</groupId>
+        <artifactId>jackson-core</artifactId>
+        <version>${jackson.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>com.fasterxml.jackson.datatype</groupId>
+        <artifactId>jackson-datatype-guava</artifactId>
+        <version>${jackson.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>com.fasterxml.jackson.core</groupId>
+        <artifactId>jackson-databind</artifactId>
+        <version>${jackson.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>com.fasterxml.jackson.datatype</groupId>
+        <artifactId>jackson-datatype-joda</artifactId>
+        <version>${jackson.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>com.fasterxml.jackson.core</groupId>
+        <artifactId>jackson-annotations</artifactId>
+        <version>${jackson.version}</version>
+      </dependency>
     </dependencies>
   </dependencyManagement>
 
@@ -313,6 +338,7 @@
     <spring.version>3.0.5.RELEASE</spring.version>
     <astyanax.version>1.56.44</astyanax.version>
     <datastax.version>1.0.4</datastax.version>
+    <jackson.version>2.3.0</jackson.version>
   </properties>
 
   <scm>

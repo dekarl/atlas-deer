@@ -1,5 +1,6 @@
 package org.atlasapi.content;
 
+import java.io.IOException;
 import java.util.UUID;
 
 import org.atlasapi.CassandraPersistenceModule;
@@ -7,6 +8,9 @@ import org.atlasapi.ConfiguredAstyanaxContext;
 import org.atlasapi.DatastaxCassandraService;
 import org.atlasapi.PersistenceModule;
 import org.atlasapi.entity.CassandraHelper;
+import org.atlasapi.messaging.Message;
+import org.atlasapi.messaging.MessageSender;
+import org.atlasapi.messaging.ProducerQueueFactory;
 import org.testng.annotations.AfterClass;
 
 import com.datastax.driver.core.Session;
@@ -22,6 +26,11 @@ import com.netflix.astyanax.serializers.StringSerializer;
 
 public class CassandraEquivalentContentStoreIT extends EquivalentContentStoreTestSuite {
 
+    {
+        //do not change this
+        System.setProperty("messaging.destination.equivalence.content.graph.changes", "just-bloody-work");
+    }
+    
     private static final ContentHasher hasher = new ContentHasher() {
 
         @Override
@@ -35,8 +44,20 @@ public class CassandraEquivalentContentStoreIT extends EquivalentContentStoreTes
     private final AstyanaxContext<Keyspace> context
         = new ConfiguredAstyanaxContext("Build", keyspace, seeds, 9160, 5, 60).get();
     private final DatastaxCassandraService cassandraService = new DatastaxCassandraService(seeds);
+
+    private ProducerQueueFactory messageSenderFactory = new ProducerQueueFactory() {
+        @Override
+        public MessageSender makeMessageSender(String destinationName) {
+            return new MessageSender() {
+                @Override
+                public void sendMessage(Message message) throws IOException {
+                    //no-op
+                }
+            };
+        }
+    };
     private final CassandraPersistenceModule persistenceModule
-        = new CassandraPersistenceModule(context, cassandraService,
+        = new CassandraPersistenceModule(messageSenderFactory , context, cassandraService,
             keyspace, idGeneratorBuilder(), hasher);
 
     @Override
@@ -69,8 +90,6 @@ public class CassandraEquivalentContentStoreIT extends EquivalentContentStoreTes
     public void tearDownKeyspace() {
         Session session = cassandraService.getCluster().connect();
         session.execute("DROP KEYSPACE atlas_testing");
-        System.out.println("finished");
-        
     }
 
 }

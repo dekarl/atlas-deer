@@ -11,6 +11,7 @@ import java.util.Map.Entry;
 
 import org.atlasapi.entity.Id;
 import org.atlasapi.equivalence.EquivalenceGraph.Adjacents;
+import org.atlasapi.messaging.MessageSender;
 import org.atlasapi.util.GroupLock;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -55,7 +56,8 @@ public final class CassandraEquivalenceGraphStore extends AbstractEquivalenceGra
     private final ConsistencyLevel read;
     private final ConsistencyLevel write;
 
-    public CassandraEquivalenceGraphStore(Session session, ConsistencyLevel read, ConsistencyLevel write) {
+    public CassandraEquivalenceGraphStore(MessageSender messageSender, Session session, ConsistencyLevel read, ConsistencyLevel write) {
+        super(messageSender);
         this.session = session;
         this.read = read;
         this.write = write;
@@ -145,7 +147,7 @@ public final class CassandraEquivalenceGraphStore extends AbstractEquivalenceGra
             Long graphId = lowestId(graph); 
             ByteBuffer serializedGraph = serializer.serialize(graph);
             updates.add(graphInsert(graphId, serializedGraph));
-            for (Entry<Id, Adjacents> adjacency : graph.entrySet()) {
+            for (Entry<Id, Adjacents> adjacency : graph.getAdjacencyList().entrySet()) {
                 updates.add(indexInsert(adjacency.getKey().longValue(), graphId));
             }
         }
@@ -166,7 +168,7 @@ public final class CassandraEquivalenceGraphStore extends AbstractEquivalenceGra
     }
 
     private Long lowestId(EquivalenceGraph graph) {
-        return Ordering.natural().min(graph.keySet()).longValue();
+        return Ordering.natural().min(graph.getAdjacencyList().keySet()).longValue();
     }
 
     @Override

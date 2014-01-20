@@ -1,11 +1,14 @@
 package org.atlasapi.equivalence;
 
+import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Predicates.in;
 import static com.google.common.base.Predicates.not;
 
+import java.io.IOException;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
 import org.atlasapi.entity.Id;
@@ -17,7 +20,9 @@ import org.atlasapi.entity.util.StoreException;
 import org.atlasapi.entity.util.WriteException;
 import org.atlasapi.equivalence.EquivalenceGraph.Adjacents;
 import org.atlasapi.media.entity.Publisher;
+import org.atlasapi.messaging.MessageSender;
 import org.atlasapi.util.GroupLock;
+import org.joda.time.DateTime;
 import org.slf4j.Logger;
 
 import com.google.common.base.Function;
@@ -36,6 +41,8 @@ import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.metabroadcast.common.collect.MoreSets;
 import com.metabroadcast.common.collect.OptionalMap;
+import com.metabroadcast.common.time.DateTimeZones;
+import com.metabroadcast.common.time.Timestamp;
 
 public abstract class AbstractEquivalenceGraphStore implements EquivalenceGraphStore {
 
@@ -43,6 +50,12 @@ public abstract class AbstractEquivalenceGraphStore implements EquivalenceGraphS
     private static final TimeUnit TIMEOUT_UNITS = TimeUnit.MINUTES;
     
     private static final int maxSetSize = 150;
+    
+    private final MessageSender messageSender;
+    
+    public AbstractEquivalenceGraphStore(MessageSender messageSender) {
+        this.messageSender = checkNotNull(messageSender);
+    }
     
     @Override
     public final Optional<ImmutableSet<EquivalenceGraph>> updateEquivalences(ResourceRef subject,
@@ -60,7 +73,12 @@ public abstract class AbstractEquivalenceGraphStore implements EquivalenceGraphS
                 }
             }
 
-            return updateGraphs(subject, ImmutableSet.<ResourceRef>copyOf(assertedAdjacents), sources);
+            Optional<ImmutableSet<EquivalenceGraph>> updated
+                = updateGraphs(subject, ImmutableSet.<ResourceRef>copyOf(assertedAdjacents), sources);
+            if (updated.isPresent()) {
+                sendUpdateMessage(subject, updated);
+            }
+            return updated;
             
         } catch(OversizeTransitiveSetException otse) {
             log().info(String.format("Oversize set: %s + %s: %s", 
@@ -83,6 +101,18 @@ public abstract class AbstractEquivalenceGraphStore implements EquivalenceGraphS
         }
         
     }
+
+    private void sendUpdateMessage(ResourceRef subject, Optional<ImmutableSet<EquivalenceGraph>> updated)  {
+        try {
+            messageSender.sendMessage(new EquivalenceGraphUpdateMessage(
+                UUID.randomUUID().toString(),
+                Timestamp.of(DateTime.now(DateTimeZones.UTC)), 
+                updated.get()
+            ));
+        } catch (IOException e) {
+            log().warn("messaging failed for equivalence update of " + subject, e);
+        }
+    }
     
     protected abstract GroupLock<Id> lock();
 
@@ -104,7 +134,7 @@ public abstract class AbstractEquivalenceGraphStore implements EquivalenceGraphS
             new Function<Optional<EquivalenceGraph>, Set<Id>>() {
                 @Override
                 public Set<Id> apply(Optional<EquivalenceGraph> input) {
-                    return input.isPresent() ? input.get().keySet() : ImmutableSet.<Id>of();
+                    return input.isPresent() ? input.get().getAdjacencyList().keySet() : ImmutableSet.<Id>of();
                 }
             }
         ));
@@ -122,7 +152,7 @@ public abstract class AbstractEquivalenceGraphStore implements EquivalenceGraphS
         }
         
         Map<Id, Adjacents> updatedAdjacents = updateAdjacencies(subject,
-                subjGraph.values(), assertedAdjacents, sources);
+                subjGraph.getAdjacencyList().values(), assertedAdjacents, sources);
         
         return Optional.of(store(recomputeGraphs(updatedAdjacents)));
     }
@@ -200,7 +230,7 @@ public abstract class AbstractEquivalenceGraphStore implements EquivalenceGraphS
         for (ResourceRef ref : adjacents) {
             Optional<EquivalenceGraph> g = resolved.get(ref.getId());
             if (g.isPresent()) {
-                result.addAll(g.get().values());
+                result.addAll(g.get().getAdjacencyList().values());
             } else {
                 result.add(Adjacents.valueOf(ref));
             }

@@ -25,8 +25,8 @@ public class QueueFactoryTest {
 
     private final ConnectionFactory cf = new ActiveMQConnectionFactory("vm://localhost");
     private final MessageSerializer serializer = new JacksonMessageSerializer();
-    private final ProducerQueueFactory pqf = new ProducerQueueFactory(cf, "test.system", serializer);
-    private final ConsumerQueueFactory cqf = new ConsumerQueueFactory(cf, "test.system", serializer);
+    private final ProducerQueueFactory pqf = new JmsProducerQueueFactory(cf, "test.system", serializer);
+    private final JmsConsumerQueueFactory cqf = new JmsConsumerQueueFactory(cf, "test.system", serializer);
     
     @Test
     public void testSendingAndReceivingAMessage() throws Exception {

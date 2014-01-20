@@ -6,20 +6,24 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.jms.core.JmsTemplate;
 
-public class ProducerQueueFactory {
+public class JmsProducerQueueFactory implements ProducerQueueFactory {
 
-    private static final Logger log = LoggerFactory.getLogger(ProducerQueueFactory.class);
+    private static final Logger log = LoggerFactory.getLogger(JmsProducerQueueFactory.class);
 
     private final String system;
     private final ConnectionFactory cf;
     private final MessageSerializer serializer;
 
-    public ProducerQueueFactory(ConnectionFactory cf, String system, MessageSerializer serializer) {
+    public JmsProducerQueueFactory(ConnectionFactory cf, String system, MessageSerializer serializer) {
         this.cf = cf;
         this.system = system;
         this.serializer = serializer;
     }
 
+    /* (non-Javadoc)
+     * @see org.atlasapi.messaging.ProducerQueueFactory#makeMessageSender(java.lang.String)
+     */
+    @Override
     public MessageSender makeMessageSender(String destinationName) {
         String destination = virtualTopicProducer(destinationName);
         log.info("Writing {}", destination);

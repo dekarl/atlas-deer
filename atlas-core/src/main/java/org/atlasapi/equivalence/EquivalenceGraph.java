@@ -16,10 +16,10 @@ import org.atlasapi.media.entity.Publisher;
 import org.joda.time.DateTime;
 
 import com.google.common.base.Predicates;
-import com.google.common.collect.ForwardingMap;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
+import com.google.common.collect.Ordering;
 import com.google.common.collect.Sets;
 import com.google.common.collect.Sets.SetView;
 import com.metabroadcast.common.collect.MoreSets;
@@ -31,7 +31,7 @@ import com.metabroadcast.common.time.DateTimeZones;
  * an adjacency list.
  * </p>
  */
-public class EquivalenceGraph extends ForwardingMap<Id, EquivalenceGraph.Adjacents> {
+public final class EquivalenceGraph implements Identifiable {
     
     /**
      * <p>
@@ -177,15 +177,17 @@ public class EquivalenceGraph extends ForwardingMap<Id, EquivalenceGraph.Adjacen
 
     private final ImmutableMap<Id, Adjacents> adjacencyList;
     private final DateTime updated;
+    private final Id id;
     
     public EquivalenceGraph(Map<Id, Adjacents> adjacencyList, DateTime updated) {
         this.adjacencyList = ImmutableMap.copyOf(adjacencyList);
         this.updated = checkNotNull(updated);
+        this.id = Ordering.natural().min(adjacencyList.keySet());
     }
-
+    
     @Override
-    protected Map<Id, Adjacents> delegate() {
-        return adjacencyList;
+    public Id getId() {
+        return id;
     }
 
     public ImmutableSet<Id> getEquivalenceSet() {
@@ -197,11 +199,37 @@ public class EquivalenceGraph extends ForwardingMap<Id, EquivalenceGraph.Adjacen
     }
 
     public Adjacents getAdjacents(Id id) {
-        return get(id);
+        return adjacencyList.get(id);
     }
     
     public Adjacents getAdjacents(Identifiable idable) {
-        return get(idable.getId());
+        return adjacencyList.get(idable.getId());
     }
 
+    public Map<Id, Adjacents> getAdjacencyList() {
+        return adjacencyList;
+    }
+    
+    @Override
+    public boolean equals(Object that) {
+        if (this == that) {
+            return true;
+        }
+        if (that instanceof EquivalenceGraph) {
+            EquivalenceGraph other = (EquivalenceGraph) that;
+            return adjacencyList.equals(other.adjacencyList)
+                && updated.equals(other.updated);
+        }
+        return false;
+    }
+
+    @Override
+    public int hashCode() {
+        return updated.hashCode();
+    }
+    
+    @Override
+    public String toString() {
+        return adjacencyList.toString();
+    }
 }

@@ -7,15 +7,15 @@ import org.slf4j.LoggerFactory;
 import org.springframework.jms.listener.DefaultMessageListenerContainer;
 import org.springframework.jms.listener.adapter.MessageListenerAdapter;
 
-public final class ConsumerQueueFactory {
+public final class JmsConsumerQueueFactory {
 
-    private static final Logger log = LoggerFactory.getLogger(ConsumerQueueFactory.class);
+    private static final Logger log = LoggerFactory.getLogger(JmsConsumerQueueFactory.class);
     
     private final String system;
     private final ConnectionFactory cf;
     private final MessageSerializer serializer;
 
-    public ConsumerQueueFactory(ConnectionFactory cf, String system, MessageSerializer serializer) {
+    public JmsConsumerQueueFactory(ConnectionFactory cf, String system, MessageSerializer serializer) {
         this.cf = cf;
         this.system = system;
         this.serializer = serializer;

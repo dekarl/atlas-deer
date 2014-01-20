@@ -6,6 +6,8 @@ import org.atlasapi.content.BrandRef;
 import org.atlasapi.content.ItemRef;
 import org.atlasapi.content.SeriesRef;
 import org.atlasapi.entity.Id;
+import org.atlasapi.equivalence.EquivalenceGraph;
+import org.atlasapi.equivalence.EquivalenceGraphUpdateMessage;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility;
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -16,10 +18,12 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.module.SimpleDeserializers;
 import com.fasterxml.jackson.databind.module.SimpleModule;
+import com.fasterxml.jackson.datatype.guava.GuavaModule;
 import com.fasterxml.jackson.datatype.joda.JodaModule;
 import com.google.common.io.ByteSource;
 import com.metabroadcast.common.time.Timestamp;
 
+//TODO should be able to register additional modules at creation time so as to decentralize configuration classes.
 public class JacksonMessageSerializer implements MessageSerializer {
     
     private ObjectMapper mapper;
@@ -37,6 +41,9 @@ public class JacksonMessageSerializer implements MessageSerializer {
             context.setMixInAnnotations(BeginReplayMessage.class, BasicMessageConfiguration.class);
             context.setMixInAnnotations(EndReplayMessage.class, BasicMessageConfiguration.class);
             context.setMixInAnnotations(ReplayMessage.class, ReplayMessageConfiguration.class);
+            context.setMixInAnnotations(EquivalenceGraphUpdateMessage.class, EquivalenceGraphUpdateMessageConfiguration.class);
+            context.setMixInAnnotations(EquivalenceGraph.class, EquivalenceGraphConfiguration.class);
+            context.setMixInAnnotations(EquivalenceGraph.Adjacents.class, AdjacentsConfiguration.class);
         }
     }
 
@@ -81,6 +88,7 @@ public class JacksonMessageSerializer implements MessageSerializer {
         mapper.disable(SerializationFeature.WRITE_EMPTY_JSON_ARRAYS, SerializationFeature.WRITE_NULL_MAP_VALUES);
         mapper.registerModule(new GenericModule());
         mapper.registerModule(new JodaModule());
+        mapper.registerModule(new GuavaModule());
         mapper.registerModule(new AtlasModelModule());
         mapper.registerModule(new MessagingModule());
         mapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
