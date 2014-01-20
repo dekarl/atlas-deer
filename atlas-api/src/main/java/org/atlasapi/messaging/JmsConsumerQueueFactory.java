@@ -43,7 +43,7 @@ public final class JmsConsumerQueueFactory {
     }
     
     private <M extends Message> DefaultMessageListenerContainer makeContainer(Worker<M> worker, MessageSerializer serializer, String destination, int consumers, int maxConsumers) {
-        log.info("Reading {} with {}", destination, worker.getClass().getSimpleName());
+        log.info("Reading {} with {}", destination, worker.getType().getSimpleName());
         
         JmsMessageAdapter<M> messageAdapter = new JmsMessageAdapter<M>(serializer, worker);
         MessageListenerAdapter adapter = new MessageListenerAdapter(messageAdapter);

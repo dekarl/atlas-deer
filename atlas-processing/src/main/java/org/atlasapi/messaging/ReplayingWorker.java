@@ -29,6 +29,11 @@ public class ReplayingWorker<M extends Message> extends BaseWorker<M> {
         this.delegate = delegate;
         this.replayThreshold = 60000;
     }
+    
+    @Override
+    public Class<?> getType() {
+        return delegate.getType();
+    }
 
     public void start() {
         scheduler.scheduleAtFixedRate(new ReplayCircuitBreaker(), replayThreshold, replayThreshold, TimeUnit.MILLISECONDS);

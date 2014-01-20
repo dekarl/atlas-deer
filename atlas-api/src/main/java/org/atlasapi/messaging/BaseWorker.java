@@ -7,4 +7,9 @@ package org.atlasapi.messaging;
  */
 public abstract class BaseWorker<M extends Message> implements Worker<M> {
 
+    @Override
+    public Class<?> getType() {
+        return getClass();
+    }
+    
 }

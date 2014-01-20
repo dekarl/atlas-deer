@@ -11,4 +11,5 @@ public interface Worker<M extends Message> {
      */
     void process(M message);
 
+    Class<?> getType();
 }
