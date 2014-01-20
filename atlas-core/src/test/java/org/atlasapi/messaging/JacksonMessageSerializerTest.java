@@ -2,8 +2,11 @@ package org.atlasapi.messaging;
 
 import static org.junit.Assert.assertThat;
 import static org.testng.AssertJUnit.assertTrue;
+
 import org.testng.annotations.Test;
+
 import static org.hamcrest.Matchers.is;
+
 import org.atlasapi.content.Brand;
 import org.atlasapi.content.Episode;
 import org.atlasapi.content.Item;
@@ -11,7 +14,9 @@ import org.atlasapi.content.Series;
 import org.atlasapi.entity.Id;
 import org.atlasapi.entity.ResourceRef;
 import org.atlasapi.media.entity.Publisher;
+import org.atlasapi.topic.Topic;
 import org.joda.time.DateTime;
+
 import com.google.common.io.ByteSource;
 import com.metabroadcast.common.time.DateTimeZones;
 import com.metabroadcast.common.time.Timestamp;
@@ -62,6 +67,25 @@ public class JacksonMessageSerializerTest {
         brand.setThisOrChildLastUpdated(new DateTime(DateTimeZones.UTC));
         
         ResourceUpdatedMessage msg = new ResourceUpdatedMessage("1", Timestamp.of(1234), brand.toRef());
+        
+        ByteSource serialized = serializer.serialize(msg);
+        
+        ResourceUpdatedMessage deserialized = serializer.deserialize(serialized);
+        
+        assertTrue(deserialized instanceof ResourceUpdatedMessage);
+        assertThat(deserialized.getMessageId(), is(msg.getMessageId()));
+        assertThat(deserialized.getTimestamp(), is(msg.getTimestamp()));
+        assertThat(deserialized.getUpdatedResource(), is(msg.getUpdatedResource()));
+        
+    }
+
+    @Test
+    public void testDeSerializationOfTopicUpdateMessage() throws Exception {
+        Topic topic = new Topic(Id.valueOf(1));
+        topic.setPublisher(Publisher.BBC);
+        topic.setThisOrChildLastUpdated(new DateTime(DateTimeZones.UTC));
+        
+        ResourceUpdatedMessage msg = new ResourceUpdatedMessage("1", Timestamp.of(1234), topic.toRef());
         
         ByteSource serialized = serializer.serialize(msg);
         

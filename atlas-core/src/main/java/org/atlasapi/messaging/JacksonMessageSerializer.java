@@ -8,6 +8,7 @@ import org.atlasapi.content.SeriesRef;
 import org.atlasapi.entity.Id;
 import org.atlasapi.equivalence.EquivalenceGraph;
 import org.atlasapi.equivalence.EquivalenceGraphUpdateMessage;
+import org.atlasapi.topic.TopicRef;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility;
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -58,6 +59,7 @@ public class JacksonMessageSerializer implements MessageSerializer {
             super.setupModule(context);
             context.setMixInAnnotations(Id.class, IdConfiguration.class);
             context.setMixInAnnotations(BrandRef.class, ResourceRefConfiguration.class);
+            context.setMixInAnnotations(TopicRef.class, ResourceRefConfiguration.class);
             context.setMixInAnnotations(ItemRef.class, ItemRefConfiguration.class);
             context.setMixInAnnotations(SeriesRef.class, SeriesRefConfiguration.class);
             context.setMixInAnnotations(Timestamp.class, TimestampConfiguration.class);
