@@ -11,8 +11,6 @@ import java.util.Map.Entry;
 
 import org.atlasapi.entity.Id;
 import org.atlasapi.equivalence.EquivalenceGraph.Adjacents;
-import org.atlasapi.serialization.protobuf.EquivProtos;
-import org.atlasapi.serialization.protobuf.EquivProtos.EquivGraph;
 import org.atlasapi.util.GroupLock;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -36,8 +34,6 @@ import com.google.common.collect.Ordering;
 import com.google.common.util.concurrent.AsyncFunction;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
-import com.google.protobuf.ByteString;
-import com.google.protobuf.InvalidProtocolBufferException;
 import com.metabroadcast.common.collect.ImmutableOptionalMap;
 import com.metabroadcast.common.collect.OptionalMap;
 
@@ -70,18 +66,12 @@ public final class CassandraEquivalenceGraphStore extends AbstractEquivalenceGra
         = new Function<ResultSet, Map<Long, EquivalenceGraph>>() {
             @Override
             public Map<Long, EquivalenceGraph> apply(ResultSet rows) {
-                try {
-                    ImmutableMap.Builder<Long, EquivalenceGraph> idGraph = ImmutableMap.builder();
-                    for (Row row : rows) {
-                        Long graphId = row.getLong(GRAPH_ID_KEY);
-                        ByteString bytes = ByteString.copyFrom(row.getBytes(GRAPH_KEY));
-                        EquivGraph buffer = EquivProtos.EquivGraph.parseFrom(bytes);
-                        idGraph.put(graphId, serializer.deserialize(buffer));
-                    }
-                    return idGraph.build();
-                } catch (InvalidProtocolBufferException ipbe) {
-                    throw new RuntimeException(ipbe);
+                ImmutableMap.Builder<Long, EquivalenceGraph> idGraph = ImmutableMap.builder();
+                for (Row row : rows) {
+                    Long graphId = row.getLong(GRAPH_ID_KEY);
+                    idGraph.put(graphId, serializer.deserialize(row.getBytes(GRAPH_KEY)));
                 }
+                return idGraph.build();
             }
 
         };
@@ -153,7 +143,7 @@ public final class CassandraEquivalenceGraphStore extends AbstractEquivalenceGra
         List<Statement> updates = Lists.newArrayList();
         for (EquivalenceGraph graph : graphs) {
             Long graphId = lowestId(graph); 
-            ByteBuffer serializedGraph = ByteBuffer.wrap(serializer.serialize(graph).toByteArray());
+            ByteBuffer serializedGraph = serializer.serialize(graph);
             updates.add(graphInsert(graphId, serializedGraph));
             for (Entry<Id, Adjacents> adjacency : graph.entrySet()) {
                 updates.add(indexInsert(adjacency.getKey().longValue(), graphId));

@@ -33,7 +33,7 @@ public abstract class AbstractEquivalentContentStore implements EquivalentConten
     }
 
     @Override
-    public void updateEquivalences(Set<EquivalenceGraph> graphs) throws WriteException {
+    public synchronized void updateEquivalences(Set<EquivalenceGraph> graphs) throws WriteException {
         ImmutableSetMultimap.Builder<EquivalenceGraph, Content> graphsAndContent
             = ImmutableSetMultimap.builder();
         Function<Id, Optional<Content>> toContent = Functions.forMap(contentFor(graphs));
@@ -67,14 +67,21 @@ public abstract class AbstractEquivalentContentStore implements EquivalentConten
     }
 
     @Override
-    public void updateContent(ResourceRef ref) throws WriteException {
+    public synchronized void updateContent(ResourceRef ref) throws WriteException {
         ImmutableList<Id> ids = ImmutableList.of(ref.getId());
+        OptionalMap<Id, Content> resolvedContent = resolveIds(ids);
+        Content content = resolvedContent.get(ref.getId()).get();
+        
         ListenableFuture<OptionalMap<Id, EquivalenceGraph>> graphs = graphStore.resolveIds(ids);
-        OptionalMap<Id, Content> content = resolveIds(ids);
-        EquivalenceGraph graph = get(graphs).get(ref.getId()).or(EquivalenceGraph.valueOf(ref));
-        updateInGraph(graph, content.get(ref.getId()).get());
+        Optional<EquivalenceGraph> possibleGraph = get(graphs).get(ref.getId());
+        
+        if (possibleGraph.isPresent()) {
+            updateInSet(possibleGraph.get(), content);
+        } else {
+            updateEquivalences(ImmutableSetMultimap.of(EquivalenceGraph.valueOf(ref), content));
+        }
     }
 
-    protected abstract void updateInGraph(EquivalenceGraph graph, Content content);
+    protected abstract void updateInSet(EquivalenceGraph graph, Content content);
 
 }

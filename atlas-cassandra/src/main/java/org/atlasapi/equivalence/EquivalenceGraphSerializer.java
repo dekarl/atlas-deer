@@ -1,5 +1,6 @@
 package org.atlasapi.equivalence;
 
+import java.nio.ByteBuffer;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -18,20 +19,22 @@ import org.joda.time.DateTime;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
+import com.google.protobuf.ByteString;
+import com.google.protobuf.InvalidProtocolBufferException;
 import com.metabroadcast.common.time.DateTimeZones;
 
-public class EquivalenceGraphSerializer implements Serializer<EquivalenceGraph, EquivProtos.EquivGraph> {
+public class EquivalenceGraphSerializer implements Serializer<EquivalenceGraph, ByteBuffer> {
 
     ResourceRefSerializer serializer = new ResourceRefSerializer();
     
     @Override
-    public EquivGraph serialize(EquivalenceGraph src) {
+    public ByteBuffer serialize(EquivalenceGraph src) {
         EquivProtos.EquivGraph.Builder dest = EquivProtos.EquivGraph.newBuilder();
         dest.setUpdated(serialize(src.getUpdated()));
         for (Adjacents adjs : src.values()) {
             dest.addAdjacency(serialize(adjs));
         }
-        return dest.build();
+        return ByteBuffer.wrap(dest.build().toByteArray());
     }
     
     private Adjacency.Builder serialize(Adjacents adjs) {
@@ -52,8 +55,14 @@ public class EquivalenceGraphSerializer implements Serializer<EquivalenceGraph, 
     }
 
     @Override
-    public EquivalenceGraph deserialize(EquivGraph dest) {
-        return new EquivalenceGraph(deserialize(dest.getAdjacencyList()), deserialize(dest.getUpdated()));
+    public EquivalenceGraph deserialize(ByteBuffer dest) {
+        try {
+            ByteString bytes = ByteString.copyFrom(dest);
+            EquivGraph buffer = EquivProtos.EquivGraph.parseFrom(bytes);
+            return new EquivalenceGraph(deserialize(buffer.getAdjacencyList()), deserialize(buffer.getUpdated()));
+        } catch (InvalidProtocolBufferException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     private Map<Id, Adjacents> deserialize(List<Adjacency> src) {

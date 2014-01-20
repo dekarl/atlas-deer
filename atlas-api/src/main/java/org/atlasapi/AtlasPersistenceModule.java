@@ -6,8 +6,6 @@ import java.util.UUID;
 
 import javax.annotation.PostConstruct;
 
-import org.atlasapi.CassandraPersistenceModule;
-import org.atlasapi.ElasticSearchContentIndexModule;
 import org.atlasapi.content.Content;
 import org.atlasapi.content.ContentHasher;
 import org.atlasapi.content.ContentStore;
@@ -84,15 +82,22 @@ public class AtlasPersistenceModule {
 
     @Bean
     public CassandraPersistenceModule persistenceModule() {
-        return new CassandraPersistenceModule(Splitter.on(",").split(cassandraSeeds), 
-            Integer.parseInt(cassandraPort), cassandraCluster, cassandraKeyspace, 
-            Integer.parseInt(cassandraClientThreads), Integer.parseInt(cassandraConnectionTimeout), 
-            idGeneratorBuilder(), new ContentHasher() {
-                @Override
-                public String hash(Content content) {
-                    return UUID.randomUUID().toString();
-                }
-            });
+        Iterable<String> seeds = Splitter.on(",").split(cassandraSeeds);
+        ConfiguredAstyanaxContext contextSupplier = new ConfiguredAstyanaxContext(cassandraCluster, cassandraKeyspace, 
+                seeds, Integer.parseInt(cassandraPort), 
+                Integer.parseInt(cassandraClientThreads), Integer.parseInt(cassandraConnectionTimeout));
+        DatastaxCassandraService cassandraService = new DatastaxCassandraService(seeds);
+        cassandraService.startAsync().awaitRunning();
+        return new CassandraPersistenceModule(
+                contextSupplier.get(),
+                cassandraService,
+                cassandraKeyspace,
+                idGeneratorBuilder(), new ContentHasher() {
+                    @Override
+                    public String hash(Content content) {
+                        return UUID.randomUUID().toString();
+                    }
+                });
     }
     
     @Bean

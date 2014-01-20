@@ -1,6 +1,7 @@
 package org.atlasapi;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static com.google.common.base.Preconditions.checkState;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -14,7 +15,7 @@ import com.google.common.base.Joiner;
 import com.google.common.collect.FluentIterable;
 import com.google.common.util.concurrent.AbstractIdleService;
 
-public class DatastaxCassandraService extends AbstractIdleService {
+public final class DatastaxCassandraService extends AbstractIdleService {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
     private final Cluster.Builder clusterBuilder;
@@ -48,10 +49,16 @@ public class DatastaxCassandraService extends AbstractIdleService {
     }
 
     public Session getSession(String keyspace) {
+        checkRunning();
         return cluster.connect(keyspace);
     }
 
+    private void checkRunning() {
+        checkState(isRunning(), this + " is not running");
+    }
+
     public Cluster getCluster() {
+        checkRunning();
         return cluster;
     }
 
