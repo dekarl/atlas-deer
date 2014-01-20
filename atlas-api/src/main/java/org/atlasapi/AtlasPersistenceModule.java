@@ -53,6 +53,8 @@ import com.mongodb.Mongo;
 import com.mongodb.MongoClient;
 import com.mongodb.ReadPreference;
 import com.mongodb.ServerAddress;
+import com.netflix.astyanax.AstyanaxContext;
+import com.netflix.astyanax.Keyspace;
 
 @Configuration
 @Import({AtlasMessagingModule.class})
@@ -87,10 +89,13 @@ public class AtlasPersistenceModule {
         ConfiguredAstyanaxContext contextSupplier = new ConfiguredAstyanaxContext(cassandraCluster, cassandraKeyspace, 
                 seeds, Integer.parseInt(cassandraPort), 
                 Integer.parseInt(cassandraClientThreads), Integer.parseInt(cassandraConnectionTimeout));
+        AstyanaxContext<Keyspace> context = contextSupplier.get();
+        context.start();
         DatastaxCassandraService cassandraService = new DatastaxCassandraService(seeds);
         cassandraService.startAsync().awaitRunning();
+        
         return new CassandraPersistenceModule(messaging.producerQueueFactory(),
-                contextSupplier.get(),
+                context,
                 cassandraService,
                 cassandraKeyspace,
                 idGeneratorBuilder(), new ContentHasher() {
