@@ -18,8 +18,8 @@ import org.atlasapi.criteria.AttributeQuerySet;
 import org.atlasapi.entity.Id;
 import org.atlasapi.query.annotation.ActiveAnnotations;
 import org.atlasapi.topic.Topic;
-import org.junit.Before;
-import org.junit.Test;
+import org.testng.annotations.BeforeClass;
+import org.testng.annotations.Test;
 import org.junit.runner.RunWith;
 import org.mockito.runners.MockitoJUnitRunner;
 
@@ -37,7 +37,7 @@ public class ContextualQueryParserTest {
     private final ContextualQueryContextParser queryContextParser = mock(ContextualQueryContextParser.class);
     private ContextualQueryParser<Topic, Content> parser;
     
-    @Before
+    @BeforeClass
     public void setUp() {
         when(attributeParser.getParameterNames()).thenReturn(ImmutableSet.of("alias.namespace"));
         when(queryContextParser.getParameterNames()).thenReturn(ImmutableSet.<String>of());

@@ -2,17 +2,15 @@ package org.atlasapi.content;
 
 import org.atlasapi.entity.Id;
 import org.atlasapi.media.entity.Publisher;
-import org.joda.time.DateTime;
 
 import com.google.common.base.Function;
 import com.google.common.base.Strings;
-import com.metabroadcast.common.time.DateTimeZones;
 
 public class Series extends Container {
 	
 	private Integer seriesNumber;
 	private Integer totalEpisodes;
-	private ParentRef parent;
+	private BrandRef brandRef;
 	
 	public Series() {}
 	
@@ -44,17 +42,16 @@ public class Series extends Container {
 		return seriesNumber;
 	}
 	
-	public void setParent(Brand parent) {
-	    this.parent = ParentRef.parentRefFrom(parent);
+	public void setBrand(Brand brand) {
+	    this.brandRef = brand.toRef();
 	}
 
-    public void setParentRef(ParentRef parent) {
-        this.parent = parent;
+    public void setBrandRef(BrandRef brandRef) {
+        this.brandRef = brandRef;
     }
 	
-	
-	public ParentRef getParent() {
-	    return this.parent;
+	public BrandRef getBrandRef() {
+	    return this.brandRef;
 	}
 	
 	@Override
@@ -72,9 +69,9 @@ public class Series extends Container {
         }
     };
     
-    public SeriesRef seriesRef() {
-        return new SeriesRef(this.getId(), Strings.nullToEmpty(this.getTitle()), 
-                this.seriesNumber, new DateTime(DateTimeZones.UTC));
+    public SeriesRef toRef() {
+        return new SeriesRef(getId(), getPublisher(), Strings.nullToEmpty(this.getTitle()), 
+                this.seriesNumber, getThisOrChildLastUpdated());
     }
     
     public void setTotalEpisodes(Integer totalEpisodes) {

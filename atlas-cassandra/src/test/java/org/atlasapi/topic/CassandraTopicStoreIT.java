@@ -3,9 +3,7 @@ package org.atlasapi.topic;
 import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.isA;
-import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.argThat;
 import static org.mockito.Mockito.mock;
@@ -13,6 +11,8 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.testng.AssertJUnit.assertFalse;
+import static org.testng.AssertJUnit.assertTrue;
 
 import java.util.concurrent.TimeUnit;
 
@@ -23,12 +23,14 @@ import org.atlasapi.entity.util.Resolved;
 import org.atlasapi.entity.util.WriteResult;
 import org.atlasapi.media.entity.Publisher;
 import org.joda.time.DateTime;
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.Mock;
+import org.mockito.testng.MockitoTestNGListener;
+import org.testng.annotations.AfterClass;
+import org.testng.annotations.AfterMethod;
+import org.testng.annotations.BeforeClass;
+import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.Listeners;
+import org.testng.annotations.Test;
 
 import com.google.common.base.Equivalence;
 import com.google.common.collect.ImmutableList;
@@ -43,7 +45,7 @@ import com.netflix.astyanax.model.ConsistencyLevel;
 import com.netflix.astyanax.serializers.LongSerializer;
 import com.netflix.astyanax.serializers.StringSerializer;
 
-@RunWith(MockitoJUnitRunner.class)
+@Listeners(MockitoTestNGListener.class)
 public class CassandraTopicStoreIT {
     
     public class StubbableEquivalence<T> extends Equivalence<T> {
@@ -64,17 +66,22 @@ public class CassandraTopicStoreIT {
         CassandraHelper.testCassandraContext();
 
     @SuppressWarnings("unchecked")
-    private final StubbableEquivalence<Topic> equiv = mock(StubbableEquivalence.class);
-    private final IdGenerator idGenerator = mock(IdGenerator.class);
-    private final Clock clock = mock(Clock.class);
+    @Mock private StubbableEquivalence<Topic> equiv = mock(StubbableEquivalence.class);
+    @Mock private IdGenerator idGenerator = mock(IdGenerator.class);
+    @Mock private Clock clock = mock(Clock.class);
 
-    private final CassandraTopicStore topicStore = CassandraTopicStore
-        .builder(context, "topics", equiv, idGenerator)
-        .withReadConsistency(ConsistencyLevel.CL_ONE)
-        .withWriteConsistency(ConsistencyLevel.CL_ONE)
-        .withClock(clock)
+    private CassandraTopicStore topicStore;
+
+    @BeforeMethod
+    public void before() {
+        topicStore = CassandraTopicStore
+            .builder(context, "topics", equiv, idGenerator)
+            .withReadConsistency(ConsistencyLevel.CL_ONE)
+            .withWriteConsistency(ConsistencyLevel.CL_ONE)
+            .withClock(clock)
         .build();
-
+    }
+    
     @BeforeClass
     public static void setup() throws ConnectionException {
         context.start();
@@ -94,7 +101,7 @@ public class CassandraTopicStoreIT {
         context.getClient().dropKeyspace();
     }
 
-    @After
+    @AfterMethod
     public void clearCf() throws ConnectionException {
         CassandraHelper.clearColumnFamily(context, "topics");
         CassandraHelper.clearColumnFamily(context, "topics_aliases");

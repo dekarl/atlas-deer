@@ -1,18 +1,16 @@
 package org.atlasapi.messaging;
 
-import org.atlasapi.messaging.EntityUpdatedMessage;
-import org.atlasapi.messaging.MessageStore;
 
-public class MessageLogger extends BaseWorker {
+public class MessageLogger<M extends Message> extends BaseWorker<M> {
 
-    private final MessageStore store;
+    private final MessageStore<M> store;
 
-    public MessageLogger(MessageStore store) {
+    public MessageLogger(MessageStore<M> store) {
         this.store = store;
     }
 
     @Override
-    public void process(EntityUpdatedMessage message) {
+    public void process(M message) {
         store.add(message);
     }
 }

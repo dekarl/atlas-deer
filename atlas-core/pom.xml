@@ -7,6 +7,8 @@
     <version>7.0.4-SNAPSHOT</version>
   </parent>
   <artifactId>atlas-core</artifactId>
+  <name>Atlas Core</name>
+  <description>Contains the core types and interfaces which define Atlas. Should be technology agnostic.</description>
   <packaging>jar</packaging>
   <dependencies>
     <dependency>
@@ -25,6 +27,26 @@
       <groupId>org.slf4j</groupId>
       <artifactId>slf4j-log4j12</artifactId>
       <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>com.fasterxml.jackson.core</groupId>
+      <artifactId>jackson-core</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>com.fasterxml.jackson.datatype</groupId>
+      <artifactId>jackson-datatype-guava</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>com.fasterxml.jackson.core</groupId>
+      <artifactId>jackson-databind</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>com.fasterxml.jackson.datatype</groupId>
+      <artifactId>jackson-datatype-joda</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>com.fasterxml.jackson.core</groupId>
+      <artifactId>jackson-annotations</artifactId>
     </dependency>
   </dependencies>
 </project>

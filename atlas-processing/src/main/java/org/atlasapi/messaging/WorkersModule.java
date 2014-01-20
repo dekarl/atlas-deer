@@ -4,6 +4,8 @@ import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 
 import org.atlasapi.AtlasPersistenceModule;
+import org.atlasapi.equivalence.EquivalenceGraphUpdateMessage;
+import org.atlasapi.system.bootstrap.workers.LegacyMessageSerializer;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -20,8 +22,15 @@ public class WorkersModule {
     private static final String INDEXER_CONSUMER = "Indexer";
     private String contentChanges = Configurer.get("messaging.destination.content.changes").get();
     private String topicChanges = Configurer.get("messaging.destination.topics.changes").get();
+    private String contentEquivalenceGraphChanges = Configurer.get("messaging.destination.equivalence.content.graph.changes").get();
+    
     private Integer defaultIndexingConsumers = Configurer.get("messaging.indexing.consumers.default").toInt();
     private Integer maxIndexingConsumers = Configurer.get("messaging.indexing.consumers.max").toInt();
+    
+    private String equivSystem = Configurer.get("equiv.update.producer.system").get();
+    private String equivTopic = Configurer.get("equiv.update.producer.topic").get();
+    private Integer equivDefltConsumers = Configurer.get("equiv.update.consumers.default").toInt();
+    private Integer equivMaxConsumers = Configurer.get("equiv.update.consumers.max").toInt();
     
 //    private String loggerDestination = Configurer.get("messaging.destination.logger").get();
 //    private int loggerConsumers = Integer.parseInt(Configurer.get("messaging.consumers.logger").get());
@@ -32,8 +41,8 @@ public class WorkersModule {
 
     @Bean
     @Lazy(true)
-    public ReplayingWorker contentIndexingWorker() {
-        return new ReplayingWorker(new ContentIndexingWorker(persistence.contentStore(), persistence.contentIndex()));
+    public ReplayingWorker<ResourceUpdatedMessage> contentIndexingWorker() {
+        return new ReplayingWorker<>(new ContentIndexingWorker(persistence.contentStore(), persistence.contentIndex()));
     }
 
     @Bean
@@ -50,8 +59,8 @@ public class WorkersModule {
 
     @Bean
     @Lazy(true)
-    public ReplayingWorker topicIndexingWorker() {
-        return new ReplayingWorker(new TopicIndexingWorker(persistence.topicStore(), persistence.topicIndex()));
+    public ReplayingWorker<ResourceUpdatedMessage> topicIndexingWorker() {
+        return new ReplayingWorker<>(new TopicIndexingWorker(persistence.topicStore(), persistence.topicIndex()));
     }
     
     @Bean
@@ -66,6 +75,43 @@ public class WorkersModule {
         return messaging.consumerQueueFactory().makeReplayContainer(topicIndexingWorker(), "Topics.Indexer", 1, 1);
     }
 
+    @Bean
+    @Lazy(true)
+    public ReplayingWorker<EquivalenceGraphUpdateMessage> equivalentContentStoreGraphUpdateWorker() {
+        return new ReplayingWorker<>(new EquivalentContentStoreGraphUpdateWorker(persistence.getEquivalentContentStore()));
+    }
+    
+    @Bean
+    @Lazy(true)
+    public DefaultMessageListenerContainer equivalentContentStoreGraphUpdateListener() {
+        return messaging.consumerQueueFactory().makeVirtualTopicConsumer(equivalentContentStoreGraphUpdateWorker(), "EquivalentContentStoreGraphs", contentEquivalenceGraphChanges, defaultIndexingConsumers, maxIndexingConsumers);
+    }
+    
+    @Bean
+    @Lazy(true)
+    public DefaultMessageListenerContainer equivalentContentStoreGraphUpdateReplayListener() {
+        return messaging.consumerQueueFactory().makeReplayContainer(equivalentContentStoreGraphUpdateWorker(), "EquivalentContent.EquivalenceGraphs", 1, 1);
+    }
+
+    @Bean
+    @Lazy(true)
+    public ReplayingWorker<ResourceUpdatedMessage> equivalentContentStoreContentUpdateWorker() {
+        return new ReplayingWorker<>(new EquivalentContentStoreContentUpdateWorker(persistence.getEquivalentContentStore()));
+    }
+    
+    @Bean
+    @Lazy(true)
+    public DefaultMessageListenerContainer equivalentContentStoreContentUpdateListener() {
+        return messaging.consumerQueueFactory().makeVirtualTopicConsumer(equivalentContentStoreContentUpdateWorker(), "EquivalentContentStoreContent", contentChanges, defaultIndexingConsumers, maxIndexingConsumers);
+    }
+    
+    @Bean
+    @Lazy(true)
+    public DefaultMessageListenerContainer equivalentContentStoreContentUpdateReplayListener() {
+        return messaging.consumerQueueFactory().makeReplayContainer(equivalentContentStoreContentUpdateWorker(), "EquivalentContent.Content", 1, 1);
+    }
+
+
 //    @Bean
 //    @Lazy(true)
 //    public Worker messageLogger() {
@@ -78,14 +124,30 @@ public class WorkersModule {
 //        return makeContainer(messageLogger(), loggerDestination, loggerConsumers, loggerConsumers);
 //    }
 
+    @Bean
+    @Lazy(true)
+    public ReplayingWorker<EquivalenceAssertionMessage> contentEquivalenceUpdater() {
+        return new ReplayingWorker<>(new ContentEquivalenceUpdatingWorker(persistence.getContentEquivalenceGraphStore()));
+    }
+    
+    @Bean
+    @Lazy(true)
+    public DefaultMessageListenerContainer equivUpdateListener() {
+        return messaging.consumerQueueFactory().makeVirtualTopicConsumer(contentEquivalenceUpdater(), 
+                new LegacyMessageSerializer(),
+                "Equiv.Graph.Update", equivSystem, equivTopic, equivDefltConsumers, equivMaxConsumers);
+    }
+
     @PostConstruct
     public void start() {
         contentIndexingWorker().start();
+        topicIndexingWorker().start();
     }
 
     @PreDestroy
     public void stop() {
         contentIndexingWorker().stop();
+        topicIndexingWorker().start();
     }
 
 }

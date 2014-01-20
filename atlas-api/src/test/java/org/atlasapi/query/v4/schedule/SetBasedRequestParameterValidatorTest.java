@@ -4,7 +4,7 @@ import javax.servlet.http.HttpServletRequest;
 
 import org.atlasapi.query.common.InvalidParameterException;
 import org.atlasapi.query.common.SetBasedRequestParameterValidator;
-import org.junit.Test;
+import org.testng.annotations.Test;
 
 import com.metabroadcast.common.servlet.StubHttpServletRequest;
 
@@ -21,12 +21,12 @@ public class SetBasedRequestParameterValidatorTest {
         validator.validateParameters(requestWithParams("from","to","publisher","apiKey","annotations"));
     }
 
-    @Test(expected=InvalidParameterException.class)
+    @Test(expectedExceptions=InvalidParameterException.class)
     public void testThrowsExceptionMissingParameters() throws Exception {
         validator.validateParameters(requestWithParams("from","to"));
     }
 
-    @Test(expected=InvalidParameterException.class)
+    @Test(expectedExceptions=InvalidParameterException.class)
     public void testThrowsExceptionInvalidParameters() throws Exception {
         validator.validateParameters(requestWithParams("form","to","wibble"));
     }

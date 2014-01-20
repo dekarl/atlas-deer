@@ -14,7 +14,7 @@ import org.atlasapi.criteria.StringAttributeQuery;
 import org.atlasapi.criteria.attribute.Attributes;
 import org.atlasapi.criteria.operator.Operators;
 import org.atlasapi.entity.Id;
-import org.junit.Test;
+import org.testng.annotations.Test;
 
 import com.google.common.base.Predicates;
 import com.google.common.collect.ImmutableList;
@@ -124,7 +124,7 @@ public class QueryAttributeParserTest {
         
     }
 
-    @Test(expected=InvalidOperatorException.class)
+    @Test(expectedExceptions=InvalidOperatorException.class)
     public void testThrowsExceptionForUnknownOperator() throws Exception {
         
         parser.parse(request()

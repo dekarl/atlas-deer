@@ -27,8 +27,8 @@ import org.atlasapi.query.common.Resource;
 import org.joda.time.DateTime;
 import org.joda.time.Duration;
 import org.joda.time.Interval;
-import org.junit.Before;
-import org.junit.Test;
+import org.testng.annotations.BeforeClass;
+import org.testng.annotations.Test;
 import org.junit.runner.RunWith;
 import org.mockito.runners.MockitoJUnitRunner;
 
@@ -59,7 +59,7 @@ public class ScheduleRequestParserTest {
     private final Channel channel1 = Channel.builder().build();
     private final Channel channel2 = Channel.builder().build();
     
-    @Before
+    @BeforeClass
     public void setup() throws Exception {
         channel1.setId(1234L);
         channel2.setId(1235L);
@@ -113,7 +113,7 @@ public class ScheduleRequestParserTest {
         assertThat(query.getContext().getApplicationSources(), is(ApplicationSources.defaults()));
     }
     
-    @Test(expected=IllegalArgumentException.class)
+    @Test(expectedExceptions=IllegalArgumentException.class)
     public void testDoesntAcceptQueryDurationGreaterThanMax() throws Exception {
         
         DateTime from = new DateTime(DateTimeZones.UTC);
@@ -126,7 +126,7 @@ public class ScheduleRequestParserTest {
 
     }
 
-    @Test(expected=IllegalArgumentException.class)
+    @Test(expectedExceptions=IllegalArgumentException.class)
     public void testDoesntAcceptDisabledPublisherOutOfOpenRange() throws Exception {
         
         DateTime from = new DateTime(2012,12,06,10,00,00,000,DateTimeZones.UTC);
@@ -165,7 +165,7 @@ public class ScheduleRequestParserTest {
         
     }
 
-    @Test(expected=IllegalArgumentException.class)
+    @Test(expectedExceptions=IllegalArgumentException.class)
     public void testDoesntAcceptDisabledPublisherBeyondEndOfRange() throws Exception {
         
         DateTime from = new DateTime(2012,12,22,00,00,00,000,DateTimeZones.UTC);

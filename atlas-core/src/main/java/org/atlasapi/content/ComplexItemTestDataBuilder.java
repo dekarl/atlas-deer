@@ -128,7 +128,7 @@ public class ComplexItemTestDataBuilder {
     public ComplexItemTestDataBuilder withBrand(Container brand) {
         this.brand = brand;
         
-        brand.setChildRefs(ImmutableSet.<ChildRef>builder().addAll(brand.getChildRefs()).add(this.build().childRef()).build());
+        brand.setItemRefs(ImmutableSet.<ItemRef>builder().addAll(brand.getItemRefs()).add(this.build().toRef()).build());
         
         return this;
     }

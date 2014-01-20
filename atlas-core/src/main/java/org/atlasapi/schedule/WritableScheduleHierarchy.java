@@ -154,7 +154,7 @@ class WritableScheduleHierarchy {
         for (Series sery : series) {
             Brand tlc = seriesBrandIndex.get(sery);
             if (tlc != null) {
-                sery.setParent((Brand) tlcWritten.get(tlc));
+                sery.setBrand((Brand) tlcWritten.get(tlc));
             }
             WriteResult<Series> written = contentStore.writeContent(sery);
             results.add(written);

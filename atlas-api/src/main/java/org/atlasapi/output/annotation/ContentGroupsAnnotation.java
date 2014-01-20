@@ -11,7 +11,7 @@ import org.atlasapi.entity.Id;
 import org.atlasapi.output.EntityListWriter;
 import org.atlasapi.output.FieldWriter;
 import org.atlasapi.output.OutputContext;
-import org.atlasapi.output.writers.ChildRefWriter;
+import org.atlasapi.output.writers.ItemRefWriter;
 import org.atlasapi.persistence.content.ContentGroupResolver;
 import org.atlasapi.persistence.content.ResolvedContent;
 
@@ -25,15 +25,15 @@ public class ContentGroupsAnnotation extends OutputAnnotation<Content> {
 
     public static final class ContentGroupWriter implements EntityListWriter<ContentGroup> {
 
-        private final ChildRefWriter childRefWriter;
+        private final ItemRefWriter childRefWriter;
 
         public ContentGroupWriter(NumberToShortStringCodec idCodec) {
-            childRefWriter = new ChildRefWriter(idCodec, "content");
+            childRefWriter = new ItemRefWriter(idCodec, "content");
         }
 
         @Override
         public void write(ContentGroup entity, FieldWriter writer, OutputContext ctxt) throws IOException {
-            writer.writeList(childRefWriter, entity.getContents(), ctxt);
+            //TODO: introduce contentref writer. writer.writeList(childRefWriter, entity.getContents(), ctxt);
         }
 
         @Override

@@ -6,17 +6,17 @@ import java.util.UUID;
 
 import javax.annotation.PostConstruct;
 
-import org.atlasapi.CassandraPersistenceModule;
-import org.atlasapi.ElasticSearchContentIndexModule;
 import org.atlasapi.content.Content;
 import org.atlasapi.content.ContentHasher;
 import org.atlasapi.content.ContentStore;
 import org.atlasapi.content.EquivalenceWritingContentStore;
+import org.atlasapi.content.EquivalentContentStore;
 import org.atlasapi.content.EsContentIndex;
 import org.atlasapi.content.EsContentTitleSearcher;
-import org.atlasapi.equiv.EquivalenceRecordStore;
-import org.atlasapi.equiv.EquivalentsResolver;
-import org.atlasapi.equiv.IdResolverBackedEquivalentResolver;
+import org.atlasapi.equivalence.EquivalenceGraphStore;
+import org.atlasapi.equivalence.EquivalenceRecordStore;
+import org.atlasapi.equivalence.EquivalentsResolver;
+import org.atlasapi.equivalence.IdResolverBackedEquivalentResolver;
 import org.atlasapi.media.channel.CachingChannelStore;
 import org.atlasapi.media.channel.ChannelGroupStore;
 import org.atlasapi.media.channel.ChannelStore;
@@ -83,15 +83,22 @@ public class AtlasPersistenceModule {
 
     @Bean
     public CassandraPersistenceModule persistenceModule() {
-        return new CassandraPersistenceModule(Splitter.on(",").split(cassandraSeeds), 
-            Integer.parseInt(cassandraPort), cassandraCluster, cassandraKeyspace, 
-            Integer.parseInt(cassandraClientThreads), Integer.parseInt(cassandraConnectionTimeout), 
-            idGeneratorBuilder(), new ContentHasher() {
-                @Override
-                public String hash(Content content) {
-                    return UUID.randomUUID().toString();
-                }
-            });
+        Iterable<String> seeds = Splitter.on(",").split(cassandraSeeds);
+        ConfiguredAstyanaxContext contextSupplier = new ConfiguredAstyanaxContext(cassandraCluster, cassandraKeyspace, 
+                seeds, Integer.parseInt(cassandraPort), 
+                Integer.parseInt(cassandraClientThreads), Integer.parseInt(cassandraConnectionTimeout));
+        DatastaxCassandraService cassandraService = new DatastaxCassandraService(seeds);
+        cassandraService.startAsync().awaitRunning();
+        return new CassandraPersistenceModule(messaging.producerQueueFactory(),
+                contextSupplier.get(),
+                cassandraService,
+                cassandraKeyspace,
+                idGeneratorBuilder(), new ContentHasher() {
+                    @Override
+                    public String hash(Content content) {
+                        return UUID.randomUUID().toString();
+                    }
+                });
     }
     
     @Bean
@@ -112,11 +119,21 @@ public class AtlasPersistenceModule {
     }
     
     @Bean
+    public EquivalenceGraphStore getContentEquivalenceGraphStore() {
+        return persistenceModule().contentEquivalenceGraphStore();
+    }
+    
+    @Bean
+    public EquivalentContentStore getEquivalentContentStore() {
+        return persistenceModule().equivalentContentStore();
+    }
+    
+    @Bean @Deprecated
     public EquivalenceRecordStore equivalenceRecordStore() {
         return persistenceModule().getEquivalenceRecordStore();
     }
     
-    @Bean
+    @Bean @Deprecated
     public EquivalentsResolver<Content> equivalentContentResolver() {
         return new IdResolverBackedEquivalentResolver<Content>(equivalenceRecordStore(), contentStore());
     }
@@ -217,5 +234,5 @@ public class AtlasPersistenceModule {
     HealthProbe mongoConnectionProbe() {
         return new MongoConnectionPoolProbe();
     }
-    
+
 }

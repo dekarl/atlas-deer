@@ -1,10 +1,17 @@
 package org.atlasapi.schedule;
 
+import static org.junit.Assert.assertThat;
+
+import org.testng.annotations.AfterClass;
+import org.testng.annotations.AfterMethod;
+import org.testng.annotations.Test;
+import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.BeforeClass;
+
 import static com.metabroadcast.common.time.DateTimeZones.UTC;
 import static org.atlasapi.media.entity.Publisher.METABROADCAST;
 import static org.atlasapi.util.ElasticSearchHelper.refresh;
 import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertThat;
 
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
@@ -29,12 +36,6 @@ import org.atlasapi.util.ElasticSearchHelper;
 import org.elasticsearch.node.Node;
 import org.joda.time.DateTime;
 import org.joda.time.Interval;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.runners.MockitoJUnitRunner;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
@@ -43,13 +44,12 @@ import com.metabroadcast.common.time.Clock;
 import com.metabroadcast.common.time.DateTimeZones;
 import com.metabroadcast.common.time.TimeMachine;
 
-@RunWith(MockitoJUnitRunner.class)
 public class EsScheduleIndexTest {
 
     private final Node esClient = ElasticSearchHelper.testNode();
     private final Clock clock = new TimeMachine(new DateTime(2012,11,19,10,10,10,10,DateTimeZones.UTC));
     private final EsScheduleIndex scheduleIndex = new EsScheduleIndex(esClient, clock);
-    private final EsContentIndex contentIndexer = new EsContentIndex(esClient, EsSchema.CONTENT_INDEX, clock, 60000);
+    private EsContentIndex contentIndexer;
 
     private final Channel channel1 = Channel.builder().withUri("http://www.bbc.co.uk/services/bbcone").build();
     private final Channel channel2 = Channel.builder().withUri("http://www.bbc.co.uk/services/bbctwo").build();
@@ -62,16 +62,21 @@ public class EsScheduleIndexTest {
         root.setLevel(Level.WARN);
     }
     
-    @Before
-    public void setUp() throws Exception {
-        contentIndexer.startAsync().awaitRunning();
-        refresh(esClient);
+    @AfterClass
+    public void after() {
+        esClient.close();
     }
     
-    @After
+    @BeforeMethod
+    public void setUp() throws Exception {
+        ElasticSearchHelper.refresh(esClient);
+        contentIndexer = new EsContentIndex(esClient, EsSchema.CONTENT_INDEX, clock, 60000);
+        contentIndexer.startAsync().awaitRunning();
+    }
+    
+    @AfterMethod
     public void tearDown() throws Exception {
         ElasticSearchHelper.clearIndices(esClient);
-        esClient.close();
     }
     
     @Test

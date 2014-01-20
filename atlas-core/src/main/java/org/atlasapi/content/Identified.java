@@ -13,8 +13,8 @@ import org.atlasapi.entity.Id;
 import org.atlasapi.entity.Identifiable;
 import org.atlasapi.entity.Identifiables;
 import org.atlasapi.entity.Sourced;
-import org.atlasapi.equiv.EquivalenceRef;
-import org.atlasapi.equiv.Equivalent;
+import org.atlasapi.equivalence.EquivalenceRef;
+import org.atlasapi.equivalence.Equivalent;
 import org.atlasapi.content.Content;
 import org.joda.time.DateTime;
 

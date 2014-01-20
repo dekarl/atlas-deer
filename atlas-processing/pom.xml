@@ -148,4 +148,6 @@
     </snapshotRepository>
   </distributionManagement>
 
+  <name>Atlas Processing Server</name>
+  <description>Server to run background/batch/processing tasks for Atlas</description>
 </project>

@@ -1,11 +1,11 @@
 package org.atlasapi.content;
 
+import static org.junit.Assert.assertNotEquals;
+import static org.junit.Assert.assertThat;
+import org.testng.annotations.Test;
 import static org.hamcrest.Matchers.hasItems;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.isOneOf;
-import static org.junit.Assert.assertNotEquals;
-import static org.junit.Assert.assertThat;
-
 import java.util.Collection;
 import java.util.Set;
 
@@ -14,8 +14,6 @@ import org.atlasapi.segment.SegmentRef;
 import org.atlasapi.serialization.protobuf.ContentProtos;
 import org.joda.time.DateTime;
 import org.joda.time.Duration;
-import org.junit.Test;
-
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import com.metabroadcast.common.time.DateTimeZones;

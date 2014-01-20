@@ -7,7 +7,7 @@ import com.google.common.collect.ImmutableList;
 
 public abstract class Container extends Content {
 
-    protected ImmutableList<ChildRef> childRefs = ImmutableList.of();
+    protected ImmutableList<ItemRef> itemRefs = ImmutableList.of();
 
 	public Container(String uri, String curie, Publisher publisher) {
 		super(uri, curie, publisher);
@@ -19,20 +19,22 @@ public abstract class Container extends Content {
     
     public Container() {}
     
-    public ImmutableList<ChildRef> getChildRefs() {
-        return childRefs;
+    public ImmutableList<ItemRef> getItemRefs() {
+        return itemRefs;
     }
     
-    public void setChildRefs(Iterable<ChildRef> childRefs) {
-        this.childRefs = ImmutableList.copyOf(childRefs);
+    public void setItemRefs(Iterable<ItemRef> itemRefs) {
+        this.itemRefs = ImmutableList.copyOf(itemRefs);
     }
     
     public final static <T extends Item> void copyTo(Container from, Container to) {
         Content.copyTo(from, to);
-        to.childRefs = ImmutableList.copyOf(from.childRefs);
+        to.itemRefs = ImmutableList.copyOf(from.itemRefs);
     }
 
     public abstract <V> V accept(ContainerVisitor<V> visitor);
+    
+    public abstract ContainerRef toRef();
     
     @Override
     public <V> V accept(ContentVisitor<V> visitor) {

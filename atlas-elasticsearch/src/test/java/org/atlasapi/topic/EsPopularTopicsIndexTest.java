@@ -1,8 +1,12 @@
 package org.atlasapi.topic;
 
+import static org.testng.AssertJUnit.assertEquals;
+import org.testng.annotations.AfterMethod;
+import org.testng.annotations.Test;
+import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.BeforeClass;
 import static org.atlasapi.util.ElasticSearchHelper.refresh;
 import static org.hamcrest.Matchers.hasItems;
-import static org.junit.Assert.assertEquals;
 import static org.mockito.Matchers.argThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -24,11 +28,6 @@ import org.atlasapi.util.ElasticSearchHelper;
 import org.elasticsearch.node.Node;
 import org.joda.time.DateTime;
 import org.joda.time.Interval;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
-
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
 import com.google.common.util.concurrent.Futures;
@@ -49,12 +48,12 @@ public class EsPopularTopicsIndexTest {
         root.setLevel(Level.WARN);
     }
 
-    @Before
+    @BeforeMethod
     public void setup() {
         index.startAsync().awaitRunning();
     }
     
-    @After
+    @AfterMethod
     public void after() throws Exception {
         ElasticSearchHelper.clearIndices(esClient);
         esClient.close();

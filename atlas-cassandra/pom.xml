@@ -24,9 +24,9 @@
             </goals>
             <configuration>
               <executable>sh</executable>
-              <commandlineArgs>-c "mkdir -p ${project.build.directory}/generated-sources/protoc &amp;&amp;\
-               protoc -I ./ -I /usr/include --java_out=${project.build.directory}/generated-sources/protoc *.proto"</commandlineArgs>
-              <sourceRoot>${project.build.directory}/generated-sources/protoc</sourceRoot> 
+              <commandlineArgs>-c "mkdir -p ${project.build.directory}/generated-sources/protoc &amp;&amp;
+               protoc -I ./ -I /usr/local/include --java_out=${project.build.directory}/generated-sources/protoc *.proto"</commandlineArgs>
+              <sourceRoot>${project.build.directory}/generated-sources/protoc</sourceRoot>
               <workingDirectory>${basedir}/src/main/protobuf</workingDirectory>
             </configuration>
           </execution>
@@ -44,15 +44,34 @@
             </goals>
           </execution>
         </executions>
+        <configuration>
+            <useManifestOnlyJar>false</useManifestOnlyJar>
+        </configuration>
       </plugin>
     </plugins>
   </build>
 
   <dependencies>
     <dependency>
+      <groupId>org.xerial.snappy</groupId>
+      <artifactId>snappy-java</artifactId>
+      <version>1.0.5</version>
+    </dependency>
+    <dependency>
+      <groupId>net.jpountz.lz4</groupId>
+      <artifactId>lz4</artifactId>
+      <version>1.2.0</version>
+    </dependency>
+    <dependency>
       <groupId>org.atlasapi</groupId>
       <version>${atlas.version}</version>
       <artifactId>atlas-core</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.atlasapi</groupId>
+      <version>${atlas.version}</version>
+      <artifactId>atlas-testlib</artifactId>
+      <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>com.google.protobuf</groupId>
@@ -70,6 +89,18 @@
     <dependency>
       <groupId>com.netflix.astyanax</groupId>
       <artifactId>astyanax-cassandra</artifactId>
+      <exclusions>
+        <exclusion>
+          <groupId>org.jboss.netty</groupId>
+          <artifactId>netty</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+    <dependency>
+      <groupId>com.datastax.cassandra</groupId>
+      <artifactId>cassandra-driver-core</artifactId>
     </dependency>
   </dependencies>
+  <name>Atlas Cassandra</name>
+  <description>Apache Cassandra implementations of core Atlas persistence interfaces.</description>
 </project>

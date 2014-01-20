@@ -1,17 +1,15 @@
 package org.atlasapi.messaging;
 
+import com.metabroadcast.common.time.Timestamp;
+
 
 /**
  * Message signaling the end of a messages replay.
  */
 public class EndReplayMessage extends AbstractMessage {
 
-    public EndReplayMessage(String messageId, Long timestamp, String entityId, String entityType, String entitySource) {
-        super(messageId, timestamp, entityId, entityType, entitySource);
+    public EndReplayMessage(String messageId, Timestamp timestamp) {
+        super(messageId, timestamp);
     }
 
-    @Override
-    public void dispatchTo(Worker worker) {
-        worker.process(this);
-    }
 }

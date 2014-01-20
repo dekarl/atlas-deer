@@ -1,15 +1,16 @@
 package org.atlasapi.equiv;
 
-import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
-
+import org.testng.annotations.Test;
+import static org.hamcrest.Matchers.is;
 import org.atlasapi.content.Content;
 import org.atlasapi.content.Episode;
 import org.atlasapi.entity.Id;
 import org.atlasapi.entity.Serializer;
+import org.atlasapi.equivalence.EquivalenceRecord;
+import org.atlasapi.equivalence.EquivalenceRecordSerializer;
+import org.atlasapi.equivalence.EquivalenceRef;
 import org.atlasapi.media.entity.Publisher;
-import org.junit.Test;
-
 import com.google.common.collect.ImmutableList;
 
 public class EquivalenceRecordSerializerTest {

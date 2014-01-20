@@ -23,7 +23,7 @@ import org.atlasapi.output.annotation.OutputAnnotation;
 import org.atlasapi.output.annotation.SeriesReferenceAnnotation;
 import org.atlasapi.output.annotation.SeriesSummaryAnnotation;
 import org.atlasapi.persistence.output.ContainerSummaryResolver;
-import org.junit.Test;
+import org.testng.annotations.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 

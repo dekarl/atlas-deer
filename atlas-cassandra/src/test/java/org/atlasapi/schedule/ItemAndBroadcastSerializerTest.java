@@ -1,16 +1,14 @@
 package org.atlasapi.schedule;
 
-import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
-
+import org.testng.annotations.Test;
+import static org.hamcrest.Matchers.is;
 import org.atlasapi.content.Broadcast;
 import org.atlasapi.content.Episode;
 import org.atlasapi.content.Item;
 import org.atlasapi.content.ItemAndBroadcast;
 import org.atlasapi.media.entity.Publisher;
 import org.joda.time.DateTime;
-import org.junit.Test;
-
 import com.metabroadcast.common.time.DateTimeZones;
 
 

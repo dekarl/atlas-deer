@@ -3,7 +3,7 @@ package org.atlasapi.entity;
 import static org.atlasapi.entity.ProtoBufUtils.deserializeDateTime;
 
 import org.atlasapi.content.Identified;
-import org.atlasapi.equiv.EquivalenceRef;
+import org.atlasapi.equivalence.EquivalenceRef;
 import org.atlasapi.serialization.protobuf.CommonProtos;
 import org.atlasapi.serialization.protobuf.CommonProtos.Reference;
 import org.atlasapi.source.Sources;

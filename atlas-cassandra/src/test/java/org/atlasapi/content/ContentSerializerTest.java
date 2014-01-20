@@ -1,20 +1,18 @@
 package org.atlasapi.content;
 
+import static org.junit.Assert.assertThat;
+import org.testng.annotations.Test;
 import static org.hamcrest.Matchers.instanceOf;
 import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertThat;
-
 import org.atlasapi.entity.Alias;
 import org.atlasapi.entity.Id;
 import org.atlasapi.entity.Serializer;
-import org.atlasapi.equiv.EquivalenceRef;
+import org.atlasapi.equivalence.EquivalenceRef;
 import org.atlasapi.media.entity.Publisher;
 import org.atlasapi.serialization.protobuf.ContentProtos;
 import org.joda.time.DateTime;
 import org.joda.time.Duration;
 import org.joda.time.LocalDate;
-import org.junit.Test;
-
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.metabroadcast.common.intl.Countries;
@@ -30,7 +28,7 @@ public class ContentSerializerTest {
         Brand brand = new Brand();
         setContainerProperties(brand);
         brand.setSeriesRefs(ImmutableSet.of(
-            new SeriesRef(Id.valueOf(123L), "sort", 1, new DateTime(DateTimeZones.UTC))
+            new SeriesRef(Id.valueOf(123L), brand.getPublisher(), "sort", 1, new DateTime(DateTimeZones.UTC))
         ));
         
         ContentProtos.Content serialized = serializer.serialize(brand);
@@ -49,7 +47,7 @@ public class ContentSerializerTest {
         setContainerProperties(series);
         serializeAndCheck(series);
 
-        series.setParentRef(new ParentRef(1234L, EntityType.BRAND));
+        series.setBrandRef(new BrandRef(Id.valueOf(1234L), series.getPublisher()));
         serializeAndCheck(series);
         
         series.setTotalEpisodes(5);
@@ -67,7 +65,7 @@ public class ContentSerializerTest {
         Series deserializedSeries = (Series) deserialized;
         
         checkContainerProperties(deserializedSeries, series);
-        assertThat(deserializedSeries.getParent(), is(series.getParent()));
+        assertThat(deserializedSeries.getBrandRef(), is(series.getBrandRef()));
         assertThat(deserializedSeries.getTotalEpisodes(), is(series.getTotalEpisodes()));
         assertThat(deserializedSeries.getSeriesNumber(), is(series.getSeriesNumber()));
     }
@@ -93,7 +91,8 @@ public class ContentSerializerTest {
         episode.setEpisodeNumber(5);
         episode.setPartNumber(4);
         episode.setSeriesNumber(5);
-        episode.setSeriesRef(new ParentRef(5, EntityType.SERIES));
+        SeriesRef seriesRef = new SeriesRef(Id.valueOf(5), episode.getPublisher(), "title", 5, new DateTime(DateTimeZones.LONDON));
+        episode.setSeriesRef(seriesRef);
         
         ContentProtos.Content serialized = serializer.serialize(episode);
         Content deserialized = serializer.deserialize(serialized);
@@ -164,12 +163,12 @@ public class ContentSerializerTest {
 
     private void checkContainerProperties(Container actual, Container expected) {
         checkContentProperties(actual, expected);
-        assertThat(actual.getChildRefs(), is(expected.getChildRefs()));
+        assertThat(actual.getItemRefs(), is(expected.getItemRefs()));
     }
 
     private void checkItemProperties(Item actual, Item expected) {
         checkContentProperties(actual, expected);
-        assertThat(actual.getContainer(), is(expected.getContainer()));
+        assertThat(actual.getContainerRef(), is(expected.getContainerRef()));
         assertThat(actual.getContainerSummary().getTitle(), is(expected.getContainerSummary().getTitle()));
         assertThat(actual.getBlackAndWhite(), is(expected.getBlackAndWhite()));
         assertThat(actual.getCountriesOfOrigin(), is(expected.getCountriesOfOrigin()));
@@ -220,14 +219,14 @@ public class ContentSerializerTest {
 
     private void setContainerProperties(Container container) {
         setContentProperties(container);
-        container.setChildRefs(ImmutableSet.of(
-            new ChildRef(123L, "sort", new DateTime(DateTimeZones.UTC), EntityType.EPISODE)
+        container.setItemRefs(ImmutableSet.of(
+            new ItemRef(Id.valueOf(123L), container.getPublisher(), "sort", new DateTime(DateTimeZones.UTC))
         ));
     }
 
     private void setItemProperties(Item item) {
         setContentProperties(item);
-        item.setParentRef(new ParentRef(4321, EntityType.BRAND));
+        item.setContainerRef(new BrandRef(Id.valueOf(4321), item.getPublisher()));
         item.setContainerSummary(new Item.ContainerSummary("brand", "title", "description", null));
         item.setBlackAndWhite(true);
         item.setCountriesOfOrigin(ImmutableSet.of(Countries.GB));

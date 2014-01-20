@@ -11,18 +11,15 @@ import static org.mockito.Mockito.when;
 
 import org.atlasapi.entity.Id;
 import org.atlasapi.media.entity.Publisher;
-import org.junit.Test;
-import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.invocation.InvocationOnMock;
-import org.mockito.runners.MockitoJUnitRunner;
 import org.mockito.stubbing.Answer;
+import org.testng.annotations.Test;
 
 import com.netflix.astyanax.ColumnListMutation;
 import com.netflix.astyanax.model.Column;
 import com.netflix.astyanax.model.ColumnList;
 
-@RunWith(MockitoJUnitRunner.class)
 public class ProtobufContentMarshallerTest {
 
     private final ContentMarshaller marshaller = new ProtobufContentMarshaller();

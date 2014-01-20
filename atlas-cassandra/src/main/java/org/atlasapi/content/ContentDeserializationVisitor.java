@@ -5,7 +5,7 @@ import static org.atlasapi.entity.ProtoBufUtils.deserializeDateTime;
 import org.atlasapi.entity.Alias;
 import org.atlasapi.entity.Id;
 import org.atlasapi.entity.ProtoBufUtils;
-import org.atlasapi.equiv.EquivalenceRef;
+import org.atlasapi.equivalence.EquivalenceRef;
 import org.atlasapi.serialization.protobuf.CommonProtos;
 import org.atlasapi.serialization.protobuf.CommonProtos.Reference;
 import org.atlasapi.serialization.protobuf.ContentProtos;
@@ -16,6 +16,7 @@ import org.joda.time.Duration;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSet.Builder;
+import com.google.common.collect.Ordering;
 import com.metabroadcast.common.intl.Countries;
 
 public class ContentDeserializationVisitor implements ContentVisitor<Content> {
@@ -27,8 +28,6 @@ public class ContentDeserializationVisitor implements ContentVisitor<Content> {
     private static final CrewMemberSerializer crewMemberSerializer = new CrewMemberSerializer();
     private static final ContainerSummarySerializer containerSummarySerializer = new ContainerSummarySerializer();
     private static final ReleaseDateSerializer releaseDateSerializer = new ReleaseDateSerializer();
-    private static final ChildRefSerializer childRefSerializer = new ChildRefSerializer();
-    private static final SeriesRefSerializer seriesRefSerializer = new SeriesRefSerializer();
     private static final CertificateSerializer certificateSerializer = new CertificateSerializer();
     
     private ContentProtos.Content msg;
@@ -174,22 +173,24 @@ public class ContentDeserializationVisitor implements ContentVisitor<Content> {
 
     private <C extends Container> C visitContainer(C container) {
         container = visitContent(container);
-        ImmutableSet.Builder<ChildRef> childRefs = ImmutableSet.builder();
+        ContentRefSerializer refSerializer = new ContentRefSerializer(container.getPublisher());
+        ImmutableSet.Builder<ItemRef> childRefs = ImmutableSet.builder();
         for (int i = 0; i < msg.getChildrenCount(); i++) {
-            childRefs.add(childRefSerializer.deserialize(msg.getChildren(i)));
+            childRefs.add((ItemRef)refSerializer.deserialize(msg.getChildren(i)));
         }
-        container.setChildRefs(ChildRef.dedupeAndSort(childRefs.build()));
+        container.setItemRefs(Ordering.natural().immutableSortedCopy(childRefs.build()));
         return container;
     }
 
     @Override
     public Brand visit(Brand brand) {
         brand = visitContainer(brand);
-        ImmutableSet.Builder<SeriesRef> childRefs = ImmutableSet.builder();
+        ImmutableSet.Builder<SeriesRef> seriesRefs = ImmutableSet.builder();
+        ContentRefSerializer refSerializer = new ContentRefSerializer(brand.getPublisher());
         for (int i = 0; i < msg.getSecondariesCount(); i++) {
-            childRefs.add(seriesRefSerializer.deserialize(msg.getSecondaries(i)));
+            seriesRefs.add((SeriesRef)refSerializer.deserialize(msg.getSecondaries(i)));
         }
-        brand.setSeriesRefs(SeriesRef.dedupeAndSort(childRefs.build()));
+        brand.setSeriesRefs(SeriesRef.dedupeAndSort(seriesRefs.build()));
         return brand;
     }
 
@@ -197,9 +198,9 @@ public class ContentDeserializationVisitor implements ContentVisitor<Content> {
     public Series visit(Series series) {
         series = visitContainer(series);
         if (msg.hasContainerRef()) {
-            series.setParentRef(new ParentRef(
+            series.setBrandRef(new BrandRef(
                 Id.valueOf(msg.getContainerRef().getId()),
-                EntityType.from(msg.getContainerRef().getType())
+                Sources.fromPossibleKey(msg.getContainerRef().getSource()).or(series.getPublisher())
             ));
         }
         series.withSeriesNumber(msg.hasSeriesNumber() ? msg.getSeriesNumber() : null);
@@ -211,9 +212,9 @@ public class ContentDeserializationVisitor implements ContentVisitor<Content> {
     public Episode visit(Episode episode) {
         episode = visitItem(episode);
         if (msg.hasSeriesRef()) {
-            episode.setSeriesRef(new ParentRef(
+            episode.setSeriesRef(new SeriesRef(
                 Id.valueOf(msg.getSeriesRef().getId()),
-                EntityType.from(msg.getSeriesRef().getType())
+                Sources.fromPossibleKey(msg.getContainerRef().getSource()).or(episode.getPublisher())
             ));
         }
         episode.setSeriesNumber(msg.hasSeriesNumber() ? msg.getSeriesNumber() : null);
@@ -255,10 +256,8 @@ public class ContentDeserializationVisitor implements ContentVisitor<Content> {
     private <I extends Item> I visitItem(I item) {
         item = visitContent(item);
         if (msg.hasContainerRef()) {
-            item.setParentRef(new ParentRef(
-                Id.valueOf(msg.getContainerRef().getId()),
-                EntityType.from(msg.getContainerRef().getType())
-            ));
+            ContentRefSerializer refSerializer = new ContentRefSerializer(item.getPublisher());
+            item.setContainerRef((ContainerRef)refSerializer.deserialize(msg.getContainerRef()));
         }
         if (msg.hasContainerSummary()) {
             item.setContainerSummary(containerSummarySerializer.deserialize(msg.getContainerSummary()));
@@ -278,6 +277,5 @@ public class ContentDeserializationVisitor implements ContentVisitor<Content> {
     public Content visit(Clip clip) {
         return visitItem(clip);
     }
-    
     
 }

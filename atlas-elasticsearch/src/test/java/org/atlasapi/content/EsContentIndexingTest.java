@@ -1,11 +1,19 @@
 package org.atlasapi.content;
 
+import static org.testng.AssertJUnit.assertEquals;
+import static org.testng.AssertJUnit.assertTrue;
+
+import org.testng.annotations.AfterClass;
+import org.testng.annotations.AfterMethod;
+import org.testng.annotations.Test;
+import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.BeforeClass;
+
 import static org.atlasapi.util.ElasticSearchHelper.refresh;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
 
 import java.util.List;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 import org.apache.log4j.ConsoleAppender;
 import org.apache.log4j.Level;
@@ -26,10 +34,6 @@ import org.elasticsearch.search.facet.Facets;
 import org.elasticsearch.search.facet.terms.TermsFacet;
 import org.elasticsearch.search.facet.terms.TermsFacet.Entry;
 import org.joda.time.DateTime;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
 
 import com.metabroadcast.common.time.DateTimeZones;
 import com.metabroadcast.common.time.SystemClock;
@@ -37,25 +41,31 @@ import com.metabroadcast.common.time.SystemClock;
 public final class EsContentIndexingTest {
     
     private final Node esClient = ElasticSearchHelper.testNode();
-    private final EsContentIndex contentIndexer = new EsContentIndex(esClient, EsSchema.CONTENT_INDEX, new SystemClock(), 60000);
+    private EsContentIndex contentIndexer;
 
     @BeforeClass
-    public static void before() throws Exception {
+    public void before() throws Exception {
         Logger root = Logger.getRootLogger();
         root.addAppender(new ConsoleAppender(
             new PatternLayout(PatternLayout.TTCC_CONVERSION_PATTERN)));
         root.setLevel(Level.WARN);
     }
+    
+    @AfterClass
+    public void after() {
+        esClient.close();
+    }
 
-    @Before
-    public void setup() {
-        contentIndexer.startAsync().awaitRunning();
+    @BeforeMethod
+    public void setup() throws TimeoutException {
+        ElasticSearchHelper.refresh(esClient);
+        contentIndexer = new EsContentIndex(esClient, EsSchema.CONTENT_INDEX, new SystemClock(), 60000);
+        contentIndexer.startAsync().awaitRunning(10, TimeUnit.SECONDS);
     }
     
-    @After
-    public void after() throws Exception {
+    @AfterMethod
+    public void teardown() throws Exception {
         ElasticSearchHelper.clearIndices(esClient);
-        esClient.close();
     }
 
     @Test

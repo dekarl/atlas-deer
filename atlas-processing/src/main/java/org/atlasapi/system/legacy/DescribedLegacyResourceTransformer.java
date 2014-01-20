@@ -29,7 +29,7 @@ import com.google.common.collect.Iterables;
 public abstract class DescribedLegacyResourceTransformer<F extends Described, T extends org.atlasapi.content.Described>
     extends BaseLegacyResourceTransformer<F, T> {
     
-    private final Logger log = LoggerFactory.getLogger(getClass());
+    protected final Logger log = LoggerFactory.getLogger(getClass());
 
     @Override
     public final T apply(F input) {

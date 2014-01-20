@@ -1,57 +1,31 @@
 package org.atlasapi.messaging;
 
-/**
- */
+import com.metabroadcast.common.time.Timestamp;
+
 public abstract class AbstractMessage implements Message {
 
     private final String messageId;
-    private final Long timestamp;
-    private final String entityId;
-    private final String entityType;
-    private final String entitySource;
-
-    public AbstractMessage(String messageId, Long timestamp, String entityId, String entityType, String entitySource) {
+    private final Timestamp timestamp;
+    
+    public AbstractMessage(String messageId, Timestamp timestamp) {
         this.messageId = messageId;
         this.timestamp = timestamp;
-        this.entityId = entityId;
-        this.entityType = entityType;
-        this.entitySource = entitySource;
     }
 
     @Override
-    public String getMessageId() {
+    public final String getMessageId() {
         return messageId;
     }
 
     @Override
-    public Long getTimestamp() {
+    public final Timestamp getTimestamp() {
         return timestamp;
     }
 
     @Override
-    public String getEntityId() {
-        return entityId;
-    }
-
-    @Override
-    public String getEntityType() {
-        return entityType;
-    }
-
-    @Override
-    public String getEntitySource() {
-        return entitySource;
-    }
-
-    @Override
-    public boolean canCoalesce() {
-        return false;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (o instanceof Message) {
-            Message other = (Message) o;
+    public final boolean equals(Object that) {
+        if (that instanceof Message) {
+            Message other = (Message) that;
             return this.messageId.equals(other.getMessageId());
         } else {
             return false;
@@ -59,7 +33,7 @@ public abstract class AbstractMessage implements Message {
     }
 
     @Override
-    public int hashCode() {
+    public final int hashCode() {
         return this.messageId.hashCode();
     }
 

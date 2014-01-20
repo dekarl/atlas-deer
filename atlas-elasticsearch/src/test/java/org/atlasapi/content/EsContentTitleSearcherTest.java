@@ -1,8 +1,10 @@
 package org.atlasapi.content;
 
+import static org.testng.AssertJUnit.assertEquals;
+import org.testng.annotations.AfterMethod;
+import org.testng.annotations.Test;
+import org.testng.annotations.BeforeClass;
 import static org.atlasapi.util.ElasticSearchHelper.refresh;
-import static org.junit.Assert.assertEquals;
-
 import java.util.Arrays;
 
 import org.apache.log4j.ConsoleAppender;
@@ -17,10 +19,6 @@ import org.atlasapi.search.SearchResults;
 import org.atlasapi.util.ElasticSearchHelper;
 import org.elasticsearch.node.Node;
 import org.joda.time.DateTime;
-import org.junit.After;
-import org.junit.BeforeClass;
-import org.junit.Test;
-
 import com.google.common.collect.ImmutableSet;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.metabroadcast.common.query.Selection;
@@ -39,7 +37,7 @@ public class EsContentTitleSearcherTest {
         root.setLevel(Level.WARN);
     }
 
-    @After
+    @AfterMethod
     public void after() throws Exception {
         ElasticSearchHelper.clearIndices(esClient);
         esClient.close();
@@ -78,15 +76,15 @@ public class EsContentTitleSearcherTest {
         Brand brand1 = new Brand("buri1", "buri1", Publisher.METABROADCAST);
         brand1.setTitle("title");
         brand1.setId(Id.valueOf(5));
-        brand1.setChildRefs(Arrays.asList(item1.childRef(), item2.childRef()));
+        brand1.setItemRefs(Arrays.asList(item1.toRef(), item2.toRef()));
         Brand brand2 = new Brand("buri2", "buri2", Publisher.METABROADCAST);
         brand2.setTitle("b");
         brand2.setId(Id.valueOf(6));
-        brand2.setChildRefs(Arrays.asList(item3.childRef()));
+        brand2.setItemRefs(Arrays.asList(item3.toRef()));
 
-        item1.setParentRef(ParentRef.parentRefFrom(brand1));
-        item2.setParentRef(ParentRef.parentRefFrom(brand1));
-        item3.setParentRef(ParentRef.parentRefFrom(brand2));
+        item1.setContainerRef(brand1.toRef());
+        item2.setContainerRef(brand1.toRef());
+        item3.setContainerRef(brand2.toRef());
 
         EsContentIndex contentIndex = new EsContentIndex(esClient, EsSchema.CONTENT_INDEX, new SystemClock(), 60000);
         contentIndex.startAsync().awaitRunning();

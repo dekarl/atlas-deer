@@ -1,7 +1,6 @@
 package org.atlasapi.application;
 
 import static org.junit.Assert.assertTrue;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import org.atlasapi.application.users.Role;
@@ -14,22 +13,26 @@ import org.atlasapi.query.annotation.ActiveAnnotations;
 import org.atlasapi.query.common.QueryExecutionException;
 import org.atlasapi.query.common.useraware.UserAwareQuery;
 import org.atlasapi.query.common.useraware.UserAwareQueryContext;
-import org.junit.Before;
-import org.junit.Test;
+import org.mockito.Mock;
+import org.mockito.testng.MockitoTestNGListener;
+import org.testng.annotations.BeforeClass;
+import org.testng.annotations.Listeners;
+import org.testng.annotations.Test;
 
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableSet;
 
-
+@Listeners(MockitoTestNGListener.class)
 public class SourceRequestQueryExecutorTest {
     
     private SourceRequestQueryExecutor executor;
     private SourceRequest sourceRequest1;
     private SourceRequest sourceRequest2;
     
-    @Before
+    @Mock SourceRequestStore store;
+    
+    @BeforeClass
     public void setUp() {
-        SourceRequestStore store = mock(SourceRequestStore.class);
         sourceRequest1 = SourceRequest.builder()
                 .withAppId(Id.valueOf(5000))
                 .withEmail("me@example.com")

@@ -2,9 +2,9 @@ package org.atlasapi.system.bootstrap.workers;
 
 import org.atlasapi.AtlasPersistenceModule;
 import org.atlasapi.content.ContentResolver;
-import org.atlasapi.equiv.EquivalenceRecordStore;
+import org.atlasapi.equivalence.EquivalenceRecordStore;
 import org.atlasapi.messaging.AtlasMessagingModule;
-import org.atlasapi.messaging.ConsumerQueueFactory;
+import org.atlasapi.messaging.JmsConsumerQueueFactory;
 import org.atlasapi.persistence.lookup.entry.LookupEntryStore;
 import org.atlasapi.system.legacy.LegacyPersistenceModule;
 import org.atlasapi.topic.TopicResolver;
@@ -34,8 +34,8 @@ public class BootstrapWorkersModule {
     @Autowired private AtlasMessagingModule messaging;
     
     @Bean @Qualifier("bootstrap")
-    ConsumerQueueFactory bootstrapQueueFactory() {
-        return new ConsumerQueueFactory(messaging.cachingConnectionFactory(), originSystem, new LegacyMessageSerializer());
+    JmsConsumerQueueFactory bootstrapQueueFactory() {
+        return new JmsConsumerQueueFactory(messaging.cachingConnectionFactory(), originSystem, new LegacyMessageSerializer());
     }
     
     @Bean

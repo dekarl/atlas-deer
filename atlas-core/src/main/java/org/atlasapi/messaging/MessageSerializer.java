@@ -7,6 +7,6 @@ public interface MessageSerializer {
 
     ByteSource serialize(Message msg) throws MessageException;
     
-    Message deserialize(ByteSource bytes) throws MessageException;
+    <M extends Message> M deserialize(ByteSource bytes) throws MessageException;
     
 }

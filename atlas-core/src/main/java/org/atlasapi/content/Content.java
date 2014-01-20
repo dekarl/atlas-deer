@@ -19,8 +19,8 @@ import java.util.Set;
 import org.atlasapi.entity.Aliased;
 import org.atlasapi.entity.Id;
 import org.atlasapi.entity.Sourced;
-import org.atlasapi.equiv.EquivalenceRef;
-import org.atlasapi.equiv.Equivalent;
+import org.atlasapi.equivalence.EquivalenceRef;
+import org.atlasapi.equivalence.Equivalent;
 import org.atlasapi.media.entity.Publisher;
 
 import com.google.common.base.Function;
@@ -52,11 +52,6 @@ public abstract class Content extends Described implements Aliased, Sourced, Equ
 
     public Content(Id id, Publisher source) {
         super(id, source);
-    }
-
-    public ChildRef childRef() {
-        return new ChildRef(this.getId(), this.getSortKey(), 
-            this.getThisOrChildLastUpdated(), EntityType.from(this.getClass()));
     }
 
     public List<Clip> getClips() {
@@ -186,6 +181,22 @@ public abstract class Content extends Described implements Aliased, Sourced, Equ
     };
 
     public abstract <V> V accept(ContentVisitor<V> visitor);
+    
+    public abstract ContentRef toRef();
+    
+    public static final Function<Content, ContentRef> toContentRef() {
+        return ToContentRefFunction.INSTANCE;
+    }
+    
+    private enum ToContentRefFunction implements Function<Content, ContentRef> {
+        INSTANCE;
+
+        @Override
+        public ContentRef apply(Content input) {
+            return input.toRef();
+        }
+        
+    }
     
     @Override
     public Content copyWithEquivalentTo(Iterable<EquivalenceRef> refs) {

@@ -1,15 +1,13 @@
 package org.atlasapi.schedule;
 
+import static org.junit.Assert.assertThat;
+import org.testng.annotations.Test;
 import static com.metabroadcast.common.time.DateTimeZones.UTC;
 import static org.hamcrest.Matchers.hasItems;
-import static org.junit.Assert.assertThat;
-
 import org.atlasapi.schedule.EsScheduleIndexNames;
 import org.atlasapi.util.ElasticSearchHelper;
 import org.elasticsearch.node.Node;
 import org.joda.time.DateTime;
-import org.junit.Test;
-
 import com.metabroadcast.common.time.Clock;
 import com.metabroadcast.common.time.TimeMachine;
 

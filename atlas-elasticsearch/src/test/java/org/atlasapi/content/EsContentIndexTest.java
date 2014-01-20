@@ -1,7 +1,14 @@
 package org.atlasapi.content;
 
-import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
+
+import org.testng.annotations.AfterClass;
+import org.testng.annotations.AfterMethod;
+import org.testng.annotations.Test;
+import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.BeforeClass;
+
+import static org.hamcrest.Matchers.is;
 
 import java.util.concurrent.TimeUnit;
 
@@ -18,10 +25,6 @@ import org.atlasapi.entity.Id;
 import org.atlasapi.media.entity.Publisher;
 import org.atlasapi.util.ElasticSearchHelper;
 import org.elasticsearch.node.Node;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
 
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
@@ -33,7 +36,7 @@ public class EsContentIndexTest {
 
     private final Node esClient = ElasticSearchHelper.testNode();
     
-    private final EsContentIndex index = new EsContentIndex(esClient, EsSchema.CONTENT_INDEX, new SystemClock(), 60000);
+    private EsContentIndex index;
 
     @BeforeClass
     public static void before() throws Exception {
@@ -42,16 +45,22 @@ public class EsContentIndexTest {
             new PatternLayout(PatternLayout.TTCC_CONVERSION_PATTERN)));
         root.setLevel(Level.WARN);
     }
+    
+    @AfterClass
+    public void after() throws Exception {
+        esClient.close();
+    }
 
-    @Before
+    @BeforeMethod
     public void setup() {
+        index = new EsContentIndex(esClient, EsSchema.CONTENT_INDEX, new SystemClock(), 60000);
         index.startAsync().awaitRunning();
     }
     
-    @After
-    public void after() throws Exception {
+    @AfterMethod
+    public void teardown() throws Exception {
         ElasticSearchHelper.clearIndices(esClient);
-        esClient.close();
+        ElasticSearchHelper.refresh(esClient);
     }
     
     @Test

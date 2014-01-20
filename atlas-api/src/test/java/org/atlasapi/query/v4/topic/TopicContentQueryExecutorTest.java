@@ -19,8 +19,8 @@ import org.atlasapi.criteria.AttributeQuery;
 import org.atlasapi.criteria.AttributeQuerySet;
 import org.atlasapi.entity.Id;
 import org.atlasapi.entity.util.Resolved;
-import org.atlasapi.equiv.MergingEquivalentsResolver;
-import org.atlasapi.equiv.ResolvedEquivalents;
+import org.atlasapi.equivalence.MergingEquivalentsResolver;
+import org.atlasapi.equivalence.ResolvedEquivalents;
 import org.atlasapi.media.entity.Publisher;
 import org.atlasapi.output.NotFoundException;
 import org.atlasapi.query.common.ContextualQuery;
@@ -33,18 +33,18 @@ import org.atlasapi.query.common.QueryContext;
 import org.atlasapi.query.common.QueryExecutionException;
 import org.atlasapi.topic.Topic;
 import org.atlasapi.topic.TopicResolver;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
 import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.testng.MockitoTestNGListener;
+import org.testng.annotations.BeforeClass;
+import org.testng.annotations.Listeners;
+import org.testng.annotations.Test;
 
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.util.concurrent.Futures;
 import com.metabroadcast.common.query.Selection;
 
-@RunWith(MockitoJUnitRunner.class)
+@Listeners(MockitoTestNGListener.class)
 public class TopicContentQueryExecutorTest {
 
     private @Mock TopicResolver topicResolver;
@@ -53,7 +53,7 @@ public class TopicContentQueryExecutorTest {
     
     private TopicContentQueryExecutor executor;
     
-    @Before
+    @BeforeClass
     public void setup() {
         executor = new TopicContentQueryExecutor(topicResolver, contentIndex, equivalentsResolver); 
     }
@@ -88,7 +88,7 @@ public class TopicContentQueryExecutorTest {
         assertThat(result.getContext(), is(context));
     }
 
-    @Test(expected=NotFoundException.class)
+    @Test(expectedExceptions=NotFoundException.class)
     public void testFailsWhenTopicIsMissing() throws Throwable {
         
         AttributeQuerySet emptyAttributeQuerySet = new AttributeQuerySet(ImmutableSet.<AttributeQuery<?>>of());
@@ -109,7 +109,7 @@ public class TopicContentQueryExecutorTest {
         
     }
 
-    @Test(expected=ForbiddenException.class)
+    @Test(expectedExceptions=ForbiddenException.class)
     public void testFailsWhenTopicIsForbidden() throws Throwable {
         
         AttributeQuerySet emptyAttributeQuerySet = new AttributeQuerySet(ImmutableSet.<AttributeQuery<?>>of());

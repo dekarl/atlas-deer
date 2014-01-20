@@ -1,5 +1,6 @@
 package org.atlasapi.util;
 
+import org.testng.annotations.Test;
 import java.util.Map;
 import java.util.UUID;
 
@@ -16,6 +17,7 @@ public class ElasticSearchHelper {
     
     private ElasticSearchHelper() {}
     
+    @Test
     public static Node testNode() {
         return NodeBuilder.nodeBuilder()
             .local(true).clusterName(UUID.randomUUID().toString())

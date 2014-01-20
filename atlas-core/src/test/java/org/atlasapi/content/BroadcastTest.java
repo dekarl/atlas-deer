@@ -14,12 +14,10 @@ permissions and limitations under the License. */
 
 package org.atlasapi.content;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-
+import static org.testng.AssertJUnit.assertFalse;
+import static org.testng.AssertJUnit.assertEquals;
+import org.testng.annotations.Test;
 import org.joda.time.Duration;
-import org.junit.Test;
-
 import com.metabroadcast.common.time.Clock;
 import com.metabroadcast.common.time.TimeMachine;
 

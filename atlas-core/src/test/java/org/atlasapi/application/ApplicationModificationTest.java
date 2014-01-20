@@ -1,18 +1,16 @@
 package org.atlasapi.application;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
-
+import static org.testng.AssertJUnit.assertFalse;
+import static org.testng.AssertJUnit.assertEquals;
+import static org.testng.AssertJUnit.assertNotNull;
+import static org.testng.AssertJUnit.assertTrue;
+import org.testng.annotations.Test;
 import java.util.List;
 
 import org.atlasapi.application.SourceStatus.SourceState;
 import org.atlasapi.entity.Id;
 import org.atlasapi.media.entity.Publisher;
 import org.joda.time.DateTime;
-import org.junit.Test;
-
 import com.google.common.collect.ImmutableList;
 import com.metabroadcast.common.time.DateTimeZones;
 

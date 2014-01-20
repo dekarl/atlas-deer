@@ -3,12 +3,11 @@ package org.atlasapi.query.v4.schedule;
 import static org.junit.Assert.assertNotNull;
 
 import org.atlasapi.output.NotAcceptableException;
-import org.atlasapi.output.NotFoundException;
 import org.atlasapi.output.ResponseWriter;
 import org.atlasapi.output.ResponseWriterFactory;
 import org.atlasapi.output.UnsupportedFormatException;
-import org.junit.Before;
-import org.junit.Test;
+import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.Test;
 
 import com.google.common.net.HttpHeaders;
 import com.metabroadcast.common.servlet.StubHttpServletRequest;
@@ -22,7 +21,7 @@ public class ResponseWriterFactoryTest {
     private StubHttpServletResponse response;
     private StubHttpServletRequest request;
     
-    @Before
+    @BeforeMethod
     public void setup() {
         request = new StubHttpServletRequest();
         response = new StubHttpServletResponse();
@@ -51,16 +50,16 @@ public class ResponseWriterFactoryTest {
         
     }
     
-    @Test(expected=NotAcceptableException.class)
+    @Test(expectedExceptions=NotAcceptableException.class)
     public void testNotAcceptableForNoExtensionOrAccept() throws Exception {
         
         request.withRequestUri("/extension/is/missing");
         
-        factory.writerFor(request, response);
-        
+        ResponseWriter writerFor = factory.writerFor(request, response);
+        System.out.println("blah " + writerFor);
     }
 
-    @Test(expected=NotAcceptableException.class)
+    @Test(expectedExceptions=NotAcceptableException.class)
     public void testWritesNotAcceptableForUnknownAcceptHeader() throws Exception {
         
         request.withRequestUri("/extension/is/missing");
@@ -70,7 +69,7 @@ public class ResponseWriterFactoryTest {
         
     }
 
-    @Test(expected=UnsupportedFormatException.class)
+    @Test(expectedExceptions=UnsupportedFormatException.class)
     public void testWritesNotFoundForUnknownExtension() throws Exception {
         
         request.withRequestUri("/extension/is.unknown");

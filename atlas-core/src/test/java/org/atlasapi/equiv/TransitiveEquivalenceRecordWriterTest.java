@@ -1,10 +1,10 @@
 package org.atlasapi.equiv;
 
-import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.testng.AssertJUnit.assertEquals;
 
 import java.util.Map;
 import java.util.Set;
@@ -19,14 +19,19 @@ import org.atlasapi.content.Content;
 import org.atlasapi.content.Item;
 import org.atlasapi.entity.Id;
 import org.atlasapi.entity.Identifiables;
+import org.atlasapi.equivalence.EquivalenceRecord;
+import org.atlasapi.equivalence.EquivalenceRecordStore;
+import org.atlasapi.equivalence.EquivalenceRecordWriter;
+import org.atlasapi.equivalence.EquivalenceRef;
+import org.atlasapi.equivalence.TransitiveEquivalenceRecordWriter;
 import org.atlasapi.media.entity.Publisher;
-import org.junit.BeforeClass;
-import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.testng.annotations.BeforeClass;
+import org.testng.annotations.Test;
 
 import com.google.common.base.Function;
 import com.google.common.base.Predicates;

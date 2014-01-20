@@ -114,6 +114,10 @@ public class Topic extends Described implements Sourced, Aliased {
         this.value = value;
     }
     
+    public TopicRef toRef() {
+        return new TopicRef(getId(), getPublisher());
+    }
+    
     @Override
     public Topic copy() {
         Topic topic = new Topic(getId(), namespace, value);

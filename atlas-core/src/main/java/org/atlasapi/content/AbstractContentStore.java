@@ -50,7 +50,7 @@ public abstract class AbstractContentStore implements ContentStore {
         public WriteResult<Brand> visit(Brand brand) {
             Brand previous = (Brand) getPreviousContent(brand);
 
-            brand.setChildRefs(ImmutableSet.<ChildRef>of());
+            brand.setItemRefs(ImmutableSet.<ItemRef>of());
             brand.setSeriesRefs(ImmutableSet.<SeriesRef>of());
             
             if (previous != null) {
@@ -71,7 +71,7 @@ public abstract class AbstractContentStore implements ContentStore {
                 write(brand, previous);
                 written = true;
             } 
-            brand.setChildRefs(previous.getChildRefs());
+            brand.setItemRefs(previous.getItemRefs());
             brand.setSeriesRefs(previous.getSeriesRefs());
             return WriteResult.result(brand, written)
                 .withPrevious(previous)
@@ -82,7 +82,7 @@ public abstract class AbstractContentStore implements ContentStore {
         public WriteResult<Series> visit(Series series) {
             Series previous = (Series) getPreviousContent(series);
             
-            series.setChildRefs(ImmutableSet.<ChildRef>of());
+            series.setItemRefs(ImmutableSet.<ItemRef>of());
             if (previous != null) {
                 return writeSeriesWithPrevious(series, previous);
             }
@@ -100,19 +100,19 @@ public abstract class AbstractContentStore implements ContentStore {
                 write(series, previous);
                 written = true;
             }
-            series.setChildRefs(previous.getChildRefs());
+            series.setItemRefs(previous.getItemRefs());
             return WriteResult.result(series, written)
                 .withPrevious(previous)
                 .build();
         }
         
         private void writeRefAndSummarizePrimary(Series series) {
-            if (series.getParent() != null) {
-                ParentRef primary = series.getParent();
+            if (series.getBrandRef() != null) {
+                BrandRef primary = series.getBrandRef();
                 //TODO set summary on series
                 ContainerSummary summarize = getSummary(primary);
                 ensureId(series);
-                writeSecondaryContainerRef(primary, series.seriesRef());
+                writeSecondaryContainerRef(primary, series.toRef());
             }
         }
         
@@ -144,17 +144,17 @@ public abstract class AbstractContentStore implements ContentStore {
         }
 
         private void writeRefAndSummarizeContainer(Item item) {
-            if (item.getContainer() != null) {
-                ParentRef containerRef = item.getContainer();
+            if (item.getContainerRef() != null) {
+                ContainerRef containerRef = item.getContainerRef();
                 item.setContainerSummary(getSummary(containerRef));
                 ensureId(item);
-                writeChildRef(containerRef, item.childRef());
+                writeItemRef(containerRef, item.toRef());
             }
         }
 
         @Override
         public WriteResult<Episode> visit(Episode episode) {
-            checkArgument(episode.getContainer() != null, 
+            checkArgument(episode.getContainerRef() != null, 
                     "can't write episode with null container");
             
             Episode previous = (Episode) getPreviousContent(episode);
@@ -182,21 +182,21 @@ public abstract class AbstractContentStore implements ContentStore {
         }
         
         private void writeRefsAndSummarizeContainers(Episode episode) {
-            ParentRef primaryContainer = episode.getContainer();
+            ContainerRef primaryContainer = episode.getContainerRef();
             episode.setContainerSummary(getSummary(primaryContainer));
 
-            ChildRef childRef = null;
+            ItemRef childRef = null;
             if (episode.getSeriesRef() != null) {
-                ParentRef secondaryContainer = episode.getSeriesRef();
+                SeriesRef secondaryContainer = episode.getSeriesRef();
                 //TODO set series summary on episode
                 ContainerSummary summary = getSummary(secondaryContainer);
                 ensureId(episode);
-                childRef = episode.childRef();
-                writeChildRef(secondaryContainer, childRef);
+                childRef = episode.toRef();
+                writeItemRef(secondaryContainer, childRef);
             }
             ensureId(episode);
-            childRef = childRef == null ? episode.childRef() : childRef;
-            writeChildRef(primaryContainer, childRef);
+            childRef = childRef == null ? episode.toRef() : childRef;
+            writeItemRef(primaryContainer, childRef);
         }
 
         @Override
@@ -298,7 +298,7 @@ public abstract class AbstractContentStore implements ContentStore {
     
     protected abstract void doWriteContent(Content content, Content previous);
 
-    private final ContainerSummary getSummary(ParentRef primary) {
+    private final ContainerSummary getSummary(ContainerRef primary) {
         ContainerSummary summary = summarize(primary);
         if (summary != null) {
             return summary;
@@ -306,7 +306,7 @@ public abstract class AbstractContentStore implements ContentStore {
         throw new RuntimeWriteException(new MissingResourceException(primary.getId()));
     }
     
-    protected abstract ContainerSummary summarize(ParentRef primary);
+    protected abstract ContainerSummary summarize(ContainerRef primary);
 
     /**
      * Add a ref to the series in the primary container and update its
@@ -315,7 +315,7 @@ public abstract class AbstractContentStore implements ContentStore {
      * @param primary
      * @param series
      */
-    protected abstract void writeSecondaryContainerRef(ParentRef primary, SeriesRef seriesRef);
+    protected abstract void writeSecondaryContainerRef(BrandRef primary, SeriesRef seriesRef);
 
     /**
      * Add a ref to the child in the container and update its
@@ -324,5 +324,5 @@ public abstract class AbstractContentStore implements ContentStore {
      * @param containerId
      * @param child
      */
-    protected abstract void writeChildRef(ParentRef containerId, ChildRef childRef);
+    protected abstract void writeItemRef(ContainerRef containerId, ItemRef childRef);
 }

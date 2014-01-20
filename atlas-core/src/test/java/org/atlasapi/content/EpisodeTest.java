@@ -15,12 +15,11 @@ permissions and limitations under the License. */
 
 package org.atlasapi.content;
 
+import org.testng.annotations.Test;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;
-
-import org.junit.Test;
 
 /**
  * Unit test for {@link Episode}.

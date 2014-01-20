@@ -1,10 +1,9 @@
 package org.atlasapi.content;
 
-import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertNull;
+import static org.testng.AssertJUnit.assertNull;
 import static org.junit.Assert.assertThat;
-
-import org.junit.Test;
+import org.testng.annotations.Test;
+import static org.hamcrest.Matchers.is;
 
 
 public class KeyPhraseSerializerTest {

@@ -1,7 +1,7 @@
 package org.atlasapi.content;
 
-import org.atlasapi.equiv.EquivalenceRef;
-import org.atlasapi.equiv.Equivalent;
+import org.atlasapi.equivalence.EquivalenceRef;
+import org.atlasapi.equivalence.Equivalent;
 import org.atlasapi.media.entity.Publisher;
 
 import com.google.common.collect.ImmutableList;
@@ -12,7 +12,7 @@ public class ContentGroup extends Described implements MutableContentList, Equiv
     private transient String readHash;
     //
     private Type type;
-    private ImmutableSet<ChildRef> contents = ImmutableSet.of();
+    private ImmutableSet<ContentRef> contents = ImmutableSet.of();
 
     public ContentGroup(String uri) {
         super(uri);
@@ -33,7 +33,7 @@ public class ContentGroup extends Described implements MutableContentList, Equiv
         this.type = Type.PLAYLIST;
     }
 
-    public ImmutableList<ChildRef> getContents() {
+    public ImmutableList<ContentRef> getContents() {
         return contents.asList();
     }
 
@@ -45,16 +45,16 @@ public class ContentGroup extends Described implements MutableContentList, Equiv
         return type;
     }
 
-    public void setContents(Iterable<ChildRef> children) {
+    public void setContents(Iterable<ContentRef> children) {
         this.contents = ImmutableSet.copyOf(children);
     }
 
-    public void addContent(ChildRef childRef) {
-        this.contents = ImmutableSet.<ChildRef>builder().addAll(this.getContents()).add(childRef).build();
+    public void addContent(ContentRef childRef) {
+        this.contents = ImmutableSet.<ContentRef>builder().addAll(this.getContents()).add(childRef).build();
     }
 
-    public void addContents(Iterable<ChildRef> childRef) {
-        this.contents = ImmutableSet.<ChildRef>builder().addAll(this.getContents()).addAll(childRef).build();
+    public void addContents(Iterable<ContentRef> childRef) {
+        this.contents = ImmutableSet.<ContentRef>builder().addAll(this.getContents()).addAll(childRef).build();
     }
     
     public void setReadHash(String readHash) {

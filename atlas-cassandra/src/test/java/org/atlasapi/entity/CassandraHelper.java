@@ -1,5 +1,6 @@
 package org.atlasapi.entity;
 
+import org.testng.annotations.Test;
 import java.util.concurrent.Executors;
 
 import com.google.common.collect.ImmutableMap;
@@ -25,6 +26,7 @@ public class CassandraHelper {
     private static int connectionTimeout = 60000;
     private static int port = 9160;
 
+    @Test
     public static final AstyanaxContext<Keyspace> testCassandraContext() {
         return new AstyanaxContext.Builder()
             .forCluster("Atlas")

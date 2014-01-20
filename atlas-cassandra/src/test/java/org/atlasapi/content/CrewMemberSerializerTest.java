@@ -1,12 +1,10 @@
 package org.atlasapi.content;
 
+import static org.junit.Assert.assertThat;
+import org.testng.annotations.Test;
 import static org.hamcrest.Matchers.instanceOf;
 import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertThat;
-
 import org.atlasapi.media.entity.Publisher;
-import org.junit.Test;
-
 import com.google.common.collect.ImmutableSet;
 
 public class CrewMemberSerializerTest {
