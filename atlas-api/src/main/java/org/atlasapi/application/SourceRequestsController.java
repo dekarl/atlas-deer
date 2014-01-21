@@ -79,20 +79,20 @@ public class SourceRequestsController {
             @RequestParam String appId,
             @RequestParam String appUrl,
             @RequestParam String reason,
-            @RequestParam String usageType) throws IOException {
+            @RequestParam String usageType,
+            @RequestParam String licenceAccepted) throws IOException {
 
         response.addHeader("Access-Control-Allow-Origin", "*");
         try {
             Optional<Publisher> source =sourceIdCodec.decode(sid);
             if (source.isPresent()) {
-                Id applicationId = Id.valueOf(idCodec.decode(appId));
-                UsageType usageTypeRequested = UsageType.valueOf(usageType.toUpperCase());
-                User user = userFetcher.userFor(request).get();
-                sourceRequestManager.createOrUpdateRequest(source.get(), usageTypeRequested,
-                    applicationId, appUrl, user.getEmail(), reason);
-            } else {
                 throw new NotFoundException(null);
             }
+            Id applicationId = Id.valueOf(idCodec.decode(appId));
+            UsageType usageTypeRequested = UsageType.valueOf(usageType.toUpperCase());
+            User user = userFetcher.userFor(request).get();
+            sourceRequestManager.createOrUpdateRequest(source.get(), usageTypeRequested,
+                 applicationId, appUrl, user.getEmail(), reason, Boolean.valueOf(licenceAccepted));
         } catch (Exception e) {
             ErrorSummary summary = ErrorSummary.forException(e);
             new ErrorResultWriter().write(summary, null, request, response);
@@ -108,7 +108,6 @@ public class SourceRequestsController {
             Id requestId = Id.valueOf(idCodec.decode(rid));
             sourceRequestManager.approveSourceRequest(requestId, userFetcher.userFor(request).get());
         } catch (Exception e) {
-            e.printStackTrace();
             ErrorSummary summary = ErrorSummary.forException(e);
             new ErrorResultWriter().write(summary, null, request, response);
         }

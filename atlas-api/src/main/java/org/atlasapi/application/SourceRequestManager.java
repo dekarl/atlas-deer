@@ -5,17 +5,25 @@ import java.io.UnsupportedEncodingException;
 import javax.mail.MessagingException;
 
 import org.atlasapi.application.SourceStatus.SourceState;
+import org.atlasapi.application.auth.www.AuthController;
 import org.atlasapi.application.notification.EmailNotificationSender;
 import org.atlasapi.application.users.Role;
 import org.atlasapi.application.users.User;
 import org.atlasapi.entity.Id;
 import org.atlasapi.media.entity.Publisher;
+import org.atlasapi.output.InvalidTransitionException;
+import org.atlasapi.output.LicenceNotAcceptedException;
+import org.atlasapi.output.NotAcceptableException;
 import org.atlasapi.output.NotFoundException;
 import org.atlasapi.output.ResourceForbiddenException;
 import org.elasticsearch.common.Preconditions;
+import org.joda.time.DateTime;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Optional;
 import com.metabroadcast.common.ids.IdGenerator;
+import com.metabroadcast.common.time.Clock;
 
 
 public class SourceRequestManager {
@@ -23,20 +31,29 @@ public class SourceRequestManager {
     private final ApplicationStore applicationStore;
     private final IdGenerator idGenerator;
     private final EmailNotificationSender emailSender;
+    private final Clock clock;
+
+    private static Logger log = LoggerFactory.getLogger(SourceRequestManager.class);
     
     public SourceRequestManager(SourceRequestStore sourceRequestStore,
             ApplicationStore applicationStore,
             IdGenerator idGenerator,
-            EmailNotificationSender emailSender) {
+            EmailNotificationSender emailSender,
+            Clock clock) {
         this.sourceRequestStore = sourceRequestStore;
         this.applicationStore = applicationStore;
         this.idGenerator = idGenerator;
         this.emailSender = emailSender;
+        this.clock = clock;
     }
     
     public SourceRequest createOrUpdateRequest(Publisher source, UsageType usageType,
-            Id applicationId, String applicationUrl, String email, String reason) throws MessagingException {
+            Id applicationId, String applicationUrl, String email, String reason, boolean licenceAccepted) throws LicenceNotAcceptedException, InvalidTransitionException {
         Optional<SourceRequest> existing = sourceRequestStore.getBy(applicationId, source);
+        if (!licenceAccepted) {
+            throw new LicenceNotAcceptedException();
+        }
+        
         Preconditions.checkNotNull(source);
         Preconditions.checkNotNull(applicationId);
         Preconditions.checkNotNull(usageType);
@@ -44,17 +61,30 @@ public class SourceRequestManager {
             return updateSourceRequest(existing.get(), usageType,
                     applicationUrl, email, reason);
         } else {
-            try {
+            Application application = applicationStore.applicationFor(applicationId).get();
+            SourceState appSourceState = application.getSources().readStatusOrDefault(source).getState();
+            if (appSourceState.equals(SourceState.UNAVAILABLE)) {
                 return createSourceRequest(source, usageType,
-                        applicationId, applicationUrl, email, reason);
-            } catch (UnsupportedEncodingException e) {
-                throw new RuntimeException(e);
+                    applicationId, applicationUrl, email, reason);
+            } else if (appSourceState.equals(SourceState.AVAILABLE)) {
+                return createAndApproveSourceRequest(source, usageType,
+                    applicationId, applicationUrl, email, reason);
+            } else {
+                // Not allowed source status change
+                String message = "";
+                if (appSourceState.equals(SourceState.REVOKED)) {
+                    message = "Cannot process source request as source has been revoked";
+                } else {
+                    message = "Cannot process source request for a source with "
+                            +"a status of " +  appSourceState.toString();
+                }
+                throw new InvalidTransitionException(message);
             }
         }
     }
     
     public SourceRequest createSourceRequest(Publisher source, UsageType usageType,
-            Id applicationId, String applicationUrl, String email, String reason) throws UnsupportedEncodingException, MessagingException {
+            Id applicationId, String applicationUrl, String email, String reason) {
         SourceRequest sourceRequest = SourceRequest.builder()
                 .withId(Id.valueOf(idGenerator.generateRaw()))
                 .withAppId(applicationId)
@@ -64,12 +94,48 @@ public class SourceRequestManager {
                 .withReason(reason)
                 .withSource(source)
                 .withUsageType(usageType)
+                .withRequestedAt(clock.now())
                 .build();
         sourceRequestStore.store(sourceRequest);
         Application existing = applicationStore.applicationFor(sourceRequest.getAppId()).get();
         applicationStore.updateApplication(
                     existing.copyWithReadSourceState(sourceRequest.getSource(), SourceState.REQUESTED));
-        emailSender.sendNotificationOfPublisherRequestToAdmin(existing, sourceRequest);
+       
+        try {
+            emailSender.sendNotificationOfPublisherRequestToAdmin(existing, sourceRequest);
+        } catch (UnsupportedEncodingException e) {
+            log.error(String.format("Could not send notification to admin. Please review source requests "
+                    +"for '%s'.", existing.getTitle()), e);
+        } catch (MessagingException e) {
+            log.error(String.format("Could not send notification to admin. Please review source requests "
+                    +"for '%s'.", existing.getTitle()), e);
+        }
+        return sourceRequest;
+    }
+    
+    // auto approve if not a source requiring manual approval
+    public SourceRequest createAndApproveSourceRequest(Publisher source, UsageType usageType,
+            Id applicationId, String applicationUrl, String email, String reason) {
+                
+        SourceRequest sourceRequest = SourceRequest.builder()
+                .withId(Id.valueOf(idGenerator.generateRaw()))
+                .withAppId(applicationId)
+                .withAppUrl(applicationUrl)
+                .withEmail(email)
+                .withReason(reason)
+                .withSource(source)
+                .withUsageType(usageType)
+                .withRequestedAt(clock.now())
+                .withApprovedAt(clock.now())
+                .withLicenceAccepted(true)
+                .build();
+        sourceRequestStore.store(sourceRequest);
+        Application existing = applicationStore.applicationFor(sourceRequest.getAppId()).get();
+        applicationStore.updateApplication(
+                    existing
+                    .copyWithReadSourceState(sourceRequest.getSource(), SourceState.AVAILABLE)
+                    .copyWithSourceEnabled(sourceRequest.getSource())
+                );
         return sourceRequest;
     }
     
@@ -106,7 +172,7 @@ public class SourceRequestManager {
         Application existing = applicationStore.applicationFor(sourceRequest.get().getAppId()).get();
         applicationStore.updateApplication(
                     existing.copyWithReadSourceState(sourceRequest.get().getSource(), SourceState.AVAILABLE));
-        SourceRequest approved = sourceRequest.get().copy().withApproved(true).build();
+        SourceRequest approved = sourceRequest.get().copy().withApprovedAt(clock.now()).build();
         sourceRequestStore.store(approved);
         emailSender.sendNotificationOfPublisherRequestSuccessToUser(existing, sourceRequest.get());
     }

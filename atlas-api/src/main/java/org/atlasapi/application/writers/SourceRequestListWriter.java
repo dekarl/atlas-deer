@@ -36,6 +36,9 @@ public class SourceRequestListWriter implements EntityListWriter<SourceRequest> 
         writer.writeField("reason", entity.getReason());
         writer.writeObject(usageTypeWriter, entity.getUsageType(), ctxt);
         writer.writeField("approved",entity.isApproved());
+        writer.writeField("licenceAccepted", entity.isLicenceAccepted());
+        writer.writeField("requestedAt", entity.getRequestedAt());
+        writer.writeField("approvedAt", entity.getApprovedAt().orNull());
     }
 
     @Override

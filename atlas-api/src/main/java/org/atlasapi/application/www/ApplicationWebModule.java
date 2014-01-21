@@ -8,6 +8,9 @@ import org.atlasapi.application.Application;
 import org.atlasapi.application.ApplicationPersistenceModule;
 import org.atlasapi.application.ApplicationQueryExecutor;
 import org.atlasapi.application.ApplicationsController;
+import org.atlasapi.application.SourceLicence;
+import org.atlasapi.application.SourceLicenceController;
+import org.atlasapi.application.SourceLicenceQueryExecutor;
 import org.atlasapi.application.SourceReadEntry;
 import org.atlasapi.application.SourceRequest;
 import org.atlasapi.application.SourceRequestManager;
@@ -41,6 +44,8 @@ import org.atlasapi.application.users.UsersController;
 import org.atlasapi.application.users.UsersQueryExecutor;
 import org.atlasapi.application.writers.ApplicationListWriter;
 import org.atlasapi.application.writers.ApplicationQueryResultWriter;
+import org.atlasapi.application.writers.SourceLicenceQueryResultWriter;
+import org.atlasapi.application.writers.SourceLicenceWithIdWriter;
 import org.atlasapi.application.writers.SourceRequestListWriter;
 import org.atlasapi.application.writers.SourceRequestsQueryResultsWriter;
 import org.atlasapi.application.writers.SourceWithIdWriter;
@@ -96,6 +101,7 @@ import com.metabroadcast.common.social.twitter.TwitterApplication;
 import com.metabroadcast.common.social.user.AccessTokenProcessor;
 import com.metabroadcast.common.social.user.FixedAppIdUserRefBuilder;
 import com.metabroadcast.common.social.user.TwitterOAuth1AccessTokenChecker;
+import com.metabroadcast.common.time.SystemClock;
 import com.metabroadcast.common.webapp.serializers.JodaDateTimeSerializer;
 
 @Configuration
@@ -215,7 +221,8 @@ public class ApplicationWebModule {
         SourceRequestManager manager = new SourceRequestManager(appPersistence.sourceRequestStore(), 
                 appPersistence.applicationStore(), 
                 idGenerator,
-                notifier.emailSender());
+                notifier.emailSender(),
+                new SystemClock());
         return new SourceRequestsController(sourceRequestsQueryParser(),
                 new SourceRequestQueryExecutor(appPersistence.sourceRequestStore()),
                 new SourceRequestsQueryResultsWriter(new SourceRequestListWriter(sourceIdCodec, idCodec)),
@@ -361,5 +368,31 @@ public class ApplicationWebModule {
     			sourceUpdaterClient,
     			videoSourceChannelResultsQueryResultWriter());
     }
+    
+    private StandardUserAwareQueryParser<SourceLicence> sourceLicenceQueryParser() {
+        UserAwareQueryContextParser contextParser = new UserAwareQueryContextParser(configFetcher(), userFetcher(), 
+                new IndexAnnotationsExtractor(applicationAnnotationIndex()), selectionBuilder());
 
+        return new StandardUserAwareQueryParser<SourceLicence>(Resource.SOURCE_LICENCE,
+                new QueryAttributeParser(ImmutableList.of(
+                    QueryAtomParser.valueOf(Attributes.ID, AttributeCoercers.idCoercer(idCodec))
+                )),
+                idCodec, contextParser);
+    }
+    
+    @Bean
+    protected UserAwareQueryExecutor<SourceLicence> souceLicenceQueryExecutor() {
+        return new SourceLicenceQueryExecutor(sourceIdCodec, appPersistence.sourceLicenceStore());
+    }    
+    
+    public @Bean SourceLicenceController sourceLicenceController() {
+        return new SourceLicenceController(sourceLicenceQueryParser(),
+                souceLicenceQueryExecutor(),
+                new SourceLicenceQueryResultWriter(new SourceLicenceWithIdWriter(sourceIdCodec)),
+                gsonModelReader(),
+                userFetcher(),
+                appPersistence.sourceLicenceStore()               
+              );
+    }
+  
 }

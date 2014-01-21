@@ -20,6 +20,9 @@ public class SourceRequestTranslator {
     public static final String APPURL_KEY = "appUrl";
     public static final String REASON_KEY = "reason";
     public static final String APPROVED_KEY = "approved";
+    public static final String REQUESTED_AT_KEY = "requestedAt";
+    public static final String APPROVED_AT_KEY = "approvedAt";
+    public static final String LICENCE_ACCEPTED = "licenceAccepted";
     
     
     public DBObject toDBObject(SourceRequest sourceRequest) {
@@ -32,6 +35,11 @@ public class SourceRequestTranslator {
         TranslatorUtils.from(dbo, APPURL_KEY, sourceRequest.getAppUrl());
         TranslatorUtils.from(dbo, REASON_KEY, sourceRequest.getReason());
         TranslatorUtils.from(dbo, APPROVED_KEY, sourceRequest.isApproved());
+        TranslatorUtils.fromDateTime(dbo, REQUESTED_AT_KEY, sourceRequest.getRequestedAt());
+        if (sourceRequest.getApprovedAt().isPresent()) {
+            TranslatorUtils.fromDateTime(dbo, APPROVED_AT_KEY, sourceRequest.getApprovedAt().get());
+        }
+        TranslatorUtils.from(dbo, LICENCE_ACCEPTED, sourceRequest.isLicenceAccepted());
         return dbo;
     }
     
@@ -48,6 +56,9 @@ public class SourceRequestTranslator {
                 .withAppUrl(TranslatorUtils.toString(dbo, APPURL_KEY))
                 .withReason(TranslatorUtils.toString(dbo, REASON_KEY))
                 .withApproved(TranslatorUtils.toBoolean(dbo, APPROVED_KEY))
+                .withRequestedAt(TranslatorUtils.toDateTime(dbo, REQUESTED_AT_KEY))
+                .withApprovedAt(TranslatorUtils.toDateTime(dbo, APPROVED_AT_KEY))
+                .withLicenceAccepted(Boolean.TRUE.equals(TranslatorUtils.toBoolean(dbo, LICENCE_ACCEPTED)))
                 .build();
     }
 }

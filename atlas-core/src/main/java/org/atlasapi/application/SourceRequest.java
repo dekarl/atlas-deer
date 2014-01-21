@@ -3,6 +3,9 @@ package org.atlasapi.application;
 import org.atlasapi.entity.Id;
 import org.atlasapi.entity.Identifiable;
 import org.atlasapi.media.entity.Publisher;
+import org.joda.time.DateTime;
+
+import com.google.common.base.Optional;
 
 public class SourceRequest implements Identifiable {
     
@@ -13,10 +16,14 @@ public class SourceRequest implements Identifiable {
     private final String email;
     private final String appUrl;
     private final String reason;
+    private final boolean licenceAccepted;
+    private final DateTime requestedAt;
     private final boolean approved;
+    private final Optional<DateTime> approvedAt; // Older source request records will not have this field
     
     private SourceRequest(Id id, Id appId, Publisher source, UsageType usageType,
-            String email, String appUrl, String reason, boolean approved) {
+            String email, String appUrl, String reason, boolean licenceAccepted,
+            DateTime requestedAt, boolean approved, Optional<DateTime> approvedAt) {
         this.id = id;
         this.appId = appId;
         this.source = source;
@@ -24,7 +31,10 @@ public class SourceRequest implements Identifiable {
         this.email = email;
         this.appUrl = appUrl;
         this.reason = reason;
+        this.licenceAccepted = licenceAccepted;
+        this.requestedAt = requestedAt;
         this.approved = approved;
+        this.approvedAt = approvedAt;
     }
     
     public Id getId() {
@@ -55,8 +65,20 @@ public class SourceRequest implements Identifiable {
         return reason;
     }
     
+    public boolean isLicenceAccepted() {
+        return licenceAccepted;
+    }
+    
+    public DateTime getRequestedAt() {
+        return requestedAt;
+    }
+    
     public boolean isApproved() {
         return approved;
+    }
+    
+    public Optional<DateTime> getApprovedAt() {
+        return approvedAt;
     }
     
     public static Builder builder() {
@@ -72,7 +94,9 @@ public class SourceRequest implements Identifiable {
             .withEmail(email)
             .withAppUrl(appUrl)
             .withReason(reason)
-            .withApproved(approved);
+            .withRequestedAt(requestedAt)
+            .withApproved(approved)
+            .withApprovedAt(approvedAt);
     }
     
     public static class Builder {
@@ -83,7 +107,10 @@ public class SourceRequest implements Identifiable {
         private String email;
         private String appUrl;
         private String reason;
-        private boolean approved;
+        private boolean licenceAccepted = false;
+        private DateTime requestedAt;
+        private boolean approved = false;
+        private Optional<DateTime> approvedAt = Optional.absent();
         
         public Builder() {
         }
@@ -123,14 +150,36 @@ public class SourceRequest implements Identifiable {
             return this;
         }
         
+        public Builder withLicenceAccepted(boolean licenceAccepted) {
+            this.licenceAccepted = licenceAccepted;
+            return this;
+        }
+        
+        public Builder withRequestedAt(DateTime requestedAt) {
+            this.requestedAt = requestedAt;
+            return this;
+        }
+        
         public Builder withApproved(boolean approved) {
             this.approved = approved;
             return this;
         }
         
+        public Builder withApprovedAt(DateTime approvedAt) {
+            this.approvedAt = Optional.fromNullable(approvedAt);
+            return this;
+        }
+        
+        public Builder withApprovedAt(Optional<DateTime> approvedAt) {
+            this.approvedAt = approvedAt;
+            return this;
+        }
+        
         public SourceRequest build() {
+            // Retain approved flag for backwards compatibility
+            this.approved = approvedAt.isPresent();
             return new SourceRequest(id, appId, source, usageType,
-                    email, appUrl, reason, approved);
+                    email, appUrl, reason, licenceAccepted, requestedAt, approved, approvedAt);
         }
     }
 }

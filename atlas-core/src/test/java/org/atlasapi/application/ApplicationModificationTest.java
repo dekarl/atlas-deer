@@ -45,7 +45,8 @@ public class ApplicationModificationTest {
               .build();
          List<SourceReadEntry> modifiedReads = ImmutableList.of(
          new SourceReadEntry(Publisher.YOUTUBE, SourceStatus.fromV3SourceStatus(Publisher.YOUTUBE.getDefaultSourceStatus())),
-         new SourceReadEntry(Publisher.NETFLIX, SourceStatus.fromV3SourceStatus(Publisher.NETFLIX.getDefaultSourceStatus()))
+         new SourceReadEntry(Publisher.NETFLIX, SourceStatus.fromV3SourceStatus(Publisher.NETFLIX.getDefaultSourceStatus())),
+         new SourceReadEntry(Publisher.BBC, SourceStatus.UNAVAILABLE)
       );
 
       List<Publisher> modfiedWrites = ImmutableList.of(
@@ -61,6 +62,7 @@ public class ApplicationModificationTest {
       //assertEquals(2, modified.getSources().getReads().size());
       assertEquals(Publisher.NETFLIX, modified.getSources().getReads().get(1).getPublisher());
       assertEquals(Publisher.ARCHIVE_ORG, modified.getSources().getWrites().get(1));
+      assertEquals(SourceStatus.UNAVAILABLE, modified.getSources().readStatusOrDefault(Publisher.BBC));
   }
   
   @Test

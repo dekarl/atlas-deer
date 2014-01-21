@@ -96,7 +96,7 @@ public class EmailNotificationSender {
         this.idCodec = idCodec;
     }
     
-    public void sendNotificationOfPublisherRequestToAdmin(Application app, SourceRequest sourceRequest) throws MessagingException, UnsupportedEncodingException {
+    public void sendNotificationOfPublisherRequestToAdmin(Application app, SourceRequest sourceRequest) throws MessagingException, UnsupportedEncodingException  {
          MimeMessage message = sender.createMimeMessage();
          
          MimeMessageHelper helper = new MimeMessageHelper(message, false, Charsets.UTF_8.name());
@@ -129,6 +129,7 @@ public class EmailNotificationSender {
         model.put("reason", sourceRequest.getReason());
         model.put("app_id", idCodec.encode(sourceRequest.getAppId().toBigInteger()));
         model.put("application_title", app.getTitle());
+        
         helper.setTo(sourceRequest.getEmail());     
         helper.setFrom(this.from, this.fromFriendlyName);
         helper.setText(renderer.render(USER_SUCCESS_NOTIFICATION_TEMPLATE, model), true);
