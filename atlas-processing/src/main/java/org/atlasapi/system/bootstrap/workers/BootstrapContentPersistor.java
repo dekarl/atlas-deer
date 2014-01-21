@@ -92,7 +92,7 @@ public class BootstrapContentPersistor implements ContentWriter {
                             log.debug("bootstrapping {}", iab);
                             result = write(iab);
                         } catch (WriteException e) {
-                            throw new RuntimeException(e);
+                            throw new RuntimeWriteException(e);
                         }
                     }
                 }
