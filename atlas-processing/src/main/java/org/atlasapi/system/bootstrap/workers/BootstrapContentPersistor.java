@@ -27,10 +27,12 @@ import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Function;
 import com.google.common.base.Optional;
+import com.google.common.base.Throwables;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
+import com.google.common.util.concurrent.UncheckedExecutionException;
 import com.metabroadcast.common.base.Maybe;
 
 public class BootstrapContentPersistor implements ContentWriter {
@@ -60,11 +62,7 @@ public class BootstrapContentPersistor implements ContentWriter {
         protected WriteResult<? extends Content> visitItem(Item item) {
             WriteResult<? extends Content> result = null;
             if (hasBroadcasts(item)) {
-                try {
-                    result = writeNewBroadcasts(item);
-                } catch (WriteException e) {
-                    throw new RuntimeWriteException(e);
-                }
+                result = writeNewBroadcasts(item);
             }
             if (result == null || !result.written()) {
                 log.debug("bootstrapping {}", item);
@@ -82,18 +80,14 @@ public class BootstrapContentPersistor implements ContentWriter {
             return false;
         }
 
-        private WriteResult<? extends Content> writeNewBroadcasts(Item item, Optional<Content> current) {
+        private WriteResult<? extends Content> writeNewBroadcasts(Item item, Optional<Content> current) throws WriteException {
             WriteResult<? extends Content> result = null;
             for (Version version : item.getVersions()) {
                 for (Broadcast broadcast : Iterables.filter(version.getBroadcasts(), ACTIVELY_PUBLISHED)) {
                     if (broadcast.getSourceId() != null && !hasBroadcast(current, broadcast)) {
-                        try {
-                            ItemAndBroadcast iab = new ItemAndBroadcast(item, broadcast);
-                            log.debug("bootstrapping {}", iab);
-                            result = write(iab);
-                        } catch (WriteException e) {
-                            throw new RuntimeWriteException(e);
-                        }
+                        ItemAndBroadcast iab = new ItemAndBroadcast(item, broadcast);
+                        log.debug("bootstrapping {}", iab);
+                        result = write(iab);
                     }
                 }
             }
@@ -116,18 +110,29 @@ public class BootstrapContentPersistor implements ContentWriter {
             return false;
         }
 
-        private WriteResult<? extends Content> writeNewBroadcasts(final Item item) throws WriteException {
+        private WriteResult<? extends Content> writeNewBroadcasts(final Item item) {
             ListenableFuture<Resolved<Content>> resolved = contentStore.resolveIds(ImmutableList.of(item.getId()));
             ListenableFuture<WriteResult<? extends Content>> result = Futures.transform(resolved, 
                 new Function<Resolved<Content>, WriteResult<? extends Content>>() {
                     @Override
                     public WriteResult<? extends Content> apply(Resolved<Content> input) {
                         Optional<Content> current = input.toMap().get(item.getId());
-                        return writeNewBroadcasts(item, current);
+                        try {
+                            return writeNewBroadcasts(item, current);
+                        } catch (WriteException e) {
+                            throw new RuntimeWriteException(e);
+                        }
                     }
                 }
             );
-            return Futures.get(result, WriteException.class);
+            try {
+                return Futures.get(result, WriteException.class);
+            } catch (UncheckedExecutionException e) {
+                Throwables.propagateIfInstanceOf(e.getCause(), RuntimeWriteException.class);
+                throw Throwables.propagate(e);
+            } catch (WriteException e) {
+                throw new RuntimeWriteException(e);
+            }
         }
 
         private <C extends Content> WriteResult<C> writeContent(C content) {

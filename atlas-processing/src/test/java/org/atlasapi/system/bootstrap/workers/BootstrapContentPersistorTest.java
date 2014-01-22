@@ -29,6 +29,7 @@ import org.testng.annotations.Test;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.util.concurrent.Futures;
+import com.metabroadcast.common.base.Maybe;
 import com.metabroadcast.common.time.DateTimeZones;
 
 @Listeners(MockitoTestNGListener.class)
@@ -76,6 +77,7 @@ public class BootstrapContentPersistorTest {
         ItemAndBroadcast iab = new ItemAndBroadcast(item, broadcast);
         when(scheduleWriter.writeSchedule(ImmutableList.of(ScheduleHierarchy.itemOnly(iab)), channel, interval))
             .thenThrow(new MissingResourceException(Id.valueOf(2)));
+        when(channelResolver.fromUri(channel.getCanonicalUri())).thenReturn(Maybe.just(channel));
         when(contentStore.resolveIds(ImmutableList.of(Id.valueOf(1))))
             .thenReturn(Futures.immediateFuture(Resolved.valueOf(ImmutableList.<Content>of(resolved))));
         
