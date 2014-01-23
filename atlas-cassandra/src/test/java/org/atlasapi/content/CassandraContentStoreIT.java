@@ -5,7 +5,6 @@ import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.isA;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Matchers.argThat;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -28,6 +27,8 @@ import org.atlasapi.entity.util.Resolved;
 import org.atlasapi.entity.util.WriteException;
 import org.atlasapi.entity.util.WriteResult;
 import org.atlasapi.media.entity.Publisher;
+import org.atlasapi.messaging.MessageSender;
+import org.atlasapi.messaging.ResourceUpdatedMessage;
 import org.joda.time.DateTime;
 import org.mockito.Mock;
 import org.mockito.testng.MockitoTestNGListener;
@@ -60,16 +61,17 @@ public class CassandraContentStoreIT {
     private static final AstyanaxContext<Keyspace> context = 
         CassandraHelper.testCassandraContext();
     
-    @Mock private ContentHasher hasher = mock(ContentHasher.class);
-    @Mock private IdGenerator idGenerator = mock(IdGenerator.class);
-    @Mock private Clock clock = mock(Clock.class);
+    @Mock private ContentHasher hasher;
+    @Mock private IdGenerator idGenerator;
+    @Mock private MessageSender sender;
+    @Mock private Clock clock;
     
     private CassandraContentStore store;
     
     @BeforeMethod
     public void before() {
         store = CassandraContentStore
-                .builder(context, "Content", hasher, idGenerator)
+                .builder(context, "Content", hasher, sender, idGenerator)
                 .withReadConsistency(ConsistencyLevel.CL_ONE)
                 .withWriteConsistency(ConsistencyLevel.CL_ONE)
                 .withClock(clock)
@@ -113,6 +115,8 @@ public class CassandraContentStoreIT {
         assertTrue(writeResult.written());
         assertThat(writeResult.getResource().getId().longValue(), is(1234l));
         assertFalse(writeResult.getPrevious().isPresent());
+        
+        verify(sender).sendMessage(argThat(isA(ResourceUpdatedMessage.class)));
         
         Content item = resolve(content.getId().longValue());
         

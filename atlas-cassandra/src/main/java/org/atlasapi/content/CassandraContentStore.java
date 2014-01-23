@@ -16,6 +16,7 @@ import org.atlasapi.entity.AliasIndex;
 import org.atlasapi.entity.Id;
 import org.atlasapi.entity.util.Resolved;
 import org.atlasapi.media.entity.Publisher;
+import org.atlasapi.messaging.MessageSender;
 import org.atlasapi.util.CassandraUtil;
 
 import com.google.common.base.Function;
@@ -54,8 +55,8 @@ import com.netflix.astyanax.serializers.StringSerializer;
 public final class CassandraContentStore extends AbstractContentStore {
     
     public static final Builder builder(AstyanaxContext<Keyspace> context, 
-            String name, ContentHasher hasher, IdGenerator idGenerator) {
-        return new Builder(context, name, hasher, idGenerator);
+            String name, ContentHasher hasher, MessageSender sender, IdGenerator idGenerator) {
+        return new Builder(context, name, hasher, sender, idGenerator);
     }
     
     public static final class Builder {
@@ -63,6 +64,7 @@ public final class CassandraContentStore extends AbstractContentStore {
         private final AstyanaxContext<Keyspace> context;
         private final String name;
         private final ContentHasher hasher;
+        private final MessageSender sender;
         private final IdGenerator idGenerator;
         
         private ConsistencyLevel readCl = ConsistencyLevel.CL_QUORUM;
@@ -70,10 +72,11 @@ public final class CassandraContentStore extends AbstractContentStore {
         private Clock clock = new SystemClock();
 
         public Builder(AstyanaxContext<Keyspace> context, String name, 
-                       ContentHasher hasher, IdGenerator idGenerator) {
+                       ContentHasher hasher, MessageSender sender, IdGenerator idGenerator) {
             this.context = context;
             this.name = name;
             this.hasher = hasher;
+            this.sender = sender;
             this.idGenerator = idGenerator;
         }
         
@@ -94,7 +97,7 @@ public final class CassandraContentStore extends AbstractContentStore {
         
         public CassandraContentStore build() {
             return new CassandraContentStore(context, name, readCl, writeCl, 
-                hasher, idGenerator, clock);
+                hasher, idGenerator, sender, clock);
         }
         
     }
@@ -126,8 +129,8 @@ public final class CassandraContentStore extends AbstractContentStore {
 
     public CassandraContentStore(AstyanaxContext<Keyspace> context,
         String cfName, ConsistencyLevel readConsistency, ConsistencyLevel writeConsistency, 
-        ContentHasher hasher, IdGenerator idGenerator, Clock clock) {
-        super(hasher, idGenerator, clock);
+        ContentHasher hasher, IdGenerator idGenerator, MessageSender sender, Clock clock) {
+        super(hasher, idGenerator, sender, clock);
         this.keyspace = checkNotNull(context.getClient());
         this.readConsistency = checkNotNull(readConsistency);
         this.writeConsistency = checkNotNull(writeConsistency);

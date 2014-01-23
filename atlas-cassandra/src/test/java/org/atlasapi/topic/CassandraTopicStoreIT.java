@@ -6,7 +6,6 @@ import static org.hamcrest.Matchers.isA;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.argThat;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.verify;
@@ -22,6 +21,7 @@ import org.atlasapi.entity.Id;
 import org.atlasapi.entity.util.Resolved;
 import org.atlasapi.entity.util.WriteResult;
 import org.atlasapi.media.entity.Publisher;
+import org.atlasapi.messaging.MessageSender;
 import org.joda.time.DateTime;
 import org.mockito.Mock;
 import org.mockito.testng.MockitoTestNGListener;
@@ -65,17 +65,17 @@ public class CassandraTopicStoreIT {
     private static final AstyanaxContext<Keyspace> context =
         CassandraHelper.testCassandraContext();
 
-    @SuppressWarnings("unchecked")
-    @Mock private StubbableEquivalence<Topic> equiv = mock(StubbableEquivalence.class);
-    @Mock private IdGenerator idGenerator = mock(IdGenerator.class);
-    @Mock private Clock clock = mock(Clock.class);
+    @Mock private StubbableEquivalence<Topic> equiv;
+    @Mock private IdGenerator idGenerator;
+    @Mock private MessageSender sender;
+    @Mock private Clock clock;
 
     private CassandraTopicStore topicStore;
 
     @BeforeMethod
     public void before() {
         topicStore = CassandraTopicStore
-            .builder(context, "topics", equiv, idGenerator)
+            .builder(context, "topics", equiv, sender, idGenerator)
             .withReadConsistency(ConsistencyLevel.CL_ONE)
             .withWriteConsistency(ConsistencyLevel.CL_ONE)
             .withClock(clock)

@@ -23,8 +23,6 @@ import org.atlasapi.media.channel.ChannelStore;
 import org.atlasapi.media.channel.MongoChannelGroupStore;
 import org.atlasapi.media.channel.MongoChannelStore;
 import org.atlasapi.messaging.AtlasMessagingModule;
-import org.atlasapi.messaging.MessageQueueingContentStore;
-import org.atlasapi.messaging.MessageQueueingTopicStore;
 import org.atlasapi.persistence.ids.MongoSequentialIdGenerator;
 import org.atlasapi.schedule.EsScheduleIndex;
 import org.atlasapi.schedule.ScheduleStore;
@@ -110,12 +108,12 @@ public class AtlasPersistenceModule {
     public ContentStore contentStore() {
         ContentStore store = persistenceModule().contentStore();
         store = new EquivalenceWritingContentStore(store, equivalenceRecordStore());
-        return new MessageQueueingContentStore(messaging.contentChanges(), store);
+        return store;
     }
     
     @Bean
     public TopicStore topicStore() {
-        return new MessageQueueingTopicStore(messaging.topicChanges(), persistenceModule().topicStore());
+        return persistenceModule().topicStore();
     }
     
     @Bean

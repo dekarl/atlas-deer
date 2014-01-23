@@ -8,7 +8,6 @@ import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.isA;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Matchers.argThat;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -32,6 +31,7 @@ import org.atlasapi.entity.util.Resolved;
 import org.atlasapi.entity.util.WriteResult;
 import org.atlasapi.media.channel.Channel;
 import org.atlasapi.media.entity.Publisher;
+import org.atlasapi.messaging.MessageSender;
 import org.joda.time.DateTime;
 import org.joda.time.Interval;
 import org.mockito.Mock;
@@ -72,7 +72,8 @@ public class CassandraScheduleStoreIT {
             CassandraHelper.testCassandraContext();
 
     //hasher is mock till we have a non-Mongo based one.
-    @Mock private ContentHasher hasher = mock(ContentHasher.class);
+    @Mock private ContentHasher hasher;
+    @Mock private MessageSender sender; 
     
     private final Clock clock = new TimeMachine();
     
@@ -104,7 +105,7 @@ public class CassandraScheduleStoreIT {
         channel.setCanonicalUri("channel");
         channel.setId(1234L);
         contentStore = CassandraContentStore
-                .builder(context, CONTENT_CF_NAME, hasher, new SequenceGenerator())
+                .builder(context, CONTENT_CF_NAME, hasher, sender, new SequenceGenerator())
                 .withReadConsistency(ConsistencyLevel.CL_ONE)
                 .withWriteConsistency(ConsistencyLevel.CL_ONE)
                 .withClock(clock)

@@ -21,10 +21,11 @@ import com.netflix.astyanax.AstyanaxContext;
 import com.netflix.astyanax.Keyspace;
 import com.netflix.astyanax.model.ConsistencyLevel;
 
-
 public class CassandraPersistenceModule extends AbstractIdleService implements PersistenceModule {
 
     private String contentEquivalenceGraphChanges = Configurer.get("messaging.destination.equivalence.content.graph.changes").get();
+    private String contentChanges = Configurer.get("messaging.destination.content.changes").get();
+    private String topicChanges = Configurer.get("messaging.destination.topics.changes").get();
     
     private final String keyspace;
 
@@ -47,12 +48,12 @@ public class CassandraPersistenceModule extends AbstractIdleService implements P
         this.keyspace = keyspace;
         this.context = context;
         this.contentStore = CassandraContentStore.builder(context, "content", 
-            hasher, idGeneratorBuilder.generator("content"))
+            hasher, messageSenderFactory.makeMessageSender(contentChanges), idGeneratorBuilder.generator("content"))
             .withReadConsistency(ConsistencyLevel.CL_ONE)
             .withWriteConsistency(ConsistencyLevel.CL_QUORUM)
             .build();
         this.topicStore = CassandraTopicStore.builder(context, "topics", 
-            topicEquivalence(), idGeneratorBuilder.generator("topic"))
+            topicEquivalence(), messageSenderFactory.makeMessageSender(topicChanges), idGeneratorBuilder.generator("topic"))
             .withReadConsistency(ConsistencyLevel.CL_ONE)
             .withWriteConsistency(ConsistencyLevel.CL_QUORUM)
             .build();
