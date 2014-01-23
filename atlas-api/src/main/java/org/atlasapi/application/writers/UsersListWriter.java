@@ -58,6 +58,7 @@ public class UsersListWriter implements EntityListWriter<User> {
         writer.writeList(sourcesWriter, entity.getSources(), ctxt);
         writer.writeField("role", entity.getRole().toString().toLowerCase());
         writer.writeField("profile_complete", entity.isProfileComplete());
+        writer.writeField("license_accepted", entity.getLicenseAccepted().orNull());
         ctxt.endResource();
     }
 

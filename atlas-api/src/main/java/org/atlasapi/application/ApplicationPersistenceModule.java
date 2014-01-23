@@ -71,4 +71,9 @@ public class ApplicationPersistenceModule {
     public SourceLicenceStore sourceLicenceStore() {
         return new MongoSourceLicenceStore(persistence.databasedMongo());
     }
+    
+    @Bean 
+    public EndUserLicenseStore endUserLicenseStore() {
+        return new MongoEndUserLicenseStore(persistence.databasedMongo());
+    }
 }

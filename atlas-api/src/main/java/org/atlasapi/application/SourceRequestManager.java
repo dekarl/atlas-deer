@@ -12,7 +12,7 @@ import org.atlasapi.application.users.User;
 import org.atlasapi.entity.Id;
 import org.atlasapi.media.entity.Publisher;
 import org.atlasapi.output.InvalidTransitionException;
-import org.atlasapi.output.LicenceNotAcceptedException;
+import org.atlasapi.output.LicenseNotAcceptedException;
 import org.atlasapi.output.NotAcceptableException;
 import org.atlasapi.output.NotFoundException;
 import org.atlasapi.output.ResourceForbiddenException;
@@ -48,10 +48,10 @@ public class SourceRequestManager {
     }
     
     public SourceRequest createOrUpdateRequest(Publisher source, UsageType usageType,
-            Id applicationId, String applicationUrl, String email, String reason, boolean licenceAccepted) throws LicenceNotAcceptedException, InvalidTransitionException {
+            Id applicationId, String applicationUrl, String email, String reason, boolean licenceAccepted) throws LicenseNotAcceptedException, InvalidTransitionException {
         Optional<SourceRequest> existing = sourceRequestStore.getBy(applicationId, source);
         if (!licenceAccepted) {
-            throw new LicenceNotAcceptedException();
+            throw new LicenseNotAcceptedException();
         }
         
         Preconditions.checkNotNull(source);

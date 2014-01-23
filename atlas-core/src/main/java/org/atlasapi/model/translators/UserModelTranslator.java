@@ -37,6 +37,7 @@ public class UserModelTranslator implements Function<org.atlasapi.application.us
                 .withSources(input.getSources())
                 .withRole(Role.valueOf(input.getRole().name()))
                 .withProfileComplete(input.isProfileComplete())
+                .withLicenseAccepted(input.getLicenseAccepted().orNull())
                 .build();
     }
     
@@ -58,6 +59,7 @@ public class UserModelTranslator implements Function<org.atlasapi.application.us
                 .withApplicationSlugs(transformApplicationIds(input.getApplicationIds()))
                 .withSources(input.getSources())
                 .withProfileComplete(input.isProfileComplete())
+                .withLicenseAccepted(input.getLicenseAccepted().orNull())
                 .build();
     }
     

@@ -105,8 +105,8 @@ public class ApplicationsController {
             throws IOException {
         ResponseWriter writer = null;
         try {
-            writer = writerResolver.writerFor(request, response);
             User user = userFetcher.userFor(request).get();
+            writer = writerResolver.writerFor(request, response);
             Application application = deserialize(new InputStreamReader(request.getInputStream()), Application.class);
             if (application.getId() != null) {
                 if (!userCanAccessApplication(application.getId(), request)) {

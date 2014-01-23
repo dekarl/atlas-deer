@@ -32,11 +32,13 @@ import org.atlasapi.application.auth.UserFetcher;
 import org.atlasapi.application.auth.twitter.TwitterAuthController;
 import org.atlasapi.application.auth.www.AuthController;
 import org.atlasapi.application.model.deserialize.IdDeserializer;
+import org.atlasapi.application.model.deserialize.OptionalDeserializer;
 import org.atlasapi.application.model.deserialize.PublisherDeserializer;
 import org.atlasapi.application.model.deserialize.RoleDeserializer;
 import org.atlasapi.application.model.deserialize.SourceReadEntryDeserializer;
 import org.atlasapi.application.notification.NotifierModule;
 import org.atlasapi.application.sources.SourceIdCodec;
+import org.atlasapi.application.users.EndUserLicenseController;
 import org.atlasapi.application.users.NewUserSupplier;
 import org.atlasapi.application.users.Role;
 import org.atlasapi.application.users.User;
@@ -46,6 +48,8 @@ import org.atlasapi.application.writers.ApplicationListWriter;
 import org.atlasapi.application.writers.ApplicationQueryResultWriter;
 import org.atlasapi.application.writers.SourceLicenceQueryResultWriter;
 import org.atlasapi.application.writers.SourceLicenceWithIdWriter;
+import org.atlasapi.application.writers.EndUserLicenseListWriter;
+import org.atlasapi.application.writers.EndUserLicenseQueryResultWriter;
 import org.atlasapi.application.writers.SourceRequestListWriter;
 import org.atlasapi.application.writers.SourceRequestsQueryResultsWriter;
 import org.atlasapi.application.writers.SourceWithIdWriter;
@@ -83,11 +87,13 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.web.servlet.mvc.annotation.DefaultAnnotationHandlerMapping;
 
+import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonDeserializer;
+import com.google.gson.reflect.TypeToken;
 import com.metabroadcast.common.http.HttpClients;
 import com.metabroadcast.common.http.SimpleHttpClient;
 import com.metabroadcast.common.ids.IdGenerator;
@@ -136,6 +142,7 @@ public class ApplicationWebModule {
             .registerTypeAdapter(SourceReadEntry.class, readsDeserializer)
             .registerTypeAdapter(Publisher.class, publisherDeserializer)
             .registerTypeAdapter(Role.class, roleDeserializer)
+            .registerTypeAdapter(new TypeToken<Optional<DateTime>>(){}.getType(), new OptionalDeserializer())
             .setFieldNamingPolicy(LOWER_CASE_WITH_UNDERSCORES)
             .create();
     
@@ -197,7 +204,9 @@ public class ApplicationWebModule {
                         "/4.0/videosource"))
                .withUrlsNotNeedingCompleteProfile(ImmutableSet.of(
                 "/4.0/auth/user",
-                "/4.0/users/:uid"))
+                "/4.0/users/:uid",
+                "/4.0/eula",
+                "/4.0/users/:uid/eula/accept"))
                .withExemptions(ImmutableSet.of(
                 		"/4.0/videosource/youtube/token.json"
                 		))
@@ -240,7 +249,8 @@ public class ApplicationWebModule {
                 gsonModelReader(),
                 idCodec,
                 userFetcher(),
-                appPersistence.userStore());
+                appPersistence.userStore(),
+                new SystemClock());
     }
     
     private StandardUserAwareQueryParser<Application> applicationQueryParser() {
@@ -372,7 +382,6 @@ public class ApplicationWebModule {
     private StandardUserAwareQueryParser<SourceLicence> sourceLicenceQueryParser() {
         UserAwareQueryContextParser contextParser = new UserAwareQueryContextParser(configFetcher(), userFetcher(), 
                 new IndexAnnotationsExtractor(applicationAnnotationIndex()), selectionBuilder());
-
         return new StandardUserAwareQueryParser<SourceLicence>(Resource.SOURCE_LICENCE,
                 new QueryAttributeParser(ImmutableList.of(
                     QueryAtomParser.valueOf(Attributes.ID, AttributeCoercers.idCoercer(idCodec))
@@ -393,6 +402,14 @@ public class ApplicationWebModule {
                 userFetcher(),
                 appPersistence.sourceLicenceStore()               
               );
+    }
+    
+    @Bean
+    public EndUserLicenseController endUserLicenseController() {
+        EndUserLicenseListWriter endUserLicenseListWriter = new EndUserLicenseListWriter();
+        
+        return new EndUserLicenseController(new EndUserLicenseQueryResultWriter(endUserLicenseListWriter),
+                gsonModelReader(), appPersistence.endUserLicenseStore(), userFetcher()); 
     }
   
 }

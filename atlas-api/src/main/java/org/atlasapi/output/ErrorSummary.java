@@ -60,7 +60,7 @@ public class ErrorSummary {
 		    .put(UserProfileIncompleteException.class, new DefaultErrorSummaryFactory("FORBIDDEN_USER_INCOMPLETE", HttpStatusCode.FORBIDDEN))
 		    .put(ResourceForbiddenException.class, new DefaultErrorSummaryFactory("FORBIDDEN_RESOURCE", HttpStatusCode.FORBIDDEN))
 		    .put(InvalidApiKeyException.class, new DefaultErrorSummaryFactory("INVALID_API_KEY", HttpStatusCode.FORBIDDEN))
-		    .put(LicenceNotAcceptedException.class, new DefaultErrorSummaryFactory("LICENCE_NOT_ACCEPTED", HttpStatusCode.FORBIDDEN))           
+		    .put(LicenseNotAcceptedException.class, new DefaultErrorSummaryFactory("LICENSE_NOT_ACCEPTED", HttpStatusCode.FORBIDDEN))           
 		    .put(InvalidTransitionException.class, new DefaultErrorSummaryFactory("INVALID_TRANSITION", HttpStatusCode.BAD_REQUEST))  
 		    .build();
 	}
