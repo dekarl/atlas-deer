@@ -25,9 +25,7 @@ import org.atlasapi.equivalence.EquivalenceRecordWriter;
 import org.atlasapi.equivalence.EquivalenceRef;
 import org.atlasapi.equivalence.TransitiveEquivalenceRecordWriter;
 import org.atlasapi.media.entity.Publisher;
-import org.junit.runner.RunWith;
 import org.mockito.Mockito;
-import org.mockito.runners.MockitoJUnitRunner;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.testng.annotations.BeforeClass;
@@ -43,7 +41,6 @@ import com.google.common.collect.Maps;
 import com.metabroadcast.common.collect.ImmutableOptionalMap;
 import com.metabroadcast.common.collect.OptionalMap;
 
-@RunWith(MockitoJUnitRunner.class)
 public class TransitiveEquivalenceRecordWriterTest {
 
     private final EquivalenceRecordStore store = new InMemoryRecordStore();

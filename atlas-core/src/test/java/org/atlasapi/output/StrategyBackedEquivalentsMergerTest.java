@@ -5,7 +5,6 @@ import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Matchers.anyCollectionOf;
 import static org.mockito.Matchers.argThat;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.verify;
@@ -20,22 +19,27 @@ import org.atlasapi.application.SourceStatus;
 import org.atlasapi.content.Brand;
 import org.atlasapi.content.Content;
 import org.atlasapi.media.entity.Publisher;
-import org.junit.runner.RunWith;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.Mock;
+import org.mockito.testng.MockitoTestNGListener;
+import org.testng.annotations.BeforeClass;
+import org.testng.annotations.Listeners;
 import org.testng.annotations.Test;
 
 import com.google.common.collect.Collections2;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 
-@RunWith(MockitoJUnitRunner.class)
+@Listeners(MockitoTestNGListener.class)
 public class StrategyBackedEquivalentsMergerTest {
 
-    @SuppressWarnings("unchecked")
-    private final EquivalentsMergeStrategy<Content> strategy
-        = mock(EquivalentsMergeStrategy.class);
-    private final StrategyBackedEquivalentsMerger<Content> merger
-        = new StrategyBackedEquivalentsMerger<Content>(strategy);
+    @Mock private EquivalentsMergeStrategy<Content> strategy;
+    
+    private StrategyBackedEquivalentsMerger<Content> merger;
+    
+    @BeforeClass
+    public void setup() {
+        merger = new StrategyBackedEquivalentsMerger<Content>(strategy);
+    }
     
     private final ApplicationSources nonMergingSources = ApplicationSources.defaults()
             .copy().withPrecedence(false).build();

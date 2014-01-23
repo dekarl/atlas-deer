@@ -6,7 +6,6 @@ import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.any;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import java.math.BigInteger;
@@ -17,6 +16,7 @@ import javax.servlet.http.HttpServletRequest;
 
 import org.atlasapi.annotation.Annotation;
 import org.atlasapi.application.ApplicationSources;
+import org.atlasapi.application.SourceStatus;
 import org.atlasapi.application.auth.ApplicationSourcesFetcher;
 import org.atlasapi.entity.Id;
 import org.atlasapi.media.channel.Channel;
@@ -27,10 +27,12 @@ import org.atlasapi.query.common.Resource;
 import org.joda.time.DateTime;
 import org.joda.time.Duration;
 import org.joda.time.Interval;
+import org.mockito.Mock;
+import org.mockito.testng.MockitoTestNGListener;
 import org.testng.annotations.BeforeClass;
+import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.Listeners;
 import org.testng.annotations.Test;
-import org.junit.runner.RunWith;
-import org.mockito.runners.MockitoJUnitRunner;
 
 import com.google.common.base.Function;
 import com.google.common.base.Joiner;
@@ -43,30 +45,38 @@ import com.metabroadcast.common.servlet.StubHttpServletRequest;
 import com.metabroadcast.common.time.DateTimeZones;
 import com.metabroadcast.common.time.TimeMachine;
 
-@RunWith(MockitoJUnitRunner.class)
+@Listeners(MockitoTestNGListener.class)
 public class ScheduleRequestParserTest {
 
-    private final ApplicationSourcesFetcher applicationFetcher = mock(ApplicationSourcesFetcher.class);
-    private final DateTime time = new DateTime(2012, 12, 14, 10,00,00,000, DateTimeZones.UTC);
-    private final ContextualAnnotationsExtractor annotationsExtractor = mock(ContextualAnnotationsExtractor.class);
-    private final ScheduleRequestParser builder = new ScheduleRequestParser(
-        applicationFetcher,
-        Duration.standardDays(1),
-        new TimeMachine(time), annotationsExtractor 
-    );
+    @Mock private ApplicationSourcesFetcher applicationFetcher;
+    @Mock private ContextualAnnotationsExtractor annotationsExtractor;
+
+    private DateTime time = new DateTime(2012, 12, 14, 10,00,00,000, DateTimeZones.UTC);
+    private ScheduleRequestParser builder;
 
     private final NumberToShortStringCodec codec = SubstitutionTableNumberCodec.lowerCaseOnly();
     private final Channel channel1 = Channel.builder().build();
     private final Channel channel2 = Channel.builder().build();
+    private final ApplicationSources sources = ApplicationSources.defaults()
+                .copyWithChangedReadableSourceStatus(BBC, SourceStatus.AVAILABLE_ENABLED);
     
     @BeforeClass
     public void setup() throws Exception {
+        builder  = new ScheduleRequestParser(
+                applicationFetcher,
+                Duration.standardDays(1),
+                new TimeMachine(time), annotationsExtractor 
+            );
         channel1.setId(1234L);
         channel2.setId(1235L);
+    }
+    
+    @BeforeMethod
+    public void before() throws Exception {
         when(annotationsExtractor.extractFromRequest(any(HttpServletRequest.class)))
             .thenReturn(ActiveAnnotations.standard());
         when(applicationFetcher.sourcesFor(any(HttpServletRequest.class)))
-            .thenReturn(Optional.of(ApplicationSources.defaults()));
+            .thenReturn(Optional.of(sources));
     }
     
     @Test
@@ -88,7 +98,7 @@ public class ScheduleRequestParserTest {
         assertThat(query.getInterval(), is(intvl));
         assertThat(query.getSource(), is(BBC));
         assertThat(query.getContext().getAnnotations().forPath(ImmutableList.of(Resource.CONTENT)), is(Annotation.standard()));
-        assertThat(query.getContext().getApplicationSources(), is(ApplicationSources.defaults()));
+        assertThat(query.getContext().getApplicationSources(), is(sources));
     }
     
     @Test
@@ -110,7 +120,7 @@ public class ScheduleRequestParserTest {
         assertThat(query.getInterval(), is(intvl));
         assertThat(query.getSource(), is(BBC));
         assertThat(query.getContext().getAnnotations().forPath(ImmutableList.of(Resource.CONTENT)), is(Annotation.standard()));
-        assertThat(query.getContext().getApplicationSources(), is(ApplicationSources.defaults()));
+        assertThat(query.getContext().getApplicationSources(), is(sources));
     }
     
     @Test(expectedExceptions=IllegalArgumentException.class)

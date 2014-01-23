@@ -12,6 +12,7 @@ import static org.mockito.Mockito.when;
 import java.util.Set;
 
 import org.atlasapi.application.ApplicationSources;
+import org.atlasapi.application.SourceStatus;
 import org.atlasapi.content.Content;
 import org.atlasapi.content.ContentIndex;
 import org.atlasapi.content.Episode;
@@ -23,6 +24,7 @@ import org.atlasapi.equivalence.MergingEquivalentsResolver;
 import org.atlasapi.equivalence.ResolvedEquivalents;
 import org.atlasapi.media.entity.Publisher;
 import org.atlasapi.output.NotFoundException;
+import org.atlasapi.query.annotation.ActiveAnnotations;
 import org.atlasapi.query.common.ContextualQuery;
 import org.atlasapi.query.common.ContextualQueryResult;
 import org.atlasapi.query.common.ForbiddenException;
@@ -62,7 +64,9 @@ public class TopicContentQueryExecutorTest {
     public void testExecutingTopicContentQuery() throws QueryExecutionException {
         
         AttributeQuerySet emptyAttributeQuerySet = new AttributeQuerySet(ImmutableSet.<AttributeQuery<?>>of());
-        QueryContext context = QueryContext.standard();
+        QueryContext context = new QueryContext(ApplicationSources.defaults()
+                .copyWithChangedReadableSourceStatus(Publisher.BBC, SourceStatus.AVAILABLE_ENABLED)
+                .copyWithChangedReadableSourceStatus(Publisher.DBPEDIA, SourceStatus.AVAILABLE_ENABLED), ActiveAnnotations.standard());
         SingleQuery<Topic> contextQuery = Query.singleQuery(Id.valueOf(1234), context );
         ListQuery<Content> resourceQuery = Query.listQuery(emptyAttributeQuerySet, context);
 
