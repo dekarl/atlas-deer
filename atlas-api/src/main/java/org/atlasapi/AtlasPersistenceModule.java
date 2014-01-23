@@ -26,7 +26,6 @@ import org.atlasapi.messaging.AtlasMessagingModule;
 import org.atlasapi.messaging.MessageQueueingContentStore;
 import org.atlasapi.messaging.MessageQueueingTopicStore;
 import org.atlasapi.persistence.ids.MongoSequentialIdGenerator;
-import org.atlasapi.schedule.EsScheduleIndex;
 import org.atlasapi.schedule.ScheduleStore;
 import org.atlasapi.topic.EsPopularTopicIndex;
 import org.atlasapi.topic.EsTopicIndex;
@@ -174,12 +173,6 @@ public class AtlasPersistenceModule {
                 return new MongoSequentialIdGenerator(databasedMongo(), sequenceIdentifier);
             }
         };
-    }
-
-    @Bean
-    @Primary
-    public EsScheduleIndex scheduleIndex() {
-        return esContentIndexModule().scheduleIndex();
     }
 
     @Bean

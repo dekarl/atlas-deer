@@ -1,15 +1,11 @@
 package org.atlasapi.topic;
 
-import static org.testng.AssertJUnit.assertEquals;
-import org.testng.annotations.AfterMethod;
-import org.testng.annotations.Test;
-import org.testng.annotations.BeforeMethod;
-import org.testng.annotations.BeforeClass;
 import static org.atlasapi.util.ElasticSearchHelper.refresh;
 import static org.hamcrest.Matchers.hasItems;
 import static org.mockito.Matchers.argThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+import static org.testng.AssertJUnit.assertEquals;
 
 import org.apache.log4j.ConsoleAppender;
 import org.apache.log4j.Level;
@@ -28,17 +24,21 @@ import org.atlasapi.util.ElasticSearchHelper;
 import org.elasticsearch.node.Node;
 import org.joda.time.DateTime;
 import org.joda.time.Interval;
+import org.testng.annotations.AfterMethod;
+import org.testng.annotations.BeforeClass;
+import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.Test;
+
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.metabroadcast.common.query.Selection;
-import com.metabroadcast.common.time.SystemClock;
 
 public class EsPopularTopicsIndexTest {
 
     private final Node esClient = ElasticSearchHelper.testNode();
-    private final EsContentIndex index = new EsContentIndex(esClient, EsSchema.CONTENT_INDEX, new SystemClock(), 60000);
+    private final EsContentIndex index = new EsContentIndex(esClient, EsSchema.CONTENT_INDEX, 60000);
 
     @BeforeClass
     public static void before() throws Exception {
