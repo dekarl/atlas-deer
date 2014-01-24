@@ -41,7 +41,7 @@ public class AtlasServer {
     private static final String MONITORING_PORT_OVERRIDE_PROPERTY_NAME = "monitoring.port";
     
     public static final String CONTEXT_ATTRIBUTE = "ATLAS_MAIN";
-    private static final String LOCAL_WAR_DIR = "./src/main/webapp";
+    private static final String LOCAL_WAR_DIR = "./src/main/webapp/";
 
     private static final String SAMPLING_PERIOD_PROPERTY = "samplingPeriodMinutes";
     private static final int DEFAULT_SAMPLING_PERIOD_MINUTES = 3;
