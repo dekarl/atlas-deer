@@ -20,6 +20,7 @@ import org.atlasapi.input.ReadException;
 import org.atlasapi.media.entity.Publisher;
 import org.atlasapi.output.ErrorResultWriter;
 import org.atlasapi.output.ErrorSummary;
+import org.atlasapi.output.NotAuthorizedException;
 import org.atlasapi.output.ResourceForbiddenException;
 import org.atlasapi.output.ResponseWriter;
 import org.atlasapi.output.ResponseWriterFactory;
@@ -105,21 +106,23 @@ public class ApplicationsController {
         ResponseWriter writer = null;
         try {
             writer = writerResolver.writerFor(request, response);
+            User user = userFetcher.userFor(request).get();
             Application application = deserialize(new InputStreamReader(request.getInputStream()), Application.class);
             if (application.getId() != null) {
                 if (!userCanAccessApplication(application.getId(), request)) {
                     throw new ResourceForbiddenException();
                 }
                 Optional<Application> existing = applicationStore.applicationFor(application.getId());
+                checkSourceStatusChanges(user, application, existing);
                 // Copy across slug and disallow modification of credentials
                 application = application.copy().withSlug(existing.get().getSlug())
                         .withCredentials(existing.get().getCredentials()).build();
                 application = applicationStore.updateApplication(application);
             } else {
+                checkSourceStatusChanges(user, application, Optional.<Application>absent());
                 // New application
                 application = applicationStore.createApplication(application);
                 // Add application to user ownership
-                User user = userFetcher.userFor(request).get();
                 userStore.store(user.copyWithAdditionalApplication(application));
             }
             UserAwareQueryResult<Application> queryResult = UserAwareQueryResult.singleResult(application, UserAwareQueryContext.standard());
@@ -140,14 +143,16 @@ public class ApplicationsController {
         response.addHeader("Access-Control-Allow-Origin", "*");
         Id applicationId = Id.valueOf(idCodec.decode(aid));
         ApplicationSources sources;
+        User user = userFetcher.userFor(request).get();
         try {
             if (!userCanAccessApplication(applicationId, request)) {
                 throw new ResourceForbiddenException();
             }
             sources = deserialize(new InputStreamReader(
                     request.getInputStream()), ApplicationSources.class);
-            Application existing = applicationStore.applicationFor(applicationId).get();
-            Application modified = existing.copyWithSources(sources);
+            Optional<Application> existing = applicationStore.applicationFor(applicationId);
+            Application modified = existing.get().copyWithSources(sources);
+            checkSourceStatusChanges(user, modified, existing);
             applicationStore.updateApplication(modified);
         } catch (Exception e) {
             ErrorSummary summary = ErrorSummary.forException(e);
@@ -220,5 +225,29 @@ public class ApplicationsController {
         } else {
             return user.get().is(Role.ADMIN) || user.get().getApplicationIds().contains(id);
         }
+    }
+    
+    // Restrict source status changes that non admins can make
+    private void checkSourceStatusChanges(User user, Application application, Optional<Application> existingApp) throws NotAuthorizedException {
+        if (user.is(Role.ADMIN)) {
+            return;
+        }
+        // cycle through source reads and check status changes are allowed
+        for (SourceReadEntry read : application.getSources().getReads()) {
+            SourceStatus existing;
+            if (existingApp.isPresent()) {
+                existing = existingApp.get().getSources().readStatusOrDefault(read.getPublisher());
+            } else {
+                existing = SourceStatus.fromV3SourceStatus(read.getPublisher().getDefaultSourceStatus());
+            }
+            // Only allow non admins to enable or disable a source 
+            if (isStateChanged(existing, read.getSourceStatus())) {
+                throw new NotAuthorizedException();
+            }
+        }
+    }
+    
+    private boolean isStateChanged(SourceStatus existing, SourceStatus submitted) {
+        return !submitted.getState().equals(existing.getState());
     }
 }

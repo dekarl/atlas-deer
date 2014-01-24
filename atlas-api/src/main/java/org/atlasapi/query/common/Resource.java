@@ -11,7 +11,8 @@ public enum Resource {
     APPLICATION("application", "applications"),
     SOURCE("source", "sources"),
     SOURCE_REQUEST("source_request", "source_requests"),
-    USER("user", "users")
+    USER("user", "users"),
+    SOURCE_LICENCE("source_licence", "source_licences")
     ;
     
     private final String singular;

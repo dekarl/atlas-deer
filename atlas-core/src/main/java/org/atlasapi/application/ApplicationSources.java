@@ -135,6 +135,15 @@ public class ApplicationSources {
         return this.getWrites().contains(source);
     }
     
+    public SourceStatus readStatusOrDefault(Publisher source) {
+        for (SourceReadEntry entry : this.getReads()) {
+            if (entry.getPublisher().equals(source)) {
+                return entry.getSourceStatus();
+            }
+        }
+        return SourceStatus.fromV3SourceStatus(source.getDefaultSourceStatus());
+    }
+    
     public Ordering<Sourced> getSourcedReadOrdering() {
         Ordering<Publisher> ordering = this.publisherPrecedenceOrdering();
         return ordering.onResultOf(Sourceds.toPublisher());

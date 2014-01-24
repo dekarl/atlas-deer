@@ -66,4 +66,9 @@ public class ApplicationPersistenceModule {
     public UserVideoSourceStore linkedOauthTokenUserStore() {
     	return new MongoUserVideoSourceStore(persistence.databasedMongo());
     }
+    
+    @Bean
+    public SourceLicenceStore sourceLicenceStore() {
+        return new MongoSourceLicenceStore(persistence.databasedMongo());
+    }
 }
