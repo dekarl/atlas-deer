@@ -33,22 +33,22 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 
 @Controller
-public class SourceLicenceController {
-    private static Logger log = LoggerFactory.getLogger(SourceLicenceController.class);
-    private final UserAwareQueryParser<SourceLicence> queryParser;
-    private final UserAwareQueryExecutor<SourceLicence> queryExecutor;
-    private final UserAwareQueryResultWriter<SourceLicence> resultWriter;
+public class SourceLicenseController {
+    private static Logger log = LoggerFactory.getLogger(SourceLicenseController.class);
+    private final UserAwareQueryParser<SourceLicense> queryParser;
+    private final UserAwareQueryExecutor<SourceLicense> queryExecutor;
+    private final UserAwareQueryResultWriter<SourceLicense> resultWriter;
     private final ResponseWriterFactory writerResolver = new ResponseWriterFactory();
     private final ModelReader reader;
     private final UserFetcher userFetcher;
-    private final SourceLicenceStore store;
+    private final SourceLicenseStore store;
     
-    public SourceLicenceController(UserAwareQueryParser<SourceLicence> queryParser,
-            UserAwareQueryExecutor<SourceLicence> queryExecutor,
-            UserAwareQueryResultWriter<SourceLicence> resultWriter,
+    public SourceLicenseController(UserAwareQueryParser<SourceLicense> queryParser,
+            UserAwareQueryExecutor<SourceLicense> queryExecutor,
+            UserAwareQueryResultWriter<SourceLicense> resultWriter,
             ModelReader reader,
             UserFetcher userFetcher,
-            SourceLicenceStore store) {
+            SourceLicenseStore store) {
         super();
         this.queryParser = queryParser;
         this.queryExecutor = queryExecutor;
@@ -58,14 +58,13 @@ public class SourceLicenceController {
         this.store = store;
     }
     
-    // TODO request multiple licences?
-    @RequestMapping({"/4.0/source_licences/{sid}.*", "/4.0/source_licences.*" })
+    @RequestMapping({"/4.0/source_licenses/{sid}.*", "/4.0/source_licenses.*" })
     public void listSources(HttpServletRequest request,
             HttpServletResponse response) throws QueryParseException, QueryExecutionException, IOException {
         ResponseWriter writer = writerResolver.writerFor(request, response);
         try {
-            UserAwareQuery<SourceLicence> sourcesQuery = queryParser.parse(request);
-            UserAwareQueryResult<SourceLicence> queryResult = queryExecutor.execute(sourcesQuery);
+            UserAwareQuery<SourceLicense> sourcesQuery = queryParser.parse(request);
+            UserAwareQueryResult<SourceLicense> queryResult = queryExecutor.execute(sourcesQuery);
             resultWriter.write(queryResult, writer);
         } catch (Exception e) {
             ErrorSummary summary = ErrorSummary.forException(e);
@@ -73,8 +72,8 @@ public class SourceLicenceController {
         }
     }
     
-    @RequestMapping(value = "/4.0/licence.*", method = RequestMethod.POST)
-    public void writeLicence(HttpServletRequest request, HttpServletResponse response)
+    @RequestMapping(value = "/4.0/license.*", method = RequestMethod.POST)
+    public void writeLicense(HttpServletRequest request, HttpServletResponse response)
             throws IOException {
         ResponseWriter writer = null;
         try {
@@ -84,9 +83,9 @@ public class SourceLicenceController {
                 throw new ResourceForbiddenException();
             }
            
-            SourceLicence licence = deserialize(new InputStreamReader(request.getInputStream()), SourceLicence.class);
-            store.store(licence);
-            UserAwareQueryResult<SourceLicence> queryResult = UserAwareQueryResult.singleResult(licence, UserAwareQueryContext.standard());
+            SourceLicense license = deserialize(new InputStreamReader(request.getInputStream()), SourceLicense.class);
+            store.store(license);
+            UserAwareQueryResult<SourceLicense> queryResult = UserAwareQueryResult.singleResult(license, UserAwareQueryContext.standard());
             resultWriter.write(queryResult, writer);
         } catch (Exception e) {
             log.error("Request exception " + request.getRequestURI(), e);

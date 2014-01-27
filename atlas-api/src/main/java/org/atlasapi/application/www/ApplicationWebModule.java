@@ -8,9 +8,9 @@ import org.atlasapi.application.Application;
 import org.atlasapi.application.ApplicationPersistenceModule;
 import org.atlasapi.application.ApplicationQueryExecutor;
 import org.atlasapi.application.ApplicationsController;
-import org.atlasapi.application.SourceLicence;
-import org.atlasapi.application.SourceLicenceController;
-import org.atlasapi.application.SourceLicenceQueryExecutor;
+import org.atlasapi.application.SourceLicense;
+import org.atlasapi.application.SourceLicenseController;
+import org.atlasapi.application.SourceLicenseQueryExecutor;
 import org.atlasapi.application.SourceReadEntry;
 import org.atlasapi.application.SourceRequest;
 import org.atlasapi.application.SourceRequestManager;
@@ -46,8 +46,8 @@ import org.atlasapi.application.users.UsersController;
 import org.atlasapi.application.users.UsersQueryExecutor;
 import org.atlasapi.application.writers.ApplicationListWriter;
 import org.atlasapi.application.writers.ApplicationQueryResultWriter;
-import org.atlasapi.application.writers.SourceLicenceQueryResultWriter;
-import org.atlasapi.application.writers.SourceLicenceWithIdWriter;
+import org.atlasapi.application.writers.SourceLicenseQueryResultWriter;
+import org.atlasapi.application.writers.SourceLicenseWithIdWriter;
 import org.atlasapi.application.writers.EndUserLicenseListWriter;
 import org.atlasapi.application.writers.EndUserLicenseQueryResultWriter;
 import org.atlasapi.application.writers.SourceRequestListWriter;
@@ -379,10 +379,10 @@ public class ApplicationWebModule {
     			videoSourceChannelResultsQueryResultWriter());
     }
     
-    private StandardUserAwareQueryParser<SourceLicence> sourceLicenceQueryParser() {
+    private StandardUserAwareQueryParser<SourceLicense> sourceLicenseQueryParser() {
         UserAwareQueryContextParser contextParser = new UserAwareQueryContextParser(configFetcher(), userFetcher(), 
                 new IndexAnnotationsExtractor(applicationAnnotationIndex()), selectionBuilder());
-        return new StandardUserAwareQueryParser<SourceLicence>(Resource.SOURCE_LICENCE,
+        return new StandardUserAwareQueryParser<SourceLicense>(Resource.SOURCE_LICENSE,
                 new QueryAttributeParser(ImmutableList.of(
                     QueryAtomParser.valueOf(Attributes.ID, AttributeCoercers.idCoercer(idCodec))
                 )),
@@ -390,17 +390,17 @@ public class ApplicationWebModule {
     }
     
     @Bean
-    protected UserAwareQueryExecutor<SourceLicence> souceLicenceQueryExecutor() {
-        return new SourceLicenceQueryExecutor(sourceIdCodec, appPersistence.sourceLicenceStore());
+    protected UserAwareQueryExecutor<SourceLicense> souceLicenseQueryExecutor() {
+        return new SourceLicenseQueryExecutor(sourceIdCodec, appPersistence.sourceLicenseStore());
     }    
     
-    public @Bean SourceLicenceController sourceLicenceController() {
-        return new SourceLicenceController(sourceLicenceQueryParser(),
-                souceLicenceQueryExecutor(),
-                new SourceLicenceQueryResultWriter(new SourceLicenceWithIdWriter(sourceIdCodec)),
+    public @Bean SourceLicenseController sourceLicenseController() {
+        return new SourceLicenseController(sourceLicenseQueryParser(),
+                souceLicenseQueryExecutor(),
+                new SourceLicenseQueryResultWriter(new SourceLicenseWithIdWriter(sourceIdCodec)),
                 gsonModelReader(),
                 userFetcher(),
-                appPersistence.sourceLicenceStore()               
+                appPersistence.sourceLicenseStore()               
               );
     }
     

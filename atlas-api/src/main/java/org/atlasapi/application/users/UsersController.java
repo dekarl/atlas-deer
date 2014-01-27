@@ -98,16 +98,14 @@ public class UsersController {
                 throw new ResourceForbiddenException();
             }
             Optional<User> existing = userStore.userForId(userId);
-            if (existing.isPresent()) {
-                User modified = existing.get().copy().withLicenseAccepted(clock.now()).build();
-                UserAwareQueryResult<User> queryResult = UserAwareQueryResult.singleResult(modified, UserAwareQueryContext.standard());
-                resultWriter.write(queryResult, writer);
-                userStore.store(modified);
-            } else {
+            if (!existing.isPresent()) {
                 throw new NotFoundException(userId);
             }
+            User modified = existing.get().copy().withLicenseAccepted(clock.now()).build();
+            UserAwareQueryResult<User> queryResult = UserAwareQueryResult.singleResult(modified, UserAwareQueryContext.standard());
+            resultWriter.write(queryResult, writer);
+            userStore.store(modified);
         } catch (Exception e) {
-            e.printStackTrace();
             log.error("Request exception " + request.getRequestURI(), e);
             ErrorSummary summary = ErrorSummary.forException(e);
             new ErrorResultWriter().write(summary, writer, request, response);

@@ -5,7 +5,6 @@ import java.io.UnsupportedEncodingException;
 import javax.mail.MessagingException;
 
 import org.atlasapi.application.SourceStatus.SourceState;
-import org.atlasapi.application.auth.www.AuthController;
 import org.atlasapi.application.notification.EmailNotificationSender;
 import org.atlasapi.application.users.Role;
 import org.atlasapi.application.users.User;
@@ -13,11 +12,9 @@ import org.atlasapi.entity.Id;
 import org.atlasapi.media.entity.Publisher;
 import org.atlasapi.output.InvalidTransitionException;
 import org.atlasapi.output.LicenseNotAcceptedException;
-import org.atlasapi.output.NotAcceptableException;
 import org.atlasapi.output.NotFoundException;
 import org.atlasapi.output.ResourceForbiddenException;
 import org.elasticsearch.common.Preconditions;
-import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -48,9 +45,9 @@ public class SourceRequestManager {
     }
     
     public SourceRequest createOrUpdateRequest(Publisher source, UsageType usageType,
-            Id applicationId, String applicationUrl, String email, String reason, boolean licenceAccepted) throws LicenseNotAcceptedException, InvalidTransitionException {
+            Id applicationId, String applicationUrl, String email, String reason, boolean licenseAccepted) throws LicenseNotAcceptedException, InvalidTransitionException {
         Optional<SourceRequest> existing = sourceRequestStore.getBy(applicationId, source);
-        if (!licenceAccepted) {
+        if (!licenseAccepted) {
             throw new LicenseNotAcceptedException();
         }
         
@@ -127,7 +124,7 @@ public class SourceRequestManager {
                 .withUsageType(usageType)
                 .withRequestedAt(clock.now())
                 .withApprovedAt(clock.now())
-                .withLicenceAccepted(true)
+                .withLicenseAccepted(true)
                 .build();
         sourceRequestStore.store(sourceRequest);
         Application existing = applicationStore.applicationFor(sourceRequest.getAppId()).get();

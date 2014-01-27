@@ -80,19 +80,19 @@ public class SourceRequestsController {
             @RequestParam String appUrl,
             @RequestParam String reason,
             @RequestParam String usageType,
-            @RequestParam String licenceAccepted) throws IOException {
+            @RequestParam String licenseAccepted) throws IOException {
 
         response.addHeader("Access-Control-Allow-Origin", "*");
         try {
             Optional<Publisher> source =sourceIdCodec.decode(sid);
-            if (source.isPresent()) {
+            if (!source.isPresent()) {
                 throw new NotFoundException(null);
             }
             Id applicationId = Id.valueOf(idCodec.decode(appId));
             UsageType usageTypeRequested = UsageType.valueOf(usageType.toUpperCase());
             User user = userFetcher.userFor(request).get();
             sourceRequestManager.createOrUpdateRequest(source.get(), usageTypeRequested,
-                 applicationId, appUrl, user.getEmail(), reason, Boolean.valueOf(licenceAccepted));
+                 applicationId, appUrl, user.getEmail(), reason, Boolean.valueOf(licenseAccepted));
         } catch (Exception e) {
             ErrorSummary summary = ErrorSummary.forException(e);
             new ErrorResultWriter().write(summary, null, request, response);

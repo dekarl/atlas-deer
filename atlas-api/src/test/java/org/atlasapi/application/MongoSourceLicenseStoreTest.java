@@ -9,20 +9,20 @@ import com.metabroadcast.common.persistence.MongoTestHelper;
 import com.metabroadcast.common.persistence.mongo.DatabasedMongo;
 
 
-public class MongoSourceLicenceStoreTest {
+public class MongoSourceLicenseStoreTest {
     private final DatabasedMongo mongo = MongoTestHelper.anEmptyTestDatabase();
     
     @Test
     public void test() {
-        SourceLicenceStore store = new MongoSourceLicenceStore(mongo);
-        SourceLicence licence = SourceLicence.builder()
+        SourceLicenseStore store = new MongoSourceLicenseStore(mongo);
+        SourceLicense license = SourceLicense.builder()
                 .withSource(Publisher.BBC)
-                .withLicence("A licence")
+                .withLicense("A license")
                 .build();
-        store.store(licence);
-        SourceLicence retrieved = store.licenceFor(Publisher.BBC).get();
-        assertEquals(licence.getSource(), retrieved.getSource());
-        assertEquals(licence.getLicence(), retrieved.getLicence());
+        store.store(license);
+        SourceLicense retrieved = store.licenseFor(Publisher.BBC).get();
+        assertEquals(license.getSource(), retrieved.getSource());
+        assertEquals(license.getLicense(), retrieved.getLicense());
     }
 
 }

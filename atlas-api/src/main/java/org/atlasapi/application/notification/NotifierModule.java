@@ -46,6 +46,7 @@ public class NotifierModule {
         }
     }
     
+    @Bean
     public SoyTemplateRenderer soyRenderer() {
         SoyTemplateRenderer renderer = new SoyTemplateRenderer();
         renderer.setPrefix("/WEB-INF/templates/");

@@ -28,7 +28,7 @@ public class EndUserLicenseListWriter implements EntityListWriter<EndUserLicense
 
     @Override
     public String listName() {
-        return "license";
+        return "licenses";
     }
 
 }
