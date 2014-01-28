@@ -6,6 +6,7 @@ import org.atlasapi.application.Application;
 import org.atlasapi.entity.Id;
 import org.atlasapi.entity.Identifiable;
 import org.atlasapi.media.entity.Publisher;
+import org.joda.time.DateTime;
 
 import com.google.common.base.Optional;
 import com.google.common.base.Preconditions;
@@ -24,13 +25,15 @@ public class User implements Identifiable {
     private final String profileImage;
     private final Role role;
     private final boolean profileComplete;
+    private Optional<DateTime> licenseAccepted;
     
     private final Set<Id> applicationIds;
     private final Set<Publisher> sources;
     
     private User(Id id, UserRef userRef, String screenName, String fullName,
             String company, String email, String website, String profileImage, Role role,
-            Set<Id> applicationIds, Set<Publisher> publishers, boolean profileComplete) {
+            Set<Id> applicationIds, Set<Publisher> publishers, boolean profileComplete,
+            Optional<DateTime> licenseAccepted) {
         this.id = id;
         this.userRef = userRef;
         this.screenName = screenName;
@@ -43,6 +46,7 @@ public class User implements Identifiable {
         this.applicationIds = ImmutableSet.copyOf(applicationIds);
         this.sources = ImmutableSet.copyOf(publishers);
         this.profileComplete = profileComplete;
+        this.licenseAccepted = licenseAccepted;
     }
 
     public UserRef getUserRef() {
@@ -89,6 +93,10 @@ public class User implements Identifiable {
         return profileComplete;
     }
     
+    public Optional<DateTime> getLicenseAccepted() {
+        return licenseAccepted;
+    }
+    
     public boolean manages(Application application) {
         return manages(application.getId());
     }
@@ -127,7 +135,8 @@ public class User implements Identifiable {
                     .withApplicationIds(this.getApplicationIds())
                     .withSources(this.getSources())
                     .withRole(this.getRole())
-                    .withProfileComplete(this.isProfileComplete());
+                    .withProfileComplete(this.isProfileComplete())
+                    .withLicenseAccepted(this.getLicenseAccepted().orNull());
     }
     
     public static Builder builder() {
@@ -147,6 +156,7 @@ public class User implements Identifiable {
         private Set<Id> applicationIds = ImmutableSet.of();
         private Set<Publisher> sources = ImmutableSet.of();
         private boolean profileComplete = false;
+        private Optional<DateTime> licenseAccepted;
         
         public Builder withId(Id id) {
             this.id = id;
@@ -207,13 +217,17 @@ public class User implements Identifiable {
             this.profileComplete = profileComplete;
             return this;
         }
+
+        public Builder withLicenseAccepted(DateTime licenseAccepted) {
+            this.licenseAccepted = Optional.fromNullable(licenseAccepted);
+            return this;
+        }
         
         public User build() {
             Preconditions.checkNotNull(id);
             return new User(id, userRef, screenName, fullName,
                     company, email, website, profileImage, role,
-                    applicationIds, sources, profileComplete);
+                    applicationIds, sources, profileComplete, licenseAccepted);
         }
     }
-    
 }

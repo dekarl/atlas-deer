@@ -8,24 +8,24 @@ import com.mongodb.BasicDBObject;
 import com.mongodb.DBObject;
 
 
-public class SourceLicenceTranslator {
+public class SourceLicenseTranslator {
     public static final String SOURCE_KEY = MongoConstants.ID;
-    public static final String LICENCE_KEY = "licence";
+    public static final String LICENSE_KEY = "license";
     
-    public DBObject toDBObject(SourceLicence sourceLicence) {
+    public DBObject toDBObject(SourceLicense sourceLicense) {
         DBObject dbo = new BasicDBObject();
-        TranslatorUtils.from(dbo, SOURCE_KEY, sourceLicence.getSource().key());
-        TranslatorUtils.from(dbo, LICENCE_KEY, sourceLicence.getLicence());
+        TranslatorUtils.from(dbo, SOURCE_KEY, sourceLicense.getSource().key());
+        TranslatorUtils.from(dbo, LICENSE_KEY, sourceLicense.getLicense());
         return dbo;
     }
     
-    public SourceLicence fromDBObject(DBObject dbo) {
+    public SourceLicense fromDBObject(DBObject dbo) {
         if (dbo == null) {
             return null;
         }
-        return SourceLicence.builder()
+        return SourceLicense.builder()
                 .withSource(Publisher.fromKey(TranslatorUtils.toString(dbo, SOURCE_KEY)).requireValue())
-                .withLicence(TranslatorUtils.toString(dbo, LICENCE_KEY))
+                .withLicense(TranslatorUtils.toString(dbo, LICENSE_KEY))
                 .build();
     }
 }

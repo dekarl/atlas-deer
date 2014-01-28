@@ -34,6 +34,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 
 import com.google.common.base.Optional;
 import com.metabroadcast.common.ids.NumberToShortStringCodec;
+import com.metabroadcast.common.time.Clock;
 
 @Controller
 public class UsersController {
@@ -46,6 +47,7 @@ public class UsersController {
     private final NumberToShortStringCodec idCodec;
     private final UserFetcher userFetcher;
     private final UserStore userStore;
+    private final Clock clock;
     
     public UsersController(UserAwareQueryParser<User> requestParser,
             UserAwareQueryExecutor<User> queryExecutor, 
@@ -53,7 +55,8 @@ public class UsersController {
             ModelReader reader,
             NumberToShortStringCodec idCodec,
             UserFetcher userFetcher,
-            UserStore userStore) {
+            UserStore userStore,
+            Clock clock) {
         this.requestParser = requestParser;
         this.queryExecutor = queryExecutor;
         this.resultWriter = resultWriter;
@@ -61,6 +64,7 @@ public class UsersController {
         this.idCodec = idCodec;
         this.userFetcher = userFetcher;
         this.userStore = userStore;
+        this.clock = clock;
     }
 
     @RequestMapping({ "/4.0/users/{uid}.*", "/4.0/users.*" })
@@ -71,6 +75,36 @@ public class UsersController {
             UserAwareQuery<User> applicationsQuery = requestParser.parse(request);
             UserAwareQueryResult<User> queryResult = queryExecutor.execute(applicationsQuery);
             resultWriter.write(queryResult, writer);
+        } catch (Exception e) {
+            log.error("Request exception " + request.getRequestURI(), e);
+            ErrorSummary summary = ErrorSummary.forException(e);
+            new ErrorResultWriter().write(summary, writer, request, response);
+        }
+    }
+    
+    // If user posts to this endpoint with the oauth token then they are accepting the 
+    // terms and conditions
+    @RequestMapping(value = "/4.0/users/{uid}/eula/accept.*", method = RequestMethod.POST)
+    public void userAcceptsLicense(HttpServletRequest request, 
+            HttpServletResponse response,
+            @PathVariable String uid) throws IOException {
+        ResponseWriter writer = null;
+        try {
+            writer = writerResolver.writerFor(request, response);
+            Id userId = Id.valueOf(idCodec.decode(uid));
+            User editingUser = userFetcher.userFor(request).get();
+            // if not own profile then need to be admin
+            if (!editingUser.is(Role.ADMIN) && !editingUser.getId().equals(userId)) {
+                throw new ResourceForbiddenException();
+            }
+            Optional<User> existing = userStore.userForId(userId);
+            if (!existing.isPresent()) {
+                throw new NotFoundException(userId);
+            }
+            User modified = existing.get().copy().withLicenseAccepted(clock.now()).build();
+            UserAwareQueryResult<User> queryResult = UserAwareQueryResult.singleResult(modified, UserAwareQueryContext.standard());
+            resultWriter.write(queryResult, writer);
+            userStore.store(modified);
         } catch (Exception e) {
             log.error("Request exception " + request.getRequestURI(), e);
             ErrorSummary summary = ErrorSummary.forException(e);

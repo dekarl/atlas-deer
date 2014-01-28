@@ -2,8 +2,10 @@ package org.atlasapi.model.translators;
 
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertTrue;
+
 import org.testng.annotations.Test;
 import org.testng.annotations.BeforeMethod;
+
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -16,11 +18,14 @@ import org.atlasapi.application.users.User;
 import org.atlasapi.entity.Id;
 import org.atlasapi.entity.util.Resolved;
 import org.atlasapi.media.entity.Publisher;
+import org.joda.time.DateTime;
+
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.util.concurrent.Futures;
 import com.metabroadcast.common.social.model.UserRef;
 import com.metabroadcast.common.social.model.UserRef.UserNamespace;
+import com.metabroadcast.common.time.DateTimeZones;
 
 public class UserModelTranslatorTest {
 	private static final Id USER_ID = Id.valueOf(5000);
@@ -51,6 +56,7 @@ public class UserModelTranslatorTest {
 	
 	@Test
 	public void test3To4UserTranslation() {
+	    final DateTime licenseAccepted = DateTime.now(DateTimeZones.UTC);
 		org.atlasapi.application.users.v3.User user = org.atlasapi.application.users.v3.User.builder()
             .withId(USER_ID.longValue())
             .withUserRef(USER_REF)
@@ -64,6 +70,7 @@ public class UserModelTranslatorTest {
             .withApplicationSlugs(APP_SLUGS)
             .withSources(SOURCES)
             .withProfileComplete(PROFILE_COMPLETE)
+            .withLicenseAccepted(licenseAccepted)
         .build();
 		
 		UserModelTranslator translator = new UserModelTranslator(store);
@@ -85,6 +92,7 @@ public class UserModelTranslatorTest {
 	
 	@Test
 	public void test4To3UserTranslation() {
+	    final DateTime licenseAccepted = DateTime.now(DateTimeZones.UTC);
 		User user = User.builder()
             .withId(USER_ID)
             .withUserRef(USER_REF)
@@ -98,6 +106,7 @@ public class UserModelTranslatorTest {
             .withSources(SOURCES)
             .withRole(ROLE)
             .withProfileComplete(PROFILE_COMPLETE)
+            .withLicenseAccepted(licenseAccepted)
         .build();
 		
 		UserModelTranslator translator = new UserModelTranslator(store);

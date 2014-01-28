@@ -63,7 +63,7 @@ public class OAuthInterceptor extends HandlerInterceptorAdapter {
     }
     
     private boolean hasProfile(User user) {
-        return user.isProfileComplete();
+        return user.isProfileComplete() && user.getLicenseAccepted().isPresent();
     }
     
     private void writeError(HttpServletRequest request, HttpServletResponse response, Exception exception) throws IOException, UnsupportedFormatException, NotAcceptableException {
@@ -81,7 +81,7 @@ public class OAuthInterceptor extends HandlerInterceptorAdapter {
             if (requestUri.startsWith(uri)) {
                 protectedUrl = !exemptions.contains(requestUri);
             }
-        }
+        }  
         return !protectedUrl || (user.isPresent() && protectedUrl);
     }
     
@@ -92,9 +92,9 @@ public class OAuthInterceptor extends HandlerInterceptorAdapter {
         // Make a subset by taking urls to protect and removing urls not needing auth
         for (String urlToProtect : urlsToProtect) {
             if (requestUri.startsWith(urlToProtect)) {
-                return !exemptions.contains(requestUri) && !urlsNotNeedingCompleteProfile.contains(requestUri);
+                 return !exemptions.contains(requestUri) && !urlsNotNeedingCompleteProfile.contains(requestUri);
             }
-        }
+        }        
         return false;
     }
     

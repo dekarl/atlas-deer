@@ -16,13 +16,13 @@ public class SourceRequest implements Identifiable {
     private final String email;
     private final String appUrl;
     private final String reason;
-    private final boolean licenceAccepted;
+    private final boolean licenseAccepted;
     private final DateTime requestedAt;
     private final boolean approved;
     private final Optional<DateTime> approvedAt; // Older source request records will not have this field
     
     private SourceRequest(Id id, Id appId, Publisher source, UsageType usageType,
-            String email, String appUrl, String reason, boolean licenceAccepted,
+            String email, String appUrl, String reason, boolean licenseAccepted,
             DateTime requestedAt, boolean approved, Optional<DateTime> approvedAt) {
         this.id = id;
         this.appId = appId;
@@ -31,7 +31,7 @@ public class SourceRequest implements Identifiable {
         this.email = email;
         this.appUrl = appUrl;
         this.reason = reason;
-        this.licenceAccepted = licenceAccepted;
+        this.licenseAccepted = licenseAccepted;
         this.requestedAt = requestedAt;
         this.approved = approved;
         this.approvedAt = approvedAt;
@@ -65,8 +65,8 @@ public class SourceRequest implements Identifiable {
         return reason;
     }
     
-    public boolean isLicenceAccepted() {
-        return licenceAccepted;
+    public boolean isLicenseAccepted() {
+        return licenseAccepted;
     }
     
     public DateTime getRequestedAt() {
@@ -107,7 +107,7 @@ public class SourceRequest implements Identifiable {
         private String email;
         private String appUrl;
         private String reason;
-        private boolean licenceAccepted = false;
+        private boolean licenseAccepted = false;
         private DateTime requestedAt;
         private boolean approved = false;
         private Optional<DateTime> approvedAt = Optional.absent();
@@ -150,8 +150,8 @@ public class SourceRequest implements Identifiable {
             return this;
         }
         
-        public Builder withLicenceAccepted(boolean licenceAccepted) {
-            this.licenceAccepted = licenceAccepted;
+        public Builder withLicenseAccepted(boolean licenseAccepted) {
+            this.licenseAccepted = licenseAccepted;
             return this;
         }
         
@@ -179,7 +179,7 @@ public class SourceRequest implements Identifiable {
             // Retain approved flag for backwards compatibility
             this.approved = approvedAt.isPresent();
             return new SourceRequest(id, appId, source, usageType,
-                    email, appUrl, reason, licenceAccepted, requestedAt, approved, approvedAt);
+                    email, appUrl, reason, licenseAccepted, requestedAt, approved, approvedAt);
         }
     }
 }
