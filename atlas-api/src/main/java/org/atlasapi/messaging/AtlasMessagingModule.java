@@ -15,9 +15,6 @@ public class AtlasMessagingModule {
     
     @Value("${messaging.broker.url}") private String brokerUrl;
     @Value("${messaging.system}") private String messagingSystem;
-    
-    @Value("${messaging.destination.content.changes}") public String contentChanges;
-    @Value("${messaging.destination.topics.changes}") public String topicChanges;
 
     @Bean @Primary
     public JmsConsumerQueueFactory consumerQueueFactory() {
@@ -47,19 +44,7 @@ public class AtlasMessagingModule {
         CachingConnectionFactory cachingConnectionFactory = new CachingConnectionFactory(activeMQConnectionFactory);
         return cachingConnectionFactory;
     }
-    
-    @Bean
-    @Lazy(true)
-    public MessageSender contentChanges() {
-        return producerQueueFactory().makeMessageSender(contentChanges);
-    }
-    
-    @Bean
-    @Lazy(true)
-    public MessageSender topicChanges() {
-        return producerQueueFactory().makeMessageSender(topicChanges);
-    }
-    
+
 //    @Bean 
 //    @Lazy(true)
 //    public MessageReplayer messageReplayer() {

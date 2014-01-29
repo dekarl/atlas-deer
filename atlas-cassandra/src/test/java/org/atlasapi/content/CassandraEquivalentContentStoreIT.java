@@ -29,6 +29,8 @@ public class CassandraEquivalentContentStoreIT extends EquivalentContentStoreTes
     {
         //do not change this
         System.setProperty("messaging.destination.equivalence.content.graph.changes", "just-bloody-work");
+        System.setProperty("messaging.destination.content.changes", "just-bloody-work");
+        System.setProperty("messaging.destination.topics.changes", "just-bloody-work");
     }
     
     private static final ContentHasher hasher = new ContentHasher() {

@@ -4,6 +4,7 @@ import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.util.Set;
+import java.util.UUID;
 
 import javax.annotation.Nullable;
 
@@ -15,15 +16,22 @@ import org.atlasapi.entity.util.RuntimeWriteException;
 import org.atlasapi.entity.util.WriteException;
 import org.atlasapi.entity.util.WriteResult;
 import org.atlasapi.media.entity.Publisher;
+import org.atlasapi.messaging.MessageSender;
+import org.atlasapi.messaging.ResourceUpdatedMessage;
 import org.joda.time.DateTime;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.common.collect.ImmutableSet;
 import com.metabroadcast.common.ids.IdGenerator;
 import com.metabroadcast.common.time.Clock;
+import com.metabroadcast.common.time.Timestamp;
 
 public abstract class AbstractContentStore implements ContentStore {
 
-    public static final Content NO_PREVIOUS = null;
+    private static final Content NO_PREVIOUS = null;
+    
+    protected final Logger log = LoggerFactory.getLogger(getClass());
 
     private final class ContentWritingVisitor implements ContentVisitor<WriteResult<? extends Content>> {
 
@@ -256,14 +264,16 @@ public abstract class AbstractContentStore implements ContentStore {
     
     private final ContentHasher hasher;
     private final IdGenerator idGenerator;
+    private final MessageSender sender;
     private final Clock clock;
 
     private final ContentWritingVisitor writingVisitor;
     
-    public AbstractContentStore(ContentHasher hasher, IdGenerator idGenerator, Clock clock) {
+    public AbstractContentStore(ContentHasher hasher, IdGenerator idGenerator, MessageSender sender, Clock clock) {
         this.hasher = checkNotNull(hasher);
         this.idGenerator = checkNotNull(idGenerator);
         this.clock = checkNotNull(clock);
+        this.sender = checkNotNull(sender);
         this.writingVisitor = new ContentWritingVisitor();
     }
 
@@ -273,10 +283,30 @@ public abstract class AbstractContentStore implements ContentStore {
         checkNotNull(content, "write null content");
         checkNotNull(content.getPublisher(), "write unsourced content");
         try {
-            return (WriteResult<C>)content.accept(writingVisitor);
+            WriteResult<C> result = (WriteResult<C>)content.accept(writingVisitor);
+            if (result.written()) {
+                sendResourceUpdatedMessage(result);
+            }
+            return result;
         } catch (RuntimeWriteException rwe) {
             throw rwe.getCause();
         }
+    }
+
+    private <C extends Content> void sendResourceUpdatedMessage(WriteResult<C> result) {
+        ResourceUpdatedMessage message = createEntityUpdatedMessage(result);
+        try {
+            sender.sendMessage(message);
+        } catch (Exception e) {
+            log.error(message.getUpdatedResource().toString(), e);
+        }
+    }
+    
+    private <C extends Content> ResourceUpdatedMessage createEntityUpdatedMessage(WriteResult<C> result) {
+        return new ResourceUpdatedMessage(
+                UUID.randomUUID().toString(),
+                Timestamp.of(result.getWriteTime().getMillis()),
+                result.getResource().toRef());
     }
 
     private Content getPreviousContent(Content c) {
