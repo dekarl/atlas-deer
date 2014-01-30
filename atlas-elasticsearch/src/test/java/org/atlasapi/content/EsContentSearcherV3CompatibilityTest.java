@@ -1,20 +1,12 @@
 package org.atlasapi.content;
 
-import static org.testng.AssertJUnit.assertFalse;
-
-import org.testng.annotations.AfterClass;
-import org.testng.annotations.AfterMethod;
-import org.testng.annotations.Test;
-import org.testng.annotations.BeforeMethod;
-import org.testng.annotations.BeforeClass;
-import org.testng.Assert;
-
 import static org.atlasapi.content.ComplexBroadcastTestDataBuilder.broadcast;
 import static org.atlasapi.content.ComplexItemTestDataBuilder.complexItem;
 import static org.atlasapi.content.VersionTestDataBuilder.version;
 import static org.atlasapi.util.ElasticSearchHelper.refresh;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
+import static org.testng.AssertJUnit.assertFalse;
 
 import java.util.Arrays;
 import java.util.List;
@@ -35,6 +27,12 @@ import org.elasticsearch.action.count.CountRequestBuilder;
 import org.elasticsearch.node.Node;
 import org.joda.time.DateTime;
 import org.joda.time.Duration;
+import org.testng.Assert;
+import org.testng.annotations.AfterClass;
+import org.testng.annotations.AfterMethod;
+import org.testng.annotations.BeforeClass;
+import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.Test;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
@@ -65,7 +63,7 @@ public class EsContentSearcherV3CompatibilityTest {
     @BeforeMethod
     public void setUp() throws Exception {
         ElasticSearchHelper.refresh(esClient);
-        indexer = new EsContentIndex(esClient, EsSchema.CONTENT_INDEX, new SystemClock(), 60000);
+        indexer = new EsContentIndex(esClient, EsSchema.CONTENT_INDEX, 60000);
         indexer.startAsync().awaitRunning(10, TimeUnit.SECONDS);
         refresh(esClient);
     }

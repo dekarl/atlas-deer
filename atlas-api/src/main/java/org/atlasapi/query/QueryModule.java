@@ -23,7 +23,6 @@ import org.atlasapi.output.StrategyBackedEquivalentsMerger;
 import org.atlasapi.query.common.ContextualQueryExecutor;
 import org.atlasapi.query.common.QueryExecutor;
 import org.atlasapi.query.v4.content.IndexBackedEquivalentContentQueryExecutor;
-import org.atlasapi.query.v4.schedule.IndexBackedScheduleQueryExecutor;
 import org.atlasapi.query.v4.schedule.ScheduleQueryExecutor;
 import org.atlasapi.query.v4.schedule.ScheduleResolverBackedScheduleQueryExecutor;
 import org.atlasapi.query.v4.search.support.ContentResolvingSearcher;
@@ -42,11 +41,6 @@ public class QueryModule {
 
     private @Autowired AtlasPersistenceModule persistenceModule;
 
-    @Qualifier("index")
-    @Bean ScheduleQueryExecutor scheduleQueryExecutor() {
-        return new IndexBackedScheduleQueryExecutor(persistenceModule.channelStore(), persistenceModule.scheduleIndex(), persistenceModule.contentStore());
-    }
-    
     @Bean QueryExecutor<Topic> topicQueryExecutor() {
         return new IndexBackedTopicQueryExecutor(persistenceModule.topicIndex(), persistenceModule.topicStore());
     }

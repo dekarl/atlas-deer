@@ -1,14 +1,7 @@
 package org.atlasapi.content;
 
-import static org.junit.Assert.assertThat;
-
-import org.testng.annotations.AfterClass;
-import org.testng.annotations.AfterMethod;
-import org.testng.annotations.Test;
-import org.testng.annotations.BeforeMethod;
-import org.testng.annotations.BeforeClass;
-
 import static org.hamcrest.Matchers.is;
+import static org.junit.Assert.assertThat;
 
 import java.util.concurrent.TimeUnit;
 
@@ -25,12 +18,16 @@ import org.atlasapi.entity.Id;
 import org.atlasapi.media.entity.Publisher;
 import org.atlasapi.util.ElasticSearchHelper;
 import org.elasticsearch.node.Node;
+import org.testng.annotations.AfterClass;
+import org.testng.annotations.AfterMethod;
+import org.testng.annotations.BeforeClass;
+import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.Test;
 
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.metabroadcast.common.query.Selection;
-import com.metabroadcast.common.time.SystemClock;
 
 public class EsContentIndexTest {
 
@@ -53,7 +50,7 @@ public class EsContentIndexTest {
 
     @BeforeMethod
     public void setup() {
-        index = new EsContentIndex(esClient, EsSchema.CONTENT_INDEX, new SystemClock(), 60000);
+        index = new EsContentIndex(esClient, EsSchema.CONTENT_INDEX, 60000);
         index.startAsync().awaitRunning();
     }
     

@@ -1,15 +1,7 @@
 package org.atlasapi.content;
 
-import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.assertTrue;
-
-import org.testng.annotations.AfterClass;
-import org.testng.annotations.AfterMethod;
-import org.testng.annotations.Test;
-import org.testng.annotations.BeforeMethod;
-import org.testng.annotations.BeforeClass;
-
 import static org.atlasapi.util.ElasticSearchHelper.refresh;
+import static org.testng.AssertJUnit.assertEquals;
 
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -25,7 +17,6 @@ import org.atlasapi.media.entity.Publisher;
 import org.atlasapi.util.ElasticSearchHelper;
 import org.elasticsearch.action.ListenableActionFuture;
 import org.elasticsearch.action.search.SearchResponse;
-import org.elasticsearch.client.Requests;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.node.Node;
 import org.elasticsearch.search.SearchHits;
@@ -34,9 +25,13 @@ import org.elasticsearch.search.facet.Facets;
 import org.elasticsearch.search.facet.terms.TermsFacet;
 import org.elasticsearch.search.facet.terms.TermsFacet.Entry;
 import org.joda.time.DateTime;
+import org.testng.annotations.AfterClass;
+import org.testng.annotations.AfterMethod;
+import org.testng.annotations.BeforeClass;
+import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.Test;
 
 import com.metabroadcast.common.time.DateTimeZones;
-import com.metabroadcast.common.time.SystemClock;
 
 public final class EsContentIndexingTest {
     
@@ -59,7 +54,7 @@ public final class EsContentIndexingTest {
     @BeforeMethod
     public void setup() throws TimeoutException {
         ElasticSearchHelper.refresh(esClient);
-        contentIndexer = new EsContentIndex(esClient, EsSchema.CONTENT_INDEX, new SystemClock(), 60000);
+        contentIndexer = new EsContentIndex(esClient, EsSchema.CONTENT_INDEX, 60000);
         contentIndexer.startAsync().awaitRunning(10, TimeUnit.SECONDS);
     }
     
@@ -81,11 +76,6 @@ public final class EsContentIndexingTest {
         contentIndexer.index(item);
         
         refresh(esClient);
-
-        assertTrue(esClient.client()
-            .admin().indices()
-            .exists(Requests.indicesExistsRequest("schedule-1980")).actionGet()
-            .isExists());
 
         ListenableActionFuture<SearchResponse> result1 = esClient.client()
             .prepareSearch(EsSchema.CONTENT_INDEX)

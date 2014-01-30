@@ -1,10 +1,8 @@
 package org.atlasapi.content;
 
-import static org.testng.AssertJUnit.assertEquals;
-import org.testng.annotations.AfterMethod;
-import org.testng.annotations.Test;
-import org.testng.annotations.BeforeClass;
 import static org.atlasapi.util.ElasticSearchHelper.refresh;
+import static org.testng.AssertJUnit.assertEquals;
+
 import java.util.Arrays;
 
 import org.apache.log4j.ConsoleAppender;
@@ -19,11 +17,14 @@ import org.atlasapi.search.SearchResults;
 import org.atlasapi.util.ElasticSearchHelper;
 import org.elasticsearch.node.Node;
 import org.joda.time.DateTime;
+import org.testng.annotations.AfterMethod;
+import org.testng.annotations.BeforeClass;
+import org.testng.annotations.Test;
+
 import com.google.common.collect.ImmutableSet;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.metabroadcast.common.query.Selection;
 import com.metabroadcast.common.time.DateTimeZones;
-import com.metabroadcast.common.time.SystemClock;
 
 public class EsContentTitleSearcherTest {
 
@@ -86,7 +87,7 @@ public class EsContentTitleSearcherTest {
         item2.setContainerRef(brand1.toRef());
         item3.setContainerRef(brand2.toRef());
 
-        EsContentIndex contentIndex = new EsContentIndex(esClient, EsSchema.CONTENT_INDEX, new SystemClock(), 60000);
+        EsContentIndex contentIndex = new EsContentIndex(esClient, EsSchema.CONTENT_INDEX, 60000);
         contentIndex.startAsync().awaitRunning();
 
         EsContentTitleSearcher contentSearcher = new EsContentTitleSearcher(esClient);

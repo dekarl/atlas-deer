@@ -7,14 +7,12 @@ import java.io.IOException;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 import org.atlasapi.criteria.AttributeQuerySet;
 import org.atlasapi.entity.Id;
 import org.atlasapi.media.entity.Publisher;
-import org.atlasapi.schedule.EsScheduleIndexNames;
 import org.atlasapi.util.EsPersistenceException;
 import org.atlasapi.util.EsQueryBuilder;
 import org.atlasapi.util.FiltersBuilder;
@@ -22,7 +20,6 @@ import org.atlasapi.util.FutureSettingActionListener;
 import org.atlasapi.util.Strings;
 import org.elasticsearch.ElasticSearchException;
 import org.elasticsearch.action.ActionFuture;
-import org.elasticsearch.action.ActionRequest;
 import org.elasticsearch.action.NoShardAvailableActionException;
 import org.elasticsearch.action.admin.indices.exists.indices.IndicesExistsResponse;
 import org.elasticsearch.action.admin.indices.mapping.put.PutMappingRequest;
@@ -47,19 +44,12 @@ import com.google.common.base.Function;
 import com.google.common.base.Objects;
 import com.google.common.base.Throwables;
 import com.google.common.collect.FluentIterable;
-import com.google.common.collect.HashMultimap;
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.ImmutableMap.Builder;
-import com.google.common.collect.Multimap;
-import com.google.common.collect.Sets;
 import com.google.common.util.concurrent.AbstractIdleService;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.SettableFuture;
 import com.metabroadcast.common.query.Selection;
-import com.metabroadcast.common.time.Clock;
 import com.metabroadcast.common.time.DateTimeZones;
-
 
 public class EsContentIndex extends AbstractIdleService implements ContentIndex {
 
@@ -69,16 +59,14 @@ public class EsContentIndex extends AbstractIdleService implements ContentIndex 
 
     private final Node esClient;
     private final String index;
-    private final EsScheduleIndexNames scheduleNames;
     private final long requestTimeout;
 
     private Set<String> existingIndexes;
 
     private final EsQueryBuilder builder = new EsQueryBuilder();
 
-    public EsContentIndex(Node esClient, String indexName, Clock clock, long requestTimeout) {
+    public EsContentIndex(Node esClient, String indexName, long requestTimeout) {
         this.esClient = checkNotNull(esClient);        
-        this.scheduleNames = new EsScheduleIndexNames(esClient, clock);
         this.requestTimeout = requestTimeout;
         this.index = checkNotNull(indexName);
     }
@@ -88,7 +76,6 @@ public class EsContentIndex extends AbstractIdleService implements ContentIndex 
         if (createIndex(index)) {
             putTypeMappings();
         }
-        this.existingIndexes = Sets.newHashSet(scheduleNames.existingIndexNames());
         log.info("Found existing indices {}", existingIndexes);
     }
     
@@ -162,13 +149,8 @@ public class EsContentIndex extends AbstractIdleService implements ContentIndex 
             }
             
             requests.add(mainIndexRequest);
-            Map<String, ActionRequest<IndexRequest>> scheduleRequests = scheduleIndexRequests(item);
-            ensureIndices(scheduleRequests);
-            for (ActionRequest<IndexRequest> ir : scheduleRequests.values()) {
-                requests.add(ir);
-            }
             BulkResponse resp = timeoutGet(esClient.client().bulk(requests));
-            log.info("Indexed {} ({}ms, {})", new Object[]{item, resp.getTookInMillis(), scheduleRequests.keySet()});
+            log.info("Indexed {} ({}ms)", new Object[]{item, resp.getTookInMillis()});
         } catch (Exception e) {
             throw new RuntimeIndexException("Error indexing " + item, e);
         }
@@ -189,59 +171,7 @@ public class EsContentIndex extends AbstractIdleService implements ContentIndex 
             .locations(makeESLocations(item))
             .topics(makeESTopics(item));
     }
-
-    private void ensureIndices(Map<String, ActionRequest<IndexRequest>> scheduleRequests) throws IOException {
-        Set<String> missingIndices = Sets.difference(scheduleRequests.keySet(), existingIndexes);
-        for (String missingIndex : missingIndices) {
-            if (createIndex(missingIndex)) {
-                doMappingRequest(Requests.putMappingRequest(missingIndex)
-                        .type(EsContent.TOP_LEVEL_ITEM)
-                        .source(EsContent.getScheduleMapping()));
-                refresh(missingIndex);
-                existingIndexes.add(missingIndex);
-            }
-        }
-    }
-
-    private void refresh(String missingIndex) {
-        timeoutGet(esClient.client().admin().indices().refresh(Requests.refreshRequest(missingIndex)));
-    }
-
-    private Map<String,ActionRequest<IndexRequest>> scheduleIndexRequests(Item item) {
-        Multimap<String, EsBroadcast> indicesBroadcasts = HashMultimap.create();
-        for (Version version : item.getVersions()) {
-            for (Broadcast broadcast : version.getBroadcasts()) {
-                EsBroadcast esBroadcast = toEsBroadcast(broadcast);
-                Iterable<String> indices = scheduleNames.indexingNamesFor(
-                    broadcast.getTransmissionTime(),
-                    broadcast.getTransmissionEndTime()
-                );
-                for (String index : indices) {
-                    indicesBroadcasts.put(index, esBroadcast);
-                };
-            }
-        }
-        
-        Builder<String, ActionRequest<IndexRequest>> requests = ImmutableMap.builder();
-        for (Entry<String, Collection<EsBroadcast>> indexBroadcasts : indicesBroadcasts.asMap().entrySet()) {
-            requests.put(
-                indexBroadcasts.getKey(), 
-                Requests.indexRequest(indexBroadcasts.getKey())
-                    .type(EsContent.TOP_LEVEL_ITEM)
-                    .id(getDocId(item))
-                    .source(new EsContent()
-                        .id(item.getId().longValue())
-                        .source(item.getPublisher() != null ? item.getPublisher().key() : null)
-                        .broadcasts(indexBroadcasts.getValue())
-                        .hasChildren(false)
-                        .toMap()
-                    )
-            );
-        }
-        
-        return requests.build();
-    }
-
+    
     private void indexContainer(Container container) {
         EsContent indexed = new EsContent()
             .id(container.getId().longValue())
