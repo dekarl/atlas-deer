@@ -28,7 +28,7 @@ public class BootstrapWorkersModule {
     private String originSystem = Configurer.get("messaging.bootstrap.system").get();
     private Integer consumers = Configurer.get("messaging.bootstrap.consumers.default").toInt();
     private Integer maxConsumers = Configurer.get("messaging.bootstrap.consumers.max").toInt();
-    private String contentChanges = Configurer.get("${messaging.destination.content.changes}").get();
+    private String contentChanges = Configurer.get("messaging.destination.content.changes").get();
     private String topicChanges = Configurer.get("messaging.destination.topics.changes").get();
 
     @Autowired private AtlasPersistenceModule persistence;
