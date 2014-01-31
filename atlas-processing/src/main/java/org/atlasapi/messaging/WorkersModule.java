@@ -135,7 +135,7 @@ public class WorkersModule {
     public DefaultMessageListenerContainer equivUpdateListener() {
         return messaging.consumerQueueFactory().makeVirtualTopicConsumer(contentEquivalenceUpdater(), 
                 new LegacyMessageSerializer(),
-                "Equiv.Graph.Update", equivSystem, equivTopic, equivDefltConsumers, equivMaxConsumers);
+                "EquivGraphUpdate", equivSystem, equivTopic, equivDefltConsumers, equivMaxConsumers);
     }
 
     @PostConstruct
