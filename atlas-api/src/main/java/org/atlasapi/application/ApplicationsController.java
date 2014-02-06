@@ -229,7 +229,10 @@ public class ApplicationsController {
     
     // Restrict source status changes that non admins can make
     private void checkSourceStatusChanges(User user, Application application, Optional<Application> existingApp) throws NotAuthorizedException {
-        if (user.is(Role.ADMIN)) {
+        // An admin can always make a source status change
+        // Additionally the sources object may be null here if creating an application
+        // and the element has not been specified
+        if (user.is(Role.ADMIN) || application.getSources() == null) {
             return;
         }
         // cycle through source reads and check status changes are allowed
