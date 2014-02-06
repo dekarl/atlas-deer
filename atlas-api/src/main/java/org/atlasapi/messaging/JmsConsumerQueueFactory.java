@@ -25,21 +25,25 @@ public final class JmsConsumerQueueFactory {
         return String.format("Consumer.%s.VirtualTopic.%s.%s", consumer, producerSystem, producer);
     }
     
-    private String replayDestination(String name) {
-        return String.format("%s.Replay.%s", name, system);
+    private String queueName(String name) {
+        return String.format("%s.%s", name, system);
     }
     
     public <M extends Message> DefaultMessageListenerContainer makeVirtualTopicConsumer(Worker<M> worker, String consumer, String producer, int consumers, int maxConsumers) {
-        return makeContainer(worker, serializer, virtualTopicConsumer(consumer, system, producer), consumers, maxConsumers);
+        return makeVirtualTopicConsumer(worker, serializer, consumer, system, producer, consumers, maxConsumers);
     }
 
     public <M extends Message> DefaultMessageListenerContainer makeVirtualTopicConsumer(Worker<M> worker, 
             MessageSerializer serializer, String consumer, String producerSystem, String producer, int consumers, int maxConsumers) {
-        return makeContainer(worker, serializer, virtualTopicConsumer(consumer, producerSystem, producer), consumers, maxConsumers);
+        String consumerName = virtualTopicConsumer(consumer, producerSystem, producer);
+        DefaultMessageListenerContainer container = makeContainer(worker, serializer, consumerName, consumers, maxConsumers);
+        container.setPubSubDomain(true);
+        return container;
     }
 
-    public <M extends Message> DefaultMessageListenerContainer makeReplayContainer(Worker<M> worker, String name, int consumers, int maxConsumers) {
-        return makeContainer(worker, serializer, replayDestination(name), consumers, maxConsumers);
+    public <M extends Message> DefaultMessageListenerContainer makeQueueConsumer(Worker<M> worker, String name, int consumers, int maxConsumers) {
+        String queueName = queueName(name);
+        return makeContainer(worker, serializer, queueName, consumers, maxConsumers);
     }
     
     private <M extends Message> DefaultMessageListenerContainer makeContainer(Worker<M> worker, MessageSerializer serializer, String destination, int consumers, int maxConsumers) {

@@ -54,7 +54,7 @@ public class WorkersModule {
     @Bean
     @Lazy(true)
     public DefaultMessageListenerContainer contentIndexerReplayListener() {
-        return messaging.consumerQueueFactory().makeReplayContainer(contentIndexingWorker(), "Content.Indexer", 1, 1);
+        return messaging.consumerQueueFactory().makeQueueConsumer(contentIndexingWorker(), "Content.Indexer.Replay", 1, 1);
     }
 
     @Bean
@@ -72,7 +72,7 @@ public class WorkersModule {
     @Bean
     @Lazy(true)
     public DefaultMessageListenerContainer topicIndexerReplayListener() {
-        return messaging.consumerQueueFactory().makeReplayContainer(topicIndexingWorker(), "Topics.Indexer", 1, 1);
+        return messaging.consumerQueueFactory().makeQueueConsumer(topicIndexingWorker(), "Topics.Indexer.Replay", 1, 1);
     }
 
     @Bean
@@ -90,7 +90,7 @@ public class WorkersModule {
     @Bean
     @Lazy(true)
     public DefaultMessageListenerContainer equivalentContentStoreGraphUpdateReplayListener() {
-        return messaging.consumerQueueFactory().makeReplayContainer(equivalentContentStoreGraphUpdateWorker(), "EquivalentContent.EquivalenceGraphs", 1, 1);
+        return messaging.consumerQueueFactory().makeQueueConsumer(equivalentContentStoreGraphUpdateWorker(), "EquivalentContent.EquivalenceGraphs.Replay", 1, 1);
     }
 
     @Bean
@@ -108,7 +108,7 @@ public class WorkersModule {
     @Bean
     @Lazy(true)
     public DefaultMessageListenerContainer equivalentContentStoreContentUpdateReplayListener() {
-        return messaging.consumerQueueFactory().makeReplayContainer(equivalentContentStoreContentUpdateWorker(), "EquivalentContent.Content", 1, 1);
+        return messaging.consumerQueueFactory().makeQueueConsumer(equivalentContentStoreContentUpdateWorker(), "EquivalentContent.Content.Replay", 1, 1);
     }
 
 
