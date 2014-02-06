@@ -25,7 +25,7 @@ public class User implements Identifiable {
     private final String profileImage;
     private final Role role;
     private final boolean profileComplete;
-    private Optional<DateTime> licenseAccepted;
+    private final Optional<DateTime> licenseAccepted;
     
     private final Set<Id> applicationIds;
     private final Set<Publisher> sources;
@@ -156,7 +156,7 @@ public class User implements Identifiable {
         private Set<Id> applicationIds = ImmutableSet.of();
         private Set<Publisher> sources = ImmutableSet.of();
         private boolean profileComplete = false;
-        private Optional<DateTime> licenseAccepted;
+        private Optional<DateTime> licenseAccepted = Optional.absent();
         
         public Builder withId(Id id) {
             this.id = id;
