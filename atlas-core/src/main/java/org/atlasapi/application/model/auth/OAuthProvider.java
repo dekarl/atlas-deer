@@ -4,7 +4,8 @@ import com.google.common.collect.ImmutableSet;
 import com.metabroadcast.common.social.model.UserRef.UserNamespace;
 
 public enum OAuthProvider {
-    TWITTER(UserNamespace.TWITTER, "Sign in with Twitter", "/4.0/auth/twitter/login", "sign-in-with-twitter-gray.png");
+    TWITTER(UserNamespace.TWITTER, "Sign in with Twitter", "/4.0/auth/twitter/login", "sign-in-with-twitter-gray.png"),
+    GITHUB(UserNamespace.GITHUB, "Sign in with GitHub", "/4.0/auth/github/login", "GitHub_Logo.png");
     
     private final UserNamespace namespace;
     private final String loginPromptMessage;

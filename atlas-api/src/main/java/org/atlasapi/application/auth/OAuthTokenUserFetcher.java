@@ -1,5 +1,8 @@
 package org.atlasapi.application.auth;
 
+import static com.google.api.client.repackaged.com.google.common.base.Preconditions.checkNotNull;
+import java.util.Map;
+
 import javax.servlet.http.HttpServletRequest;
 
 import org.atlasapi.application.users.User;
@@ -7,6 +10,7 @@ import org.atlasapi.application.users.UserStore;
 
 import com.google.common.base.Optional;
 import com.google.common.base.Strings;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.metabroadcast.common.social.auth.credentials.Credentials;
 import com.metabroadcast.common.social.auth.credentials.CredentialsStore;
@@ -20,15 +24,15 @@ public class OAuthTokenUserFetcher implements UserFetcher {
     public static final String OAUTH_TOKEN_QUERY_PARAMETER = "oauth_token";
     
     private final CredentialsStore credentialsStore;
-    private final AccessTokenChecker accessTokenChecker;
+    private final Map<UserNamespace, AccessTokenChecker> accessTokenCheckers;
     private final UserStore userStore;
 
     public OAuthTokenUserFetcher(CredentialsStore credentialsStore,
-            AccessTokenChecker accessTokenChecker,
+            Map<UserNamespace, AccessTokenChecker> accessTokenCheckers,
             UserStore userStore) {
-        this.credentialsStore = credentialsStore;
-        this.accessTokenChecker = accessTokenChecker;
-        this.userStore = userStore;
+        this.credentialsStore = checkNotNull(credentialsStore);
+        this.accessTokenCheckers = ImmutableMap.copyOf(accessTokenCheckers);
+        this.userStore = checkNotNull(userStore);
     }
     
     public ImmutableSet<String> getParameterNames() {
@@ -41,9 +45,10 @@ public class OAuthTokenUserFetcher implements UserFetcher {
             UserNamespace oauthProviderNamespace = UserNamespace.valueOf(request.getParameter(OAUTH_PROVIDER_QUERY_PARAMETER).toUpperCase());
             String oauthToken = request.getParameter(OAUTH_TOKEN_QUERY_PARAMETER);
             Optional<Credentials> credentials = credentialsStore.credentialsForToken(oauthProviderNamespace, oauthToken);
-            if (credentials.isPresent() 
-                    && accessTokenChecker.check(credentials.get().authToken()).hasValue()) {
-                return Optional.of(credentials.get().userRef());
+            if (accessTokenCheckers.keySet().contains(oauthProviderNamespace) 
+                    && credentials.isPresent()
+                    && accessTokenCheckers.get(oauthProviderNamespace).check(credentials.get().authToken()).hasValue()) {
+                return Optional.of(credentials.get().userRef());                
             }
         }
         return Optional.absent();

@@ -3,6 +3,7 @@ package org.atlasapi.application.model.auth;
 import java.net.MalformedURLException;
 import java.net.URL;
 
+import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
 import com.metabroadcast.common.social.model.UserRef.UserNamespace;
 
@@ -45,6 +46,14 @@ public class OAuthRequest {
      */
     public String getSecret() {
         return secret;
+    }
+    public String toString() {
+        return Objects.toStringHelper(getClass())
+                .add("authUrl", this.getAuthUrl())
+                .add("namespace", this.getUserNamespace())
+                .add("token", this.getToken())
+                .add("secret", this.getSecret())
+                .toString();
     }
     
     public static Builder builder() {

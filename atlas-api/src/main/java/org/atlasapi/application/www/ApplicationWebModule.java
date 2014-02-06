@@ -2,6 +2,8 @@ package org.atlasapi.application.www;
 
 import static com.google.gson.FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES;
 
+import java.util.Map;
+
 import org.atlasapi.AtlasPersistenceModule;
 import org.atlasapi.annotation.Annotation;
 import org.atlasapi.application.Application;
@@ -29,6 +31,9 @@ import org.atlasapi.application.auth.OAuthResultListWriter;
 import org.atlasapi.application.auth.OAuthResultQueryResultWriter;
 import org.atlasapi.application.auth.OAuthTokenUserFetcher;
 import org.atlasapi.application.auth.UserFetcher;
+import org.atlasapi.application.auth.github.GitHubAccessTokenChecker;
+import org.atlasapi.application.auth.github.GitHubAuthController;
+import org.atlasapi.application.auth.github.GitHubAuthClient;
 import org.atlasapi.application.auth.twitter.TwitterAuthController;
 import org.atlasapi.application.auth.www.AuthController;
 import org.atlasapi.application.model.deserialize.IdDeserializer;
@@ -79,6 +84,7 @@ import org.atlasapi.users.videosource.VideoSourceOAuthProvidersQueryResultWriter
 import org.atlasapi.users.videosource.VideoSourceOauthProvidersListWriter;
 import org.atlasapi.users.videosource.remote.RemoteSourceUpdaterClient;
 import org.atlasapi.users.videosource.youtube.YouTubeLinkedServiceController;
+import org.elasticsearch.common.collect.Maps;
 import org.joda.time.DateTime;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -103,6 +109,7 @@ import com.metabroadcast.common.query.Selection;
 import com.metabroadcast.common.query.Selection.SelectionBuilder;
 import com.metabroadcast.common.social.auth.facebook.AccessTokenChecker;
 import com.metabroadcast.common.social.auth.facebook.CachingAccessTokenChecker;
+import com.metabroadcast.common.social.model.UserRef.UserNamespace;
 import com.metabroadcast.common.social.twitter.TwitterApplication;
 import com.metabroadcast.common.social.user.AccessTokenProcessor;
 import com.metabroadcast.common.social.user.FixedAppIdUserRefBuilder;
@@ -128,8 +135,11 @@ public class ApplicationWebModule {
     
     private static final String APP_NAME = "atlas";
     
-    @Value("${twitter.auth.consumerKey}") private String consumerKey;
-    @Value("${twitter.auth.consumerSecret}") private String consumerSecret;
+    @Value("${twitter.auth.consumerKey}") private String twitterConsumerKey;
+    @Value("${twitter.auth.consumerSecret}") private String twitterConsumerSecret;
+    
+    @Value("${github.auth.consumerKey}") private String githubConsumerKey;
+    @Value("${github.auth.consumerSecret}") private String githubConsumerSecret;
     
     @Value("${youtube.clientId}") private String youTubeClientId;
     @Value("${youtube.clientSecret}") private String youTubeClientSecret;
@@ -294,8 +304,13 @@ public class ApplicationWebModule {
     
     public @Bean
     UserFetcher userFetcher() {
-        CachingAccessTokenChecker cachingAccessTokenChecker = new CachingAccessTokenChecker(accessTokenChecker());
-        return new OAuthTokenUserFetcher(appPersistence.credentialsStore(), cachingAccessTokenChecker, appPersistence.userStore());
+        Map<UserNamespace, AccessTokenChecker> checkers = Maps.newHashMap();
+        checkers.put(UserNamespace.TWITTER, new CachingAccessTokenChecker(twitterAccessTokenChecker()));
+        checkers.put(UserNamespace.GITHUB, new CachingAccessTokenChecker(gitHubAccessTokenChecker()));
+        
+        return new OAuthTokenUserFetcher(appPersistence.credentialsStore(), 
+                checkers,
+                appPersistence.userStore());
     }
     
     private StandardUserAwareQueryParser<Publisher> sourcesQueryParser() {
@@ -327,8 +342,8 @@ public class ApplicationWebModule {
     }
 
     public @Bean TwitterAuthController twitterAuthController() {
-        return new TwitterAuthController(new TwitterApplication(consumerKey, consumerSecret), 
-                accessTokenProcessor(),
+        return new TwitterAuthController(new TwitterApplication(twitterConsumerKey, twitterConsumerSecret), 
+                new AccessTokenProcessor(twitterAccessTokenChecker(), appPersistence.credentialsStore()),
                 appPersistence.userStore(), 
                 new NewUserSupplier(new MongoSequentialIdGenerator(persistence.databasedMongo(), "users")),
                 appPersistence.tokenStore(),
@@ -337,17 +352,32 @@ public class ApplicationWebModule {
                 );
     }
 
-
+    public @Bean GitHubAuthController gitHubAuthController() {
+        return new GitHubAuthController(
+                gitHubClient(),
+                new AccessTokenProcessor(gitHubAccessTokenChecker(), appPersistence.credentialsStore()),
+                appPersistence.userStore(), 
+                new NewUserSupplier(new MongoSequentialIdGenerator(persistence.databasedMongo(), "users")),
+                appPersistence.tokenStore(),
+                new OAuthRequestQueryResultWriter(new OAuthRequestListWriter()),
+                new OAuthResultQueryResultWriter(new OAuthResultListWriter())
+                );
+    }
+    
     public @Bean FixedAppIdUserRefBuilder userRefBuilder() {
         return new FixedAppIdUserRefBuilder(APP_NAME);
     }
     
-    public @Bean AccessTokenChecker accessTokenChecker() {
-        return new TwitterOAuth1AccessTokenChecker(userRefBuilder() , consumerKey, consumerSecret);
+    private GitHubAuthClient gitHubClient() {
+        return new GitHubAuthClient(githubConsumerKey, githubConsumerSecret);
     }
     
-    public @Bean AccessTokenProcessor accessTokenProcessor() {
-        return new AccessTokenProcessor(accessTokenChecker(), appPersistence.credentialsStore());
+    public @Bean AccessTokenChecker twitterAccessTokenChecker() {
+        return new TwitterOAuth1AccessTokenChecker(userRefBuilder() , twitterConsumerKey, twitterConsumerSecret);
+    }
+    
+    public @Bean AccessTokenChecker gitHubAccessTokenChecker() {
+        return new GitHubAccessTokenChecker(userRefBuilder() , gitHubClient());
     }
     
     public @Bean VideoSourceController linkedServiceController() {
