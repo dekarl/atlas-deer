@@ -128,7 +128,7 @@ public class QueryWebModule {
     private @Autowired PopularTopicIndex popularTopicIndex;
 //    private @Autowired SegmentResolver segmentResolver;
 //    private @Autowired ProductResolver productResolver;
-    private @Autowired ScheduleIndex scheduleIndex;
+  //  private @Autowired ScheduleIndex scheduleIndex;
     private @Autowired UserFetcher userFetcher;
 
     private @Autowired ApplicationSourcesFetcher configFetcher;
@@ -311,8 +311,8 @@ public class QueryWebModule {
             .build());
     }
     
-    @Bean
-    public ScheduleIndexDebugController scheduleIndexDebug() {
-        return new ScheduleIndexDebugController(scheduleIndex, channelResolver, configFetcher);
-    }
+   // @Bean
+   //// public ScheduleIndexDebugController scheduleIndexDebug() {
+   // new ScheduleIndexDebugController(scheduleIndex, channelResolver, configFetcher);
+   // }
 }
