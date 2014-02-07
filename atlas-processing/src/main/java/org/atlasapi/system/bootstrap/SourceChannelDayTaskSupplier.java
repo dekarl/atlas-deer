@@ -1,0 +1,88 @@
+package org.atlasapi.system.bootstrap;
+
+import static com.google.common.base.Preconditions.checkNotNull;
+
+import java.util.Iterator;
+
+import org.atlasapi.media.channel.Channel;
+import org.atlasapi.media.channel.ChannelResolver;
+import org.atlasapi.media.entity.Publisher;
+import org.joda.time.LocalDate;
+
+import com.google.common.base.Supplier;
+import com.google.common.collect.AbstractIterator;
+import com.google.common.collect.ImmutableSet;
+import com.metabroadcast.common.time.Clock;
+import com.metabroadcast.common.time.DayRange;
+import com.metabroadcast.common.time.DayRangeGenerator;
+
+public class SourceChannelDayTaskSupplier<T> implements
+        Supplier<Iterable<T>> {
+
+    private static final class ChannelDayScheduleFactoryIterator<T> extends
+            AbstractIterator<T> {
+
+        private final SourceChannelDayFactory<? extends T> factory;
+        private final Iterator<Publisher> srcs;
+        private final DayRange dayRange;
+        private final Iterable<Channel> channels;
+        
+        private Iterator<LocalDate> days;
+        private Iterator<Channel> chans;
+        private Publisher src;
+        private LocalDate day;
+
+        public ChannelDayScheduleFactoryIterator(SourceChannelDayFactory<? extends T> taskFactory,
+                ImmutableSet<Publisher> sources, DayRange dayRange, Iterable<Channel> channels) {
+            this.factory = taskFactory;
+            this.srcs = sources.iterator();
+            this.dayRange = dayRange;
+            this.channels = channels;
+        }
+
+        @Override
+        protected T computeNext() {
+            if (chans == null || !chans.hasNext()) {
+                chans = channels.iterator();
+                if (days == null || !days.hasNext()) {
+                    days = dayRange.iterator();
+                    if (!srcs.hasNext()) {
+                        return endOfData();
+                    }
+                    src = srcs.next();
+                }
+                day = days.next();
+            }
+            return factory.create(src, chans.next(), day);
+        }
+    }
+
+    private final SourceChannelDayFactory<? extends T> taskFactory;
+    private final ChannelResolver channelResolver;
+    private final DayRangeGenerator dayRangeGenerator;
+    private final ImmutableSet<Publisher> sources;
+    private final Clock clock;
+
+    public SourceChannelDayTaskSupplier(SourceChannelDayFactory<? extends T> taskFactory,
+            ChannelResolver channelResolver, DayRangeGenerator dayRangeGenerator,
+            Iterable<Publisher> sources, Clock clock) {
+        this.taskFactory = checkNotNull(taskFactory);
+        this.channelResolver = checkNotNull(channelResolver);
+        this.dayRangeGenerator = checkNotNull(dayRangeGenerator);
+        this.sources = ImmutableSet.copyOf(sources);
+        this.clock = checkNotNull(clock);
+    }
+
+    @Override
+    public Iterable<T> get() {
+        final DayRange dayRange = dayRangeGenerator.generate(clock.now().toLocalDate());
+        final Iterable<Channel> channels = channelResolver.all();
+        return new Iterable<T>() {
+            @Override
+            public Iterator<T> iterator() {
+                return new ChannelDayScheduleFactoryIterator<T>(taskFactory, sources, dayRange, channels);
+            }
+        };
+    }
+
+}

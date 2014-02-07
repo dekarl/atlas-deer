@@ -1,5 +1,7 @@
 package org.atlasapi.schedule;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -25,8 +27,8 @@ public final class Schedule {
     }
 
     public Schedule(List<ChannelSchedule> channelSchedules, Interval interval) {
-        this.channelSchedules = channelSchedules;
-        this.interval = interval;
+        this.channelSchedules = ImmutableList.copyOf(channelSchedules);
+        this.interval = checkNotNull(interval);
     }
     
     public Interval interval() {
