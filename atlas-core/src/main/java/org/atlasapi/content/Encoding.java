@@ -57,6 +57,7 @@ public class Encoding extends Identified {
     private String distributor;
 
     private Boolean hasDOG;
+    private Boolean is3d;
 
     public Set<Location> getAvailableAt() { 
         return this.availableAt; 
@@ -135,6 +136,10 @@ public class Encoding extends Identified {
     public Boolean getHasDOG() { 
         return this.hasDOG;
     }
+    
+    public Boolean is3d() {
+        return is3d;
+    }
 
     public String getSource() {
         return this.source;
@@ -206,6 +211,10 @@ public class Encoding extends Identified {
 
     public void setHasDOG(Boolean hasDOG) {
         this.hasDOG = hasDOG;
+    }
+    
+    public void set3d(Boolean is3d) {
+        this.is3d = is3d;
     }
 
     public void setSource(String source) {

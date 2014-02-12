@@ -69,6 +69,9 @@ public class EncodingSerializer {
         if (encoding.getVideoVerticalSize() != null) {
             builder.setVideoVerticalSize(encoding.getVideoVerticalSize());
         }
+        if (encoding.is3d() != null) {
+            builder.setIsThreeD(encoding.is3d());
+        }
         return builder;
     }
 
@@ -108,6 +111,7 @@ public class EncodingSerializer {
                                                                       : null);
         encoding.setVideoVerticalSize(msg.hasVideoVerticalSize() ? msg.getVideoVerticalSize()
                                                                 : null);
+        encoding.set3d(msg.hasIsThreeD() ? msg.getIsThreeD() : null);
         return encoding;
     }
 

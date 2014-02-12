@@ -1,18 +1,22 @@
 package org.atlasapi.content;
 
-import static org.junit.Assert.assertThat;
-import org.testng.annotations.Test;
 import static org.hamcrest.Matchers.instanceOf;
 import static org.hamcrest.Matchers.is;
+import static org.junit.Assert.assertThat;
+
 import org.atlasapi.entity.Alias;
 import org.atlasapi.entity.Id;
 import org.atlasapi.entity.Serializer;
 import org.atlasapi.equivalence.EquivalenceRef;
 import org.atlasapi.media.entity.Publisher;
+import org.atlasapi.segment.SegmentEvent;
+import org.atlasapi.segment.SegmentRef;
 import org.atlasapi.serialization.protobuf.ContentProtos;
 import org.joda.time.DateTime;
 import org.joda.time.Duration;
 import org.joda.time.LocalDate;
+import org.testng.annotations.Test;
+
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.metabroadcast.common.intl.Countries;
@@ -173,7 +177,10 @@ public class ContentSerializerTest {
         assertThat(actual.getBlackAndWhite(), is(expected.getBlackAndWhite()));
         assertThat(actual.getCountriesOfOrigin(), is(expected.getCountriesOfOrigin()));
         assertThat(actual.getIsLongForm(), is(expected.getIsLongForm()));
-        assertThat(actual.getVersions().isEmpty(), is(false));
+        assertThat(actual.getBroadcasts().isEmpty(), is(false));
+        assertThat(actual.getManifestedAs().isEmpty(), is(false));
+        assertThat(actual.getSegmentEvents().isEmpty(), is(false));
+        assertThat(actual.getRestrictions().isEmpty(), is(false));
     }
 
     private void checkContentProperties(Content actual, Content expected) {
@@ -232,9 +239,13 @@ public class ContentSerializerTest {
         item.setCountriesOfOrigin(ImmutableSet.of(Countries.GB));
         item.setIsLongForm(true);
         
-        Version version = new Version();
-        
-        item.setVersions(ImmutableSet.of(version));
+        item.setBroadcasts(ImmutableSet.of(
+            new Broadcast("one", new DateTime(DateTimeZones.UTC), new DateTime(DateTimeZones.UTC)),
+            new Broadcast("two", new DateTime(DateTimeZones.UTC), new DateTime(DateTimeZones.UTC))
+        ));
+        item.setManifestedAs(ImmutableSet.of(encoding("one")));
+        item.setSegmentEvents(ImmutableSet.of(segmentEvent("one")));
+        item.setRestrictions(ImmutableSet.of(Restriction.from(14, "old")));
     }
 
     private void setContentProperties(Content content) {
@@ -277,6 +288,18 @@ public class ContentSerializerTest {
         identified.setCanonicalUri("canonicalUri");
         identified.setEquivalenceUpdate(new DateTime(DateTimeZones.UTC));
         identified.setEquivalentTo(ImmutableSet.of(new EquivalenceRef(Id.valueOf(1) ,Publisher.BBC)));
+    }
+    
+    private SegmentEvent segmentEvent(String segment) {
+        SegmentEvent event = new SegmentEvent();
+        event.setSegment(new SegmentRef(segment));
+        return event;
+    }
+
+    private Encoding encoding(String uri) {
+        Encoding encoding = new Encoding();
+        encoding.setSource(uri);
+        return encoding;
     }
 
 }

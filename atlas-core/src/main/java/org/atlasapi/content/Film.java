@@ -6,8 +6,6 @@ import org.atlasapi.entity.Id;
 import org.atlasapi.media.entity.Publisher;
 
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Iterables;
-import com.google.common.collect.Sets;
 
 public class Film extends Item {
     
@@ -54,17 +52,15 @@ public class Film extends Item {
 
     @Override
 	public Film copy() {
-	    return copyWithVersions(Sets.newHashSet(Iterables.transform(this.getVersions(), Version.COPY)));
+	    return copyTo(this, new Film());
 	}
 	
-    @Override
-	public Film copyWithVersions(Set<Version> versions) {
-	    Film film = new Film();
-	    Item.copyToWithVersions(this, film, versions);
-	    film.setWebsiteUrl(getWebsiteUrl());
-	    film.setSubtitles(getSubtitles());
-	    film.setReleaseDates(getReleaseDates());
-	    return film;
+	public static Film copyTo(Film from, Film to) {
+	    Item.copyTo(from, to);
+	    to.setWebsiteUrl(from.getWebsiteUrl());
+	    to.setSubtitles(from.getSubtitles());
+	    to.setReleaseDates(from.getReleaseDates());
+	    return to;
 	}
 
     public <V> V accept(ItemVisitor<V> visitor) {

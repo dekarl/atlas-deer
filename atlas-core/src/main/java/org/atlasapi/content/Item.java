@@ -14,15 +14,18 @@
  permissions and limitations under the License. */
 package org.atlasapi.content;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import java.util.List;
 import java.util.Set;
 
 import org.atlasapi.entity.Id;
 import org.atlasapi.media.entity.Publisher;
+import org.atlasapi.segment.SegmentEvent;
 
 import com.google.common.base.Function;
-import com.google.common.base.Predicate;
-import com.google.common.collect.Iterables;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.metabroadcast.common.intl.Country;
@@ -35,12 +38,15 @@ import com.metabroadcast.common.intl.Country;
 public class Item extends Content {
 
     private ContainerRef containerRef;
-    private Set<Version> versions = Sets.newHashSet();
     private boolean isLongForm = false;
     private Boolean blackAndWhite;
     private Set<Country> countriesOfOrigin = Sets.newHashSet();
     private String sortKey;
     private ContainerSummary containerSummary;
+    private Set<Encoding> manifestedAs = Sets.newLinkedHashSet();
+    private Set<Broadcast> broadcasts = Sets.newLinkedHashSet();
+    private List<SegmentEvent> segmentEvents = ImmutableList.of(); 
+    private Set<Restriction> restrictions = Sets.newHashSet();
 
     public Item(String uri, String curie, Publisher publisher) {
         super(uri, curie, publisher);
@@ -77,41 +83,6 @@ public class Item extends Content {
         this.isLongForm = isLongForm;
     }
 
-    public void addVersion(Version version) {
-        if (version.getProvider() == null) {
-            version.setProvider(publisher);
-        }
-        versions.add(version);
-    }
-
-    public Set<Version> getVersions() {
-        return versions;
-    }
-
-    public Set<Version> nativeVersions() {
-        return Sets.filter(versions, new Predicate<Version>() {
-
-            @Override
-            public boolean apply(Version v) {
-                return publisher.equals(v.getProvider());
-            }
-        });
-    }
-
-    public void setVersions(Set<Version> versions) {
-        this.versions = Sets.newHashSet();
-        addVersions(versions);
-    }
-
-    public void addVersions(Set<Version> versions) {
-        for (Version version : versions) {
-            addVersion(version);
-        }
-    }
-
-    public boolean removeVersion(Version version) {
-        return versions.remove(version);
-    }
 
     public Set<Country> getCountriesOfOrigin() {
         return countriesOfOrigin;
@@ -135,36 +106,60 @@ public class Item extends Content {
     public Boolean getBlackAndWhite() {
         return blackAndWhite;
     }
-
-    public boolean isAvailable() {
-        for (Location location : locations()) {
-            if (location.getAvailable()) {
-                return true;
-            }
-        }
-        return false;
+    
+   
+    
+    public Set<Encoding> getManifestedAs() {
+        return manifestedAs;
     }
 
-    public boolean isEmbeddable() {
-        for (Location location : locations()) {
-            if (location.getTransportType() != null && TransportType.EMBED.equals(location.getTransportType())) {
-                return true;
-            }
-        }
-        return false;
+    public void setManifestedAs(Set<Encoding> manifestedAs) {
+        this.manifestedAs = manifestedAs;
+    }
+    
+    public void addManifestedAs(Encoding encoding) {
+        checkNotNull(encoding);
+        manifestedAs.add(encoding);
+    }
+    
+    public Set<Broadcast> getBroadcasts() {
+        return broadcasts;
     }
 
-    private List<Location> locations() {
-        List<Location> locations = Lists.newArrayList();
-        for (Version version : getVersions()) {
-            for (Encoding encoding : version.getManifestedAs()) {
-                for (Location location : encoding.getAvailableAt()) {
-                    locations.add(location);
-                }
-            }
-        }
+    public void setBroadcasts(Set<Broadcast> broadcasts) {
+        this.broadcasts = broadcasts;
+    }
+    
+    public void addBroadcast(Broadcast broadcast) {
+        checkNotNull(broadcast);
+        broadcasts.add(broadcast);
+    }
 
-        return locations;
+    public void setRestrictions(Set<Restriction> restrictions) {
+        this.restrictions = restrictions;
+    }
+    
+    public void addRestriction(Restriction restriction) {
+        checkNotNull(restriction);
+        restrictions.add(restriction);
+    }
+
+    public Set<Restriction> getRestrictions() {
+        return restrictions;
+    }
+    
+    public List<SegmentEvent> getSegmentEvents() {
+        return segmentEvents;
+    }
+    
+    public void setSegmentEvents(Iterable<SegmentEvent> segmentEvents) {
+        this.segmentEvents = SegmentEvent.ORDERING.immutableSortedCopy(segmentEvents);
+    }
+    
+    public void addSegmentEvents(Iterable<SegmentEvent> segmentEvents) {
+        this.segmentEvents = SegmentEvent.ORDERING.immutableSortedCopy(ImmutableSet.<SegmentEvent>builder()
+                .addAll(segmentEvents)
+                .addAll(this.segmentEvents).build());
     }
 
     @Override
@@ -174,25 +169,16 @@ public class Item extends Content {
         return copy;
     }
 
-    public Item copyWithVersions(Set<Version> versions) {
-        Item copy = new Item();
-
-        Item.copyToWithVersions(this, copy, versions);
-
-        return copy;
-    }
-
     public static void copyTo(Item from, Item to) {
-        copyToWithVersions(from, to, Sets.newHashSet(Iterables.transform(from.versions, Version.COPY)));
-    }
-
-    public static void copyToWithVersions(Item from, Item to, Set<Version> versions) {
         Content.copyTo(from, to);
         if (from.containerRef != null) {
             to.containerRef = from.containerRef;
         }
         to.isLongForm = from.isLongForm;
-        to.versions = versions;
+        to.broadcasts = Sets.newHashSet(from.broadcasts);
+        to.manifestedAs = Sets.newHashSet(from.manifestedAs);
+        to.segmentEvents = Lists.newArrayList(from.segmentEvents);
+        to.restrictions = Sets.newHashSet(from.restrictions);
         to.blackAndWhite = from.blackAndWhite;
         to.countriesOfOrigin = Sets.newHashSet(from.countriesOfOrigin);
     }
@@ -217,21 +203,6 @@ public class Item extends Content {
             return (Item) input.copy();
         }
     };
-    public static final Function<Item, Iterable<Broadcast>> FLATTEN_BROADCASTS = new Function<Item, Iterable<Broadcast>>() {
-
-        @Override
-        public Iterable<Broadcast> apply(Item input) {
-            return input.flattenBroadcasts();
-        }
-    };
-
-    public Iterable<Broadcast> flattenBroadcasts() {
-        return Iterables.concat(Iterables.transform(versions, Version.TO_BROADCASTS));
-    }
-
-    public Iterable<Location> flattenLocations() {
-        return Iterables.concat(Iterables.transform(Iterables.concat(Iterables.transform(versions, Version.TO_ENCODINGS)), Encoding.TO_LOCATIONS));
-    }
 
     public ContainerSummary getContainerSummary() {
         return containerSummary;
@@ -254,14 +225,6 @@ public class Item extends Content {
     protected String getSortKey() {
         return SortKey.keyFrom(this);
     }
-    
-    public static final Predicate<Item> IS_AVAILABLE = new Predicate<Item>() {
-
-        @Override
-        public boolean apply(Item input) {
-            return input.isAvailable();
-        }
-    };
 
     public static class ContainerSummary {
 
@@ -312,4 +275,28 @@ public class Item extends Content {
             this.seriesNumber = seriesNumber;
         }
     }
+    
+    public static final Function<Item, Set<Broadcast>> TO_BROADCASTS = new Function<Item, Set<Broadcast>>() {
+        @Override
+        public Set<Broadcast> apply(Item input) {
+            return input.broadcasts;
+        }
+    };
+    
+    public static final Function<Item, Set<Encoding>> TO_ENCODINGS = new Function<Item, Set<Encoding>>() {
+        @Override
+        public Set<Encoding> apply(Item input) {
+            return input.manifestedAs;
+        }
+    };
+    
+    public static final Function<Item, List<SegmentEvent>> TO_SEGMENT_EVENTS = new Function<Item, List<SegmentEvent>>() {
+
+        @Override
+        public List<SegmentEvent> apply(Item input) {
+            return input.segmentEvents;
+        }
+        
+    };
+    
 }

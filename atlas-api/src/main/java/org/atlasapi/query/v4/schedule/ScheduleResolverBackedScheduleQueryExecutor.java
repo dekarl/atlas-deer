@@ -11,7 +11,6 @@ import org.atlasapi.content.Broadcast;
 import org.atlasapi.content.Content;
 import org.atlasapi.content.Item;
 import org.atlasapi.content.ItemAndBroadcast;
-import org.atlasapi.content.Version;
 import org.atlasapi.entity.Id;
 import org.atlasapi.entity.Identifiables;
 import org.atlasapi.equivalence.MergingEquivalentsResolver;
@@ -145,12 +144,6 @@ public class ScheduleResolverBackedScheduleQueryExecutor implements ScheduleQuer
     }
 
     private void replaceBroadcasts(Item item, Broadcast broadcast) {
-        for (Version version : item.getVersions()) {
-            if (version.getBroadcasts().contains(broadcast)) {
-                version.setBroadcasts(ImmutableSet.of(broadcast));
-            } else {
-                version.setBroadcasts(ImmutableSet.<Broadcast>of());
-            }
-        }
+        item.setBroadcasts(ImmutableSet.of(broadcast));
     }
 }

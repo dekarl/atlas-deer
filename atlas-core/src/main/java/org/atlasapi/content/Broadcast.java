@@ -58,6 +58,7 @@ public class Broadcast extends Identified {
     private Boolean newSeries;
     private Boolean newEpisode;
     private Boolean premiere;
+    private Boolean is3d;
     
     public Broadcast(String broadcastOn,  DateTime transmissionTime, DateTime transmissionEndTime, Boolean activelyPublished) {
 		this.broadcastOn = broadcastOn;
@@ -221,6 +222,14 @@ public class Broadcast extends Identified {
     
     public Boolean getNewEpisode() {
         return newEpisode;
+    }
+    
+    public Boolean is3d() {
+        return is3d;
+    }
+    
+    public void set3d(Boolean is3d) {
+        this.is3d = is3d;
     }
     
     @Override

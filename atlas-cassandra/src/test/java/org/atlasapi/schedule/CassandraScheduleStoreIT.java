@@ -1,8 +1,6 @@
 package org.atlasapi.schedule;
 
 import static org.hamcrest.Matchers.any;
-import static org.hamcrest.Matchers.empty;
-import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.hasItems;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.isA;
@@ -20,10 +18,8 @@ import org.atlasapi.content.Broadcast;
 import org.atlasapi.content.CassandraContentStore;
 import org.atlasapi.content.Content;
 import org.atlasapi.content.ContentHasher;
-import org.atlasapi.content.Identified;
 import org.atlasapi.content.Item;
 import org.atlasapi.content.ItemAndBroadcast;
-import org.atlasapi.content.Version;
 import org.atlasapi.entity.Alias;
 import org.atlasapi.entity.CassandraHelper;
 import org.atlasapi.entity.Id;
@@ -45,9 +41,7 @@ import org.testng.annotations.Listeners;
 import org.testng.annotations.Test;
 
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Iterables;
-import com.google.common.collect.Maps;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.metabroadcast.common.ids.SequenceGenerator;
@@ -210,7 +204,7 @@ public class CassandraScheduleStoreIT {
         
         Resolved<Content> resolved = future(contentStore.resolveIds(ImmutableList.of(Id.valueOf(1))));
         Item two = (Item) resolved.getResources().first().get();
-        assertFalse(Iterables.getOnlyElement(Iterables.getOnlyElement(two.getVersions()).getBroadcasts()).isActivelyPublished());
+        assertFalse(Iterables.getOnlyElement(two.getBroadcasts()).isActivelyPublished());
     }
     
     @Test
@@ -278,7 +272,7 @@ public class CassandraScheduleStoreIT {
         
         Resolved<Content> resolved = future(contentStore.resolveIds(ImmutableList.of(Id.valueOf(1))));
         Item two = (Item) resolved.getResources().first().get();
-        assertFalse(Iterables.getOnlyElement(Iterables.getOnlyElement(two.getVersions()).getBroadcasts()).isActivelyPublished());
+        assertFalse(Iterables.getOnlyElement(two.getBroadcasts()).isActivelyPublished());
     }
     
     @Test
@@ -293,16 +287,9 @@ public class CassandraScheduleStoreIT {
         Broadcast broadcast2 = broadcast("two", channel, middle, end);
         Broadcast broadcast3 = broadcast("three", channel, new DateTime(DateTimeZones.LONDON), new DateTime(DateTimeZones.LONDON));
         
-        Version version1 = new Version();
-        version1.setCanonicalUri("one");
-        version1.addBroadcast(broadcast1);
-        version1.addBroadcast(broadcast3);
-        item1.addVersion(version1);
-        
-        Version version2 = new Version();
-        version2.setCanonicalUri("two");
-        version2.addBroadcast(broadcast2);
-        item1.addVersion(version2);
+        item1.addBroadcast(broadcast1);
+        item1.addBroadcast(broadcast2);
+        item1.addBroadcast(broadcast3);
         
         ItemAndBroadcast iab1 = new ItemAndBroadcast(item1, broadcast1);
         ItemAndBroadcast iab2 = new ItemAndBroadcast(item1.copy(), broadcast2);
@@ -327,21 +314,15 @@ public class CassandraScheduleStoreIT {
         ItemAndBroadcast snd = channelSchedule.getEntries().get(1);
         
         Item resolved1 = fst.getItem();
-        ImmutableMap<String, Version> versionIndex = Maps.uniqueIndex(resolved1.getVersions(), Identified.TO_URI);
-        assertThat(Iterables.getOnlyElement(versionIndex.get("one").getBroadcasts()), is(fst.getBroadcast()));
-        assertThat(versionIndex.get("two").getBroadcasts(), is(empty()));
+        assertThat(Iterables.getOnlyElement(resolved1.getBroadcasts()), is(fst.getBroadcast()));
 
         Item resolved2 = snd.getItem();
-        versionIndex = Maps.uniqueIndex(resolved2.getVersions(), Identified.TO_URI);
-        assertThat(versionIndex.get("one").getBroadcasts(), is(empty()));
-        assertThat(Iterables.getOnlyElement(versionIndex.get("two").getBroadcasts()), is(snd.getBroadcast()));
+        assertThat(Iterables.getOnlyElement(resolved2.getBroadcasts()), is(snd.getBroadcast()));
         
         Resolved<Content> resolved = future(contentStore.resolveIds(ImmutableList.of(Id.valueOf(1))));
         Item item = (Item) resolved.toMap().get(Id.valueOf(1)).get();
-        assertThat(item.getVersions().size(), is(2));
-        versionIndex = Maps.uniqueIndex(item.getVersions(), Identified.TO_URI);
-        assertThat(versionIndex.get("one").getBroadcasts(), hasItems(broadcast1, broadcast3));
-        assertThat(versionIndex.get("two").getBroadcasts(), hasItem(broadcast2));
+        assertThat(item.getBroadcasts().size(), is(3));
+        assertThat(item.getBroadcasts(), hasItems(broadcast1, broadcast2, broadcast3));
     }
 
     @Test(enabled = false)
@@ -412,7 +393,7 @@ public class CassandraScheduleStoreIT {
         
         Resolved<Content> resolved = future(contentStore.resolveIds(ImmutableList.of(Id.valueOf(2))));
         Item two = (Item) resolved.getResources().first().get();
-        assertFalse(Iterables.getOnlyElement(Iterables.getOnlyElement(two.getVersions()).getBroadcasts()).isActivelyPublished());
+        assertFalse(Iterables.getOnlyElement(two.getBroadcasts()).isActivelyPublished());
     }
 
     private <T> T future(ListenableFuture<T> resolve) throws Exception {
@@ -421,10 +402,8 @@ public class CassandraScheduleStoreIT {
 
     private ItemAndBroadcast itemAndBroadcast(Integer id, String alias, Publisher source, Channel channel, DateTime start, DateTime end) {
         Item item = item(id, source, alias);
-        Version version = new Version();
-        item.addVersion(version);
         Broadcast broadcast = broadcast(alias, channel, start, end);
-        version.addBroadcast(broadcast);
+        item.addBroadcast(broadcast);
         return new ItemAndBroadcast(item, broadcast);
     }
 

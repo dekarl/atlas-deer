@@ -8,7 +8,6 @@ import org.atlasapi.content.Encoding;
 import org.atlasapi.content.Item;
 import org.atlasapi.content.Location;
 import org.atlasapi.content.Policy;
-import org.atlasapi.content.Version;
 import org.atlasapi.output.FieldWriter;
 import org.atlasapi.output.OutputContext;
 import org.atlasapi.output.annotation.LocationsAnnotation.EncodedLocationWriter;
@@ -42,14 +41,7 @@ public class AvailableLocationsAnnotation extends OutputAnnotation<Content> {
     }
     
     private Iterable<EncodedLocation> encodedLocations(Item item) {
-        return Iterables.concat(Iterables.transform(item.getVersions(),
-            new Function<Version, Iterable<EncodedLocation>>() {
-                @Override
-                public Iterable<EncodedLocation> apply(Version input) {
-                    return encodedLocations(input.getManifestedAs());
-                }
-            }
-        ));
+        return encodedLocations(item.getManifestedAs());
     }
 
     private Iterable<EncodedLocation> encodedLocations(Set<Encoding> manifestedAs) {

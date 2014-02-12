@@ -11,7 +11,6 @@ import java.util.List;
 import org.atlasapi.content.Broadcast;
 import org.atlasapi.content.Episode;
 import org.atlasapi.content.ItemAndBroadcast;
-import org.atlasapi.content.Version;
 import org.atlasapi.media.channel.Channel;
 import org.atlasapi.media.entity.Publisher;
 import org.joda.time.Interval;
@@ -256,10 +255,8 @@ public class ScheduleBlockUpdaterTest {
     
     private ItemAndBroadcast itemAndBroadcast(int id, Publisher source, Channel channel, String bId, Interval interval) {
         Episode episode = episode(id, source);
-        Version version = new Version();
-        episode.addVersion(version);
         Broadcast broadcast = broadcast(channel, bId, interval);
-        version.addBroadcast(broadcast);
+        episode.addBroadcast(broadcast);
         return new ItemAndBroadcast(episode, broadcast);
     }
 

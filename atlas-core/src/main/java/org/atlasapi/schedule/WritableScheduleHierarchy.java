@@ -5,7 +5,6 @@ import java.util.Map;
 import java.util.Set;
 
 import org.atlasapi.content.Brand;
-import org.atlasapi.content.Broadcast;
 import org.atlasapi.content.Container;
 import org.atlasapi.content.Content;
 import org.atlasapi.content.ContentStore;
@@ -13,7 +12,6 @@ import org.atlasapi.content.Episode;
 import org.atlasapi.content.Item;
 import org.atlasapi.content.ItemAndBroadcast;
 import org.atlasapi.content.Series;
-import org.atlasapi.content.Version;
 import org.atlasapi.entity.Id;
 import org.atlasapi.entity.util.WriteException;
 import org.atlasapi.entity.util.WriteResult;
@@ -21,7 +19,6 @@ import org.atlasapi.entity.util.WriteResult;
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 
@@ -74,39 +71,8 @@ class WritableScheduleHierarchy {
     }
 
     private static Item addBroadcast(Item existing, ItemAndBroadcast itemAndBroadcast) {
-        Broadcast broadcast = itemAndBroadcast.getBroadcast();
-        Version versionOfBroadcast = versionOfBroadcast(itemAndBroadcast);
-        if (versionOfBroadcast.getCanonicalUri() == null) {
-            Iterables.getOnlyElement(existing.getVersions()).addBroadcast(broadcast);
-        } else {
-            Version found = findVersion(existing, versionOfBroadcast);
-            if (found == null) {
-                existing.addVersion(versionOfBroadcast);
-            } else {
-                found.addBroadcast(broadcast);
-            }
-        }
+        existing.addBroadcast(itemAndBroadcast.getBroadcast());
         return existing;
-    }
-
-    private static Version findVersion(Item existing, Version versionOfBroadcast) {
-        for (Version version : existing.getVersions()) {
-            if (versionOfBroadcast.getCanonicalUri().equals(version.getCanonicalUri())) {
-                return version;
-            }
-        }
-        return null;
-    }
-
-    private static Version versionOfBroadcast(ItemAndBroadcast itemAndBroadcast) {
-        Item item = itemAndBroadcast.getItem();
-        for (Version version : item.getVersions()) {
-            if (version.getBroadcasts().contains(itemAndBroadcast.getBroadcast())) {
-                return version;
-            }
-        }
-        throw new IllegalStateException(
-                String.format("broadcast not found in item %s versions", item.toString()));
     }
 
     private Set<Container> topLevelContainers;

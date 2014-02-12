@@ -26,7 +26,6 @@ import org.atlasapi.content.RelatedLink;
 import org.atlasapi.content.ReleaseDate;
 import org.atlasapi.content.Subtitles;
 import org.atlasapi.content.TopicRef;
-import org.atlasapi.content.Version;
 import org.atlasapi.entity.Id;
 import org.atlasapi.entity.Sourced;
 import org.atlasapi.equivalence.EquivalenceRef;
@@ -275,7 +274,7 @@ public class OutputContentMerger implements EquivalentsMergeStrategy<Content> {
 
     private <T extends Item> void mergeVersions(ApplicationSources sources, T chosen, Iterable<T> notChosen) {
         // if chosen has broadcasts, merge the set of broadcasts from notChosen
-        Set<Broadcast> chosenBroadcasts = Sets.newHashSet(Iterables.concat(Iterables.transform(chosen.getVersions(), Version.TO_BROADCASTS)));
+        Set<Broadcast> chosenBroadcasts = Sets.newHashSet(chosen.getBroadcasts());
         if (!chosenBroadcasts.isEmpty()) {
             List<T> notChosenOrdered = sources.getSourcedReadOrdering().sortedCopy(notChosen);
             for (Broadcast chosenBroadcast : chosenBroadcasts) {
@@ -283,18 +282,14 @@ public class OutputContentMerger implements EquivalentsMergeStrategy<Content> {
             }
         }
         for (T notChosenItem : notChosen) {
-            for (Version version : notChosenItem.getVersions()) {
-                // TODO When we have more granular precedence this broadcast masking can be removed
-                version.setBroadcasts(Sets.<Broadcast>newHashSet());
-                chosen.addVersion(version);
-            }
+            notChosenItem.setBroadcasts(Sets.<Broadcast>newHashSet());
         }
     }
     
     private <T extends Item> void matchAndMerge(final Broadcast chosenBroadcast, List<T> notChosen) {
         List<Broadcast> equivBroadcasts = Lists.newArrayList();
         for (T notChosenItem : notChosen) {
-            Iterable<Broadcast> notChosenBroadcasts = Iterables.concat(Iterables.transform(notChosenItem.getVersions(), Version.TO_BROADCASTS));
+            Iterable<Broadcast> notChosenBroadcasts = notChosenItem.getBroadcasts();
             Optional<Broadcast> matched = Iterables.tryFind(notChosenBroadcasts, new Predicate<Broadcast>() {
                 @Override
                 public boolean apply(Broadcast input) {

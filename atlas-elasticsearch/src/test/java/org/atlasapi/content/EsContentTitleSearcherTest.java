@@ -47,31 +47,27 @@ public class EsContentTitleSearcherTest {
     @Test
     public void testSearch() throws Exception {
         Broadcast broadcast1 = new Broadcast("MB", new DateTime(), new DateTime().plusHours(1));
-        Version version1 = new Version();
         Broadcast broadcast2 = new Broadcast("MB", new DateTime().plusHours(3), new DateTime().plusHours(4));
-        Version version2 = new Version();
-        version1.addBroadcast(broadcast1);
-        version2.addBroadcast(broadcast2);
 
         Item item1 = new Item("uri1", "curie1", Publisher.METABROADCAST);
         item1.setTitle("title1");
         item1.setId(Id.valueOf(1));
-        item1.addVersion(version1);
+        item1.addBroadcast(broadcast1);
         item1.setThisOrChildLastUpdated(new DateTime(DateTimeZones.UTC));
         Item item2 = new Item("uri2", "curie2", Publisher.METABROADCAST);
         item2.setTitle("title2");
         item2.setId(Id.valueOf(2));
-        item2.addVersion(version1);
+        item2.addBroadcast(broadcast1);
         item2.setThisOrChildLastUpdated(new DateTime(DateTimeZones.UTC));
         Item item3 = new Item("uri3", "curie3", Publisher.METABROADCAST);
         item3.setTitle("pippo");
         item3.setId(Id.valueOf(3));
-        item3.addVersion(version2);
+        item3.addBroadcast(broadcast2);
         item3.setThisOrChildLastUpdated(new DateTime(DateTimeZones.UTC));
         Item item4 = new Item("uri4", "curie4", Publisher.METABROADCAST);
         item4.setTitle("title4");
         item4.setId(Id.valueOf(4));
-        item4.addVersion(version2);
+        item4.addBroadcast(broadcast2);
         item4.setThisOrChildLastUpdated(new DateTime(DateTimeZones.UTC));
         
         Brand brand1 = new Brand("buri1", "buri1", Publisher.METABROADCAST);

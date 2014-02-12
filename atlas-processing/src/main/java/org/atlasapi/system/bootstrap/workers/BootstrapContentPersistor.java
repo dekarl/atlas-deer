@@ -12,7 +12,6 @@ import org.atlasapi.content.ContentVisitorAdapter;
 import org.atlasapi.content.ContentWriter;
 import org.atlasapi.content.Item;
 import org.atlasapi.content.ItemAndBroadcast;
-import org.atlasapi.content.Version;
 import org.atlasapi.entity.util.Resolved;
 import org.atlasapi.entity.util.RuntimeWriteException;
 import org.atlasapi.entity.util.WriteException;
@@ -72,23 +71,16 @@ public class BootstrapContentPersistor implements ContentWriter {
         }
 
         private boolean hasBroadcasts(Item item) {
-            for (Version version : item.getVersions()) {
-                if (!version.getBroadcasts().isEmpty()) {
-                    return true;
-                }
-            }
-            return false;
+            return !item.getBroadcasts().isEmpty();
         }
 
         private WriteResult<? extends Content> writeNewBroadcasts(Item item, Optional<Content> current) throws WriteException {
             WriteResult<? extends Content> result = null;
-            for (Version version : item.getVersions()) {
-                for (Broadcast broadcast : Iterables.filter(version.getBroadcasts(), ACTIVELY_PUBLISHED)) {
-                    if (broadcast.getSourceId() != null && !hasBroadcast(current, broadcast)) {
-                        ItemAndBroadcast iab = new ItemAndBroadcast(item, broadcast);
-                        log.debug("bootstrapping {}", iab);
-                        result = write(iab);
-                    }
+            for (Broadcast broadcast : Iterables.filter(item.getBroadcasts(), ACTIVELY_PUBLISHED)) {
+                if (broadcast.getSourceId() != null && !hasBroadcast(current, broadcast)) {
+                    ItemAndBroadcast iab = new ItemAndBroadcast(item, broadcast);
+                    log.debug("bootstrapping {}", iab);
+                    result = write(iab);
                 }
             }
             return result;
@@ -101,10 +93,8 @@ public class BootstrapContentPersistor implements ContentWriter {
             Content currentContent = current.get();
             if (currentContent instanceof Item) {
                 Item currentItem = (Item) currentContent;
-                for (Version version : currentItem.getVersions()) {
-                    if (version.getBroadcasts().contains(broadcast)) {
-                        return true;
-                    }
+                if (currentItem.getBroadcasts().contains(broadcast)) {
+                    return true;
                 }
             }
             return false;

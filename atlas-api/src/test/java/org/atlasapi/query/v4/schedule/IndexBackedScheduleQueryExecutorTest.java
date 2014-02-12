@@ -17,7 +17,6 @@ import org.atlasapi.content.Content;
 import org.atlasapi.content.ContentResolver;
 import org.atlasapi.content.Item;
 import org.atlasapi.content.ItemAndBroadcast;
-import org.atlasapi.content.Version;
 import org.atlasapi.entity.Id;
 import org.atlasapi.entity.util.Resolved;
 import org.atlasapi.media.channel.Channel;
@@ -110,8 +109,7 @@ public class IndexBackedScheduleQueryExecutorTest {
         
         Item scheduleItem = Iterables.getOnlyElement(channelSchedule.getEntries()).getItem();
         assertThat(scheduleItem.getCanonicalUri(), is(item.getCanonicalUri()));
-        Version scheduleVersion = Iterables.getOnlyElement(scheduleItem.getVersions());
-        Broadcast scheduleBroadcast = Iterables.getOnlyElement(scheduleVersion.getBroadcasts());
+        Broadcast scheduleBroadcast = Iterables.getOnlyElement(scheduleItem.getBroadcasts());
         assertThat(scheduleBroadcast.getSourceId(), is("bid"));
     }
     
@@ -120,7 +118,7 @@ public class IndexBackedScheduleQueryExecutorTest {
         Channel channel = Channel.builder().build();
         channel.setId(1L);
         channel.setCanonicalUri("one");
-        Interval interval = new Interval(0, 100, DateTimeZones.UTC);
+        Interval interval = new Interval(0, 200, DateTimeZones.UTC);
         ScheduleQuery query = ScheduleQuery.single(METABROADCAST, interval, QueryContext.standard(), Id.valueOf(channel.getId()));
         
         Item item = itemWithBroadcast("item", channel.getCanonicalUri(), dateTime(25), dateTime(75), "bid");
@@ -150,14 +148,12 @@ public class IndexBackedScheduleQueryExecutorTest {
         
         Item firstItem = items.get(0);
         assertThat(firstItem.getCanonicalUri(), is(item.getCanonicalUri()));
-        Version scheduleVersion = Iterables.getOnlyElement(firstItem.getVersions());
-        Broadcast scheduleBroadcast = Iterables.getOnlyElement(scheduleVersion.getBroadcasts());
+        Broadcast scheduleBroadcast = Iterables.getOnlyElement(firstItem.getBroadcasts());
         assertThat(scheduleBroadcast.getSourceId(), is("bid"));
 
         Item secondItem = items.get(1);
         assertThat(secondItem.getCanonicalUri(), is(item.getCanonicalUri()));
-        scheduleVersion = Iterables.getOnlyElement(secondItem.getVersions());
-        scheduleBroadcast = Iterables.getOnlyElement(scheduleVersion.getBroadcasts());
+        scheduleBroadcast = Iterables.getOnlyElement(secondItem.getBroadcasts());
         assertThat(scheduleBroadcast.getSourceId(), is("bid2"));
         
     }
@@ -165,9 +161,7 @@ public class IndexBackedScheduleQueryExecutorTest {
     private void addBroadcast(Item item, String channelUri, DateTime start, DateTime end, String bid) {
         Broadcast broadcast = new Broadcast(channelUri, start, end);
         broadcast.withId(bid);
-        
-        Version version = Iterables.getFirst(item.getVersions(), new Version());
-        version.addBroadcast(broadcast);
+        item.addBroadcast(broadcast);
     }
 
     private ListenableFuture<Resolved<Content>> queryResult(List<Content> content) {
@@ -179,12 +173,9 @@ public class IndexBackedScheduleQueryExecutorTest {
         Broadcast broadcast = new Broadcast(channelUri, start, end);
         broadcast.withId(bid);
         
-        Version version = new Version();
-        version.addBroadcast(broadcast);
-        
         Item item = new Item(itemUri, itemUri, Publisher.METABROADCAST);
         item.setId(Id.valueOf(Long.valueOf(itemUri.hashCode())));
-        item.addVersion(version);
+        item.addBroadcast(broadcast);
         
         return item;
     }

@@ -4,7 +4,6 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 
 import java.util.Collection;
-import java.util.Set;
 
 import org.atlasapi.content.Broadcast;
 import org.atlasapi.content.Content;
@@ -12,7 +11,6 @@ import org.atlasapi.content.ContentResolver;
 import org.atlasapi.content.Identified;
 import org.atlasapi.content.Item;
 import org.atlasapi.content.ItemAndBroadcast;
-import org.atlasapi.content.Version;
 import org.atlasapi.entity.Id;
 import org.atlasapi.entity.util.Resolved;
 import org.atlasapi.media.channel.Channel;
@@ -31,8 +29,8 @@ import com.google.common.base.Function;
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableList.Builder;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
-import com.google.common.collect.Sets;
 import com.google.common.util.concurrent.AsyncFunction;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
@@ -116,16 +114,13 @@ public class IndexBackedScheduleQueryExecutor implements ScheduleQueryExecutor {
                 // item in index but not store, throw exception?
                 continue; 
             }
-            Item item = (Item) resolved.get();
-            if (item != null) {
-                /* copy the item here because it may appear in the same schedule
-                 * twice but will only appear in resolvedContent once.
-                 */
-                item = item.copy();
-                ItemAndBroadcast itemAndBroadcast = trimBroadcasts(entry, item);
-                if (itemAndBroadcast != null) {
-                    contentList.add(itemAndBroadcast);
-                }
+            /* copy the item here because it may appear in the same schedule
+             * twice but will only appear in resolvedContent once.
+             */
+            Item item = (Item) resolved.get().copy();
+            ItemAndBroadcast itemAndBroadcast = trimBroadcasts(entry, item);
+            if (itemAndBroadcast != null) {
+                contentList.add(itemAndBroadcast);
             }
         }
         return contentList.build();
@@ -149,21 +144,13 @@ public class IndexBackedScheduleQueryExecutor implements ScheduleQueryExecutor {
     }
 
     private ItemAndBroadcast trimBroadcasts(ScheduleRefEntry entry, Item item) {
-        ItemAndBroadcast itemAndBroadcast = null;
-        for (Version version : item.getVersions()) {
-            Set<Broadcast> allBroadcasts = version.getBroadcasts();
-            version.setBroadcasts(Sets.<Broadcast>newHashSet());
-            if (itemAndBroadcast != null) {
-                continue;
-            }
-            for (Broadcast broadcast : allBroadcasts) {
-                if (relevantBroadcast(broadcast, entry)) {
-                    version.setBroadcasts(Sets.newHashSet(broadcast));
-                    itemAndBroadcast = new ItemAndBroadcast(item, broadcast);
-                }
+        for (Broadcast broadcast : item.getBroadcasts()) {
+            if (relevantBroadcast(broadcast, entry)) {
+                item.setBroadcasts(ImmutableSet.of(broadcast));
+                return new ItemAndBroadcast(item, broadcast);
             }
         }
-        return itemAndBroadcast;
+        return null;
     }
 
     private boolean relevantBroadcast(Broadcast broadcast, ScheduleRefEntry entry) {
