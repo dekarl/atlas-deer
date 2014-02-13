@@ -37,7 +37,6 @@ public final class JmsConsumerQueueFactory {
             MessageSerializer serializer, String consumer, String producerSystem, String producer, int consumers, int maxConsumers) {
         String consumerName = virtualTopicConsumer(consumer, producerSystem, producer);
         DefaultMessageListenerContainer container = makeContainer(worker, serializer, consumerName, consumers, maxConsumers);
-        container.setPubSubDomain(true);
         return container;
     }
 

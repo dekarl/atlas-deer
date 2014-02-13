@@ -1,8 +1,10 @@
 package org.atlasapi.messaging;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
 import javax.jms.ConnectionFactory;
@@ -23,6 +25,23 @@ import com.metabroadcast.common.time.Timestamp;
 
 public class QueueFactoryTest {
 
+    private final class TestWorker extends BaseWorker<ResourceUpdatedMessage> {
+
+        private final CountDownLatch latch;
+        private final AtomicReference<ResourceUpdatedMessage> receiver;
+
+        private TestWorker(CountDownLatch latch, AtomicReference<ResourceUpdatedMessage> receiver) {
+            this.latch = latch;
+            this.receiver = receiver;
+        }
+
+        @Override
+        public void process(ResourceUpdatedMessage message) {
+            receiver.set(message);
+            latch.countDown();
+        }
+    }
+
     private final ConnectionFactory cf = new ActiveMQConnectionFactory("vm://localhost");
     private final MessageSerializer serializer = new JacksonMessageSerializer();
     private final ProducerQueueFactory pqf = new JmsProducerQueueFactory(cf, "test.system", serializer);
@@ -34,27 +53,22 @@ public class QueueFactoryTest {
         MessageSender sender = pqf.makeMessageSender(destinationName);
         
         final CountDownLatch latch = new CountDownLatch(1);
-        final AtomicReference<ResourceUpdatedMessage> reciever
+        final AtomicReference<ResourceUpdatedMessage> receiver
             = new AtomicReference<ResourceUpdatedMessage>();
 
-        Worker<ResourceUpdatedMessage> w = new BaseWorker<ResourceUpdatedMessage>() {
-            @Override
-            public void process(ResourceUpdatedMessage message) {
-                reciever.set(message);
-                latch.countDown();
-            }
-        };
+        Worker<ResourceUpdatedMessage> w = new TestWorker(latch, receiver);
         DefaultMessageListenerContainer container
             = cqf.makeVirtualTopicConsumer(w, "consumer", destinationName, 1, 1);
         container.initialize();
         container.start();
+        System.out.println(container.isRunning());
         
         BrandRef updated = new BrandRef(Id.valueOf(1), Publisher.BBC);
         ResourceUpdatedMessage msg = new ResourceUpdatedMessage("1", Timestamp.of(1L), updated);
         sender.sendMessage(msg);
         
-        latch.await();
-        ResourceUpdatedMessage received = reciever.get();
+        assertTrue("message not recieved", latch.await(1, TimeUnit.SECONDS));
+        ResourceUpdatedMessage received = receiver.get();
         
         assertEquals(msg.getMessageId(), received.getMessageId());
         assertEquals(msg.getTimestamp(), received.getTimestamp());
@@ -67,16 +81,10 @@ public class QueueFactoryTest {
         String destinationName = "destination1";
         
         final CountDownLatch latch = new CountDownLatch(1);
-        final AtomicReference<ResourceUpdatedMessage> reciever
+        final AtomicReference<ResourceUpdatedMessage> receiver
             = new AtomicReference<ResourceUpdatedMessage>();
 
-        Worker<ResourceUpdatedMessage> w = new BaseWorker<ResourceUpdatedMessage>() {
-            @Override
-            public void process(ResourceUpdatedMessage message) {
-                reciever.set(message);
-                latch.countDown();
-            }
-        };
+        Worker<ResourceUpdatedMessage> w = new TestWorker(latch, receiver);
         DefaultMessageListenerContainer container
             = cqf.makeVirtualTopicConsumer(w, "consumer1", destinationName, 1, 1);
         container.initialize();
@@ -98,9 +106,9 @@ public class QueueFactoryTest {
                 }
             }
         });
-        
-        latch.await();
-        ResourceUpdatedMessage received = reciever.get();
+
+        assertTrue("message not recieved", latch.await(1, TimeUnit.SECONDS));
+        ResourceUpdatedMessage received = receiver.get();
         
         assertEquals(msg.getMessageId(), received.getMessageId());
         assertEquals(msg.getTimestamp(), received.getTimestamp());
