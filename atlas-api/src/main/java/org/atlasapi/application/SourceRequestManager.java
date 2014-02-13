@@ -63,7 +63,7 @@ public class SourceRequestManager {
             if (appSourceState.equals(SourceState.UNAVAILABLE)) {
                 return createSourceRequest(source, usageType,
                     applicationId, applicationUrl, email, reason);
-            } else if (appSourceState.equals(SourceState.AVAILABLE)) {
+            } else if (appSourceState.equals(SourceState.ENABLEABLE)) {
                 return createAndApproveSourceRequest(source, usageType,
                     applicationId, applicationUrl, email, reason);
             } else {

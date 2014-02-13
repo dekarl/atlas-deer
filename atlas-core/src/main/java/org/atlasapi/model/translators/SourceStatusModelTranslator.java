@@ -8,7 +8,7 @@ public class SourceStatusModelTranslator {
     }
     
     public static SourceStatus.SourceState transform3To4(org.atlasapi.application.v3.SourceStatus.SourceState sourceState) {
-    	return SourceStatus.SourceState.valueOf(sourceState.name().toString());
+        return SourceStatus.SourceState.valueOf(sourceState.name().toString());
     }
     
     public static org.atlasapi.application.v3.SourceStatus transform4To3(SourceStatus sourceStatus) {
