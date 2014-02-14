@@ -61,6 +61,9 @@ public class BroadcastSerializer {
         if (broadcast.is3d() != null) {
             builder.setIsThreeD(broadcast.is3d());
         }
+        if (broadcast.getVersionId() != null) {
+            builder.setVersion(broadcast.getVersionId());
+        }
         return builder;
     }
     
@@ -86,6 +89,7 @@ public class BroadcastSerializer {
         broadcast.setNewSeries(msg.hasNewSeries() ? msg.getNewSeries() : null);
         broadcast.setPremiere(msg.hasPremiere() ? msg.getPremiere() : null);
         broadcast.set3d(msg.hasIsThreeD() ? msg.getIsThreeD() : null);
+        broadcast.setVersionId(msg.hasVersion() ? msg.getVersion() : null);
         return broadcast;
     }
     

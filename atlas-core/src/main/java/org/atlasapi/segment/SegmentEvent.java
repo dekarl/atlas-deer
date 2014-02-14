@@ -19,7 +19,9 @@ public class SegmentEvent extends Identified {
     private Description description = Description.EMPTY;
     
     private SegmentRef segment;
-
+    
+    private String versionId;
+    
     public Integer getPosition() {
         return this.position;
     }
@@ -59,7 +61,15 @@ public class SegmentEvent extends Identified {
     public void setSegment(SegmentRef segment) {
         this.segment = segment;
     }
-    
+
+    public String getVersionId() {
+        return versionId;
+    }
+
+    public void setVersionId(String versionId) {
+        this.versionId = versionId;
+    }
+
     public static final Ordering<SegmentEvent> ORDERING = Ordering.from(new Comparator<SegmentEvent>() {
         @Override
         public int compare(SegmentEvent s1, SegmentEvent s2) {

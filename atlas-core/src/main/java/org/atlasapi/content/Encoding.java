@@ -58,6 +58,8 @@ public class Encoding extends Identified {
 
     private Boolean hasDOG;
     private Boolean is3d;
+    
+    private String versionId;
 
     public Set<Location> getAvailableAt() { 
         return this.availableAt; 
@@ -171,6 +173,14 @@ public class Encoding extends Identified {
 
     public Integer getVideoVerticalSize() { 
         return this.videoVerticalSize;
+    }
+    
+    public String getVersionId() {
+        return versionId;
+    }
+
+    public void setVersionId(String versionId) {
+        this.versionId = versionId;
     }
 
     public void setAdvertisingDuration(Integer advertisingDuration) {
@@ -333,6 +343,7 @@ public class Encoding extends Identified {
 	    copy.videoHorizontalSize = videoHorizontalSize;
 	    copy.videoProgressiveScan = videoProgressiveScan;
 	    copy.videoVerticalSize = videoVerticalSize;
+        copy.versionId = versionId;
 	    return copy;
 	}
 	

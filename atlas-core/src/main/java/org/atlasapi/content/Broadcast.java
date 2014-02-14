@@ -38,14 +38,17 @@ import com.metabroadcast.common.base.Maybe;
  * @author Robert Chatley (robert@metabroadcast.com)
  */
 public class Broadcast extends Identified {
-
+    
     private final DateTime transmissionTime;
     private final DateTime transmissionEndTime;
     private final Integer broadcastDuration;
     private final String broadcastOn;
+    
     private LocalDate scheduleDate;
     private Boolean activelyPublished;
     private String sourceId;  
+
+    private String versionId;
     
     private Boolean repeat;
     private Boolean subtitled;
@@ -232,6 +235,14 @@ public class Broadcast extends Identified {
         this.is3d = is3d;
     }
     
+    public String getVersionId() {
+        return versionId;
+    }
+    
+    public void setVersionId(String versionId) {
+        this.versionId = versionId;
+    }
+    
     @Override
     public boolean equals(Object object) {
         if (!(object instanceof Broadcast)) {
@@ -275,6 +286,7 @@ public class Broadcast extends Identified {
         copy.newEpisode = newEpisode;
         copy.premiere = premiere;
         copy.live = live;
+        copy.versionId = versionId;
         return copy;
     }
     

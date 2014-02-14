@@ -32,6 +32,7 @@ import org.atlasapi.media.entity.ReleaseDate;
 import org.atlasapi.media.entity.Series;
 import org.atlasapi.media.entity.Song;
 import org.atlasapi.media.entity.Subtitles;
+import org.atlasapi.media.entity.Version;
 import org.atlasapi.segment.SegmentEvent;
 import org.atlasapi.segment.SegmentRef;
 import org.joda.time.DateTime;
@@ -162,30 +163,30 @@ public class LegacyContentTransformer extends DescribedLegacyResourceTransformer
         }
     }
 
-    private <I extends org.atlasapi.content.Item> void transformVersion(I i, org.atlasapi.media.entity.Version input) {
-        i.addRestriction(transformRestriction(input.getRestriction()));
-        final Boolean is3dVersion = input.is3d();
-        i.setManifestedAs(ImmutableSet.copyOf(Iterables.transform(input.getManifestedAs(),
+    private <I extends org.atlasapi.content.Item> void transformVersion(I i, final org.atlasapi.media.entity.Version version) {
+        i.addRestriction(transformRestriction(version.getRestriction()));
+        final Boolean is3dVersion = version.is3d();
+        i.setManifestedAs(ImmutableSet.copyOf(Iterables.transform(version.getManifestedAs(),
             new Function<org.atlasapi.media.entity.Encoding, Encoding>() {
                 @Override
                 public Encoding apply(org.atlasapi.media.entity.Encoding input) {
-                    return transformEncoding(input, is3dVersion);
+                    return transformEncoding(input, version);
                 }
             }
         )));
-        i.setBroadcasts(ImmutableSet.copyOf(Iterables.transform(broadcastsWithIds(input), 
+        i.setBroadcasts(ImmutableSet.copyOf(Iterables.transform(broadcastsWithIds(version), 
             new Function<org.atlasapi.media.entity.Broadcast, Broadcast>(){
                 @Override
                 public Broadcast apply(org.atlasapi.media.entity.Broadcast input) {
-                    return transformBroadcast(input, is3dVersion);
+                    return transformBroadcast(input, version);
                 }
             }
         )));
-        i.setSegmentEvents(Iterables.transform(input.getSegmentEvents(), 
+        i.setSegmentEvents(Iterables.transform(version.getSegmentEvents(), 
             new Function<org.atlasapi.media.segment.SegmentEvent, SegmentEvent>(){
                 @Override
                 public SegmentEvent apply(org.atlasapi.media.segment.SegmentEvent input) {
-                    return transformSegmentEvent(input);
+                    return transformSegmentEvent(input, version);
                 }
 
             }
@@ -204,7 +205,7 @@ public class LegacyContentTransformer extends DescribedLegacyResourceTransformer
         );
     }
 
-    private SegmentEvent transformSegmentEvent(org.atlasapi.media.segment.SegmentEvent input) {
+    private SegmentEvent transformSegmentEvent(org.atlasapi.media.segment.SegmentEvent input, Version version) {
         SegmentEvent se = new SegmentEvent();
         setIdentifiedFields(se, input);
         se.setOffset(input.getOffset());
@@ -213,10 +214,11 @@ public class LegacyContentTransformer extends DescribedLegacyResourceTransformer
         se.setDescription(new Description(d.getTitle(), d.getSynopsis(), d.getImage(), d.getThumbnail()));
         org.atlasapi.media.segment.SegmentRef sr = input.getSegment();
         se.setSegment(new SegmentRef(sr.identifier()));
+        se.setVersionId(version.getCanonicalUri());
         return se;
     }
 
-    private Encoding transformEncoding(org.atlasapi.media.entity.Encoding input, Boolean is3dVersion) {
+    private Encoding transformEncoding(org.atlasapi.media.entity.Encoding input, Version version) {
         Encoding e = new Encoding();
         setIdentifiedFields(e, input);
         e.setAvailableAt(transformLocations(input));
@@ -238,7 +240,8 @@ public class LegacyContentTransformer extends DescribedLegacyResourceTransformer
         e.setSource(input.getSource());
         e.setDistributor(input.getDistributor());
         e.setHasDOG(input.getHasDOG());
-        e.set3d(is3dVersion);
+        e.set3d(version.is3d());
+        e.setVersionId(version.getCanonicalUri());
         return e;
     }
 
@@ -283,7 +286,7 @@ public class LegacyContentTransformer extends DescribedLegacyResourceTransformer
         return p;
     }
 
-    private Broadcast transformBroadcast(org.atlasapi.media.entity.Broadcast input, Boolean is3dVersion) {
+    private Broadcast transformBroadcast(org.atlasapi.media.entity.Broadcast input, Version version) {
         Broadcast b = new Broadcast(input.getBroadcastOn(), 
                 input.getTransmissionTime(), input.getTransmissionEndTime());
         setIdentifiedFields(b, input);
@@ -301,7 +304,8 @@ public class LegacyContentTransformer extends DescribedLegacyResourceTransformer
         b.setNewSeries(input.getNewSeries());
         b.setNewEpisode(input.getNewEpisode());
         b.setPremiere(input.getPremiere());
-        b.set3d(is3dVersion);
+        b.set3d(version.is3d());
+        b.setVersionId(version.getCanonicalUri());
         return b;
     }
     
