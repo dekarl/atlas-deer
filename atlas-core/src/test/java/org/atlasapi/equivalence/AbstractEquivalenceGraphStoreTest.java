@@ -30,6 +30,7 @@ import java.util.concurrent.TimeUnit;
 import org.atlasapi.content.Item;
 import org.atlasapi.content.ItemRef;
 import org.atlasapi.entity.Id;
+import org.atlasapi.entity.Identifiables;
 import org.atlasapi.entity.ResourceRef;
 import org.atlasapi.entity.Sourced;
 import org.atlasapi.entity.Sourceds;
@@ -55,6 +56,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Range;
 import com.google.common.util.concurrent.Futures;
@@ -201,6 +203,27 @@ public class AbstractEquivalenceGraphStoreTest {
         assertAfferentAdjacent(itvItem, c4Item);
         assertOnlyTransitivelyEquivalent(bbcItem, itvItem);
         assertOnlyTransitivelyEquivalent(paItem, itvItem);
+    }
+    
+    @Test
+    public void testJoiningTwoPairsOfEquivalents() throws WriteException {
+        makeEquivalent(paItem, c4Item);
+        makeEquivalent(itvItem, fiveItem);
+        
+        assertEfferentAdjacents(paItem, c4Item);
+        assertAfferentAdjacent(c4Item, paItem);
+        assertEfferentAdjacents(itvItem, fiveItem);
+        assertAfferentAdjacent(fiveItem, itvItem);
+        
+        makeEquivalent(bbcItem, paItem, itvItem);
+        
+        assertEquals(ImmutableSet.copyOf(Lists.transform(ImmutableList.of(bbcItem, paItem, itvItem, c4Item, fiveItem), Identifiables.toId())), 
+                graphOf(bbcItem).getEquivalenceSet());
+        
+        makeEquivalent(bbcItem, Publisher.all());
+        
+        assertEquals(ImmutableSet.of(bbcItem.getId()), graphOf(bbcItem).getEquivalenceSet());
+        
     }
     
     @Test

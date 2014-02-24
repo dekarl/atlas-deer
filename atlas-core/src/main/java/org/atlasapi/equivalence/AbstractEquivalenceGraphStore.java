@@ -164,8 +164,8 @@ public abstract class AbstractEquivalenceGraphStore implements EquivalenceGraphS
         Map<Id, Set<Adjacents>> updated = Maps.newHashMap();
         for (Adjacents adj : updatedAdjacents.values()) {
             Set<Adjacents> transitiveSet = transitiveSet(updated, adj);
-            transitiveSet.addAll(Collections2.transform(adj.getEfferent(), toAdjs));
-            for (ResourceRef r : adj.getEfferent()) {
+            transitiveSet.addAll(Collections2.transform(adj.getAdjacent(), toAdjs));
+            for (ResourceRef r : adj.getAdjacent()) {
                 updated.put(r.getId(), transitiveSet);
             }
         }
@@ -178,7 +178,7 @@ public abstract class AbstractEquivalenceGraphStore implements EquivalenceGraphS
 
     private Set<Adjacents> transitiveSet(Map<Id, Set<Adjacents>> updated, Adjacents adj) {
         Set<Adjacents> transitiveSet = null;
-        Iterator<ResourceRef> efferent = adj.getEfferent().iterator();
+        Iterator<ResourceRef> efferent = adj.getAdjacent().iterator();
         while(transitiveSet == null && efferent.hasNext()) {
             transitiveSet = updated.get(efferent.next().getId());
         }
