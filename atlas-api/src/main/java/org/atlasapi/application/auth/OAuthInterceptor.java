@@ -1,5 +1,6 @@
 package org.atlasapi.application.auth;
 
+import static com.google.common.base.Preconditions.checkNotNull;
 import java.io.IOException;
 import java.util.Set;
 
@@ -15,7 +16,6 @@ import org.atlasapi.output.ResponseWriter;
 import org.atlasapi.output.ResponseWriterFactory;
 import org.atlasapi.output.UnsupportedFormatException;
 import org.atlasapi.output.UserProfileIncompleteException;
-import org.elasticsearch.common.Preconditions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.web.servlet.handler.HandlerInterceptorAdapter;
@@ -143,8 +143,8 @@ public class OAuthInterceptor extends HandlerInterceptorAdapter {
         }
         
         public OAuthInterceptor build() {
-            Preconditions.checkNotNull(userFetcher);
-            Preconditions.checkNotNull(idCodec);
+            checkNotNull(userFetcher);
+            checkNotNull(idCodec);
             if (urlsToProtect.isEmpty()) {
                 log.info("No protected URLs have been set");
             }

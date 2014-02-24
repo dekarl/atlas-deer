@@ -81,7 +81,6 @@ import org.atlasapi.query.v4.content.ContentController;
 import org.atlasapi.query.v4.schedule.ChannelListWriter;
 import org.atlasapi.query.v4.schedule.ContentListWriter;
 import org.atlasapi.query.v4.schedule.ScheduleController;
-import org.atlasapi.query.v4.schedule.ScheduleIndexDebugController;
 import org.atlasapi.query.v4.schedule.ScheduleListWriter;
 import org.atlasapi.query.v4.schedule.ScheduleQueryResultWriter;
 import org.atlasapi.query.v4.search.ContentQueryResultWriter;
@@ -92,7 +91,6 @@ import org.atlasapi.query.v4.topic.TopicContentResultWriter;
 import org.atlasapi.query.v4.topic.TopicController;
 import org.atlasapi.query.v4.topic.TopicListWriter;
 import org.atlasapi.query.v4.topic.TopicQueryResultWriter;
-import org.atlasapi.schedule.ScheduleIndex;
 import org.atlasapi.search.SearchResolver;
 import org.atlasapi.source.Sources;
 import org.atlasapi.topic.PopularTopicIndex;
@@ -121,14 +119,10 @@ public class QueryWebModule {
     
     private @Autowired DatabasedMongo mongo;
     private @Autowired QueryModule queryModule;
-//    private @Autowired ContentGroupResolver contentGroupResolver;
     private @Autowired ChannelResolver channelResolver;
     private @Autowired SearchResolver v4SearchResolver;
     private @Autowired TopicResolver topicResolver;
     private @Autowired PopularTopicIndex popularTopicIndex;
-//    private @Autowired SegmentResolver segmentResolver;
-//    private @Autowired ProductResolver productResolver;
-  //  private @Autowired ScheduleIndex scheduleIndex;
     private @Autowired UserFetcher userFetcher;
 
     private @Autowired ApplicationSourcesFetcher configFetcher;
@@ -310,9 +304,4 @@ public class QueryWebModule {
             .register(CHANNEL, new ChannelAnnotation(), ImmutableSet.of(CHANNEL_SUMMARY))
             .build());
     }
-    
-   // @Bean
-   //// public ScheduleIndexDebugController scheduleIndexDebug() {
-   // new ScheduleIndexDebugController(scheduleIndex, channelResolver, configFetcher);
-   // }
 }
