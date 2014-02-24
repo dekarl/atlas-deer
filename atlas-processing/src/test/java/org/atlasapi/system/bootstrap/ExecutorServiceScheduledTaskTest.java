@@ -3,6 +3,7 @@ package org.atlasapi.system.bootstrap;
 import static org.junit.Assert.assertTrue;
 
 import java.util.concurrent.Callable;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.CyclicBarrier;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -16,6 +17,7 @@ import com.google.common.collect.ImmutableList;
 import com.metabroadcast.common.scheduling.FailedRunHandler;
 import com.metabroadcast.common.scheduling.ScheduledTask;
 import com.metabroadcast.common.scheduling.UpdateProgress;
+import com.metabroadcast.common.scheduling.ScheduledTask.TaskState;
 
 public class ExecutorServiceScheduledTaskTest {
 
@@ -55,8 +57,9 @@ public class ExecutorServiceScheduledTaskTest {
     }
 
     @Test
-    public void testFailsOnTimeout() {
+    public void testFailsOnTimeout() throws InterruptedException {
         
+        final CountDownLatch taskFinish = new CountDownLatch(1);
         final AtomicBoolean taskInterrupted = new AtomicBoolean(false);
         
         ExecutorService executor = Executors.newFixedThreadPool(1);
@@ -65,10 +68,11 @@ public class ExecutorServiceScheduledTaskTest {
                 @Override
                 public UpdateProgress call() throws Exception {
                     try {
-                        Thread.sleep(5000);
+                        Thread.sleep(300);
                     } catch (InterruptedException ie) {
                         taskInterrupted.set(true);
                     }
+                    taskFinish.countDown();
                     return UpdateProgress.START;
                 }
             }
@@ -83,15 +87,17 @@ public class ExecutorServiceScheduledTaskTest {
                     });
         
         task.run();
-        
-        assertTrue(taskInterrupted.get());
+        assertTrue("Task didn't finish", taskFinish.await(10, TimeUnit.SECONDS));
+        assertTrue("Task wasn't interrupted", taskInterrupted.get());
+        assertTrue("Task wasn't marked as failed", task.getState().equals(TaskState.FAILED));
     }
 
     @Test
-    public void testFailsAfterThreeAttemptsToSubmitJob() {
+    public void testFailsAfterThreeAttemptsToSubmitJobAndRunningTasksInterrupted() throws InterruptedException {
         
         final AtomicBoolean taskInterrupted = new AtomicBoolean(false);
         final AtomicBoolean neverRun = new AtomicBoolean(true);
+        final CountDownLatch firstTaskFinish = new CountDownLatch(1);
         
         ExecutorService executor = Executors.newFixedThreadPool(1);
         Supplier<Iterable<? extends Callable<UpdateProgress>>> taskSupplier =
@@ -99,10 +105,11 @@ public class ExecutorServiceScheduledTaskTest {
                     @Override
                     public UpdateProgress call() throws Exception {
                         try {
-                            Thread.sleep(50000);
+                            Thread.sleep(1300);
                         } catch (InterruptedException ie) {
                             taskInterrupted.set(true);
                         }
+                        firstTaskFinish.countDown();
                         return UpdateProgress.START;
                     }
                 },new Callable<UpdateProgress>() {
@@ -122,9 +129,50 @@ public class ExecutorServiceScheduledTaskTest {
                 });
         
         task.run();
+
+        assertTrue("First task didn't finish", firstTaskFinish.await(10, TimeUnit.SECONDS));
+        assertTrue("Second task ran unexpectedly", neverRun.get());
+        assertTrue("First task was not interrupted", taskInterrupted.get());
+        assertTrue("Task wasn't marked as failed", task.getState().equals(TaskState.FAILED));
+    }
+    
+    @Test
+    public void testFailsAfterThreeAttemptsToSubmitJobAndMarkedAsFailed() throws InterruptedException {
         
-        assertTrue(taskInterrupted.get());
-        assertTrue(neverRun.get());
+        final AtomicBoolean neverRun = new AtomicBoolean(true);
+        final CountDownLatch firstTaskFinish = new CountDownLatch(1);
+        
+        ExecutorService executor = Executors.newFixedThreadPool(1);
+        Supplier<Iterable<? extends Callable<UpdateProgress>>> taskSupplier =
+                supply(ImmutableList.of(new Callable<UpdateProgress>() {
+                    @Override
+                    public UpdateProgress call() throws Exception {
+                        //After three attempts but before final timeout.
+                        Thread.sleep(900);
+                        firstTaskFinish.countDown();
+                        return UpdateProgress.START;
+                    }
+                },new Callable<UpdateProgress>() {
+                    @Override
+                    public UpdateProgress call() throws Exception {
+                        neverRun.set(false);
+                        return UpdateProgress.START;
+                    }
+                }));
+        ExecutorServiceScheduledTask<UpdateProgress> task
+        = new ExecutorServiceScheduledTask<UpdateProgress>(executor, taskSupplier, 1, 250, TimeUnit.MILLISECONDS,
+                new FailedRunHandler() {
+                    @Override
+                    public void handle(ScheduledTask task, Throwable e) {
+                        assertTrue(e instanceof RuntimeException);
+                    }
+                });
+        
+        task.run();
+
+        assertTrue("First task didn't finish", firstTaskFinish.await(10, TimeUnit.SECONDS));
+        assertTrue("Second task ran unexpectedly", neverRun.get());
+        assertTrue("Task wasn't marked as failed", task.getState().equals(TaskState.FAILED));
     }
     
     private Supplier<Iterable<? extends Callable<UpdateProgress>>> supply(final Iterable<? extends Callable<UpdateProgress>> tasks) {

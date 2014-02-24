@@ -8,10 +8,14 @@ import static com.metabroadcast.common.scheduling.UpdateProgress.SUCCESS;
 import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.Callable;
+import java.util.concurrent.CancellationException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Supplier;
 import com.google.common.collect.Lists;
@@ -31,15 +35,21 @@ import com.metabroadcast.common.scheduling.UpdateProgress;
  */
 public final class ExecutorServiceScheduledTask<R extends Reducible<R>> extends ScheduledTask {
 
+    private static final String TASK_TIMEOUT_FAILED = "Task failed to finish within timeout.";
+    private static final String TASK_SUBMIT_FAILED_MSG = "Failed to submit all tasks.";
+    
     private final ListeningExecutorService executor;
     private final Supplier<? extends Iterable<? extends Callable<R>>> taskSupplier;
     private final int parellelism;
     private final long timeout;
     private final TimeUnit timeoutUnit;
     
+    private final Logger log = LoggerFactory.getLogger(getClass());  
+    
     private AtomicReference<UpdateProgress> tasksProgress;
     private AtomicReference<R> items;
-    private boolean submitting;
+    private volatile boolean submissionFailed;
+    private AtomicReference<String> msg = new AtomicReference<String>("");
 
     public ExecutorServiceScheduledTask(ExecutorService executor, Supplier<? extends Iterable<? extends Callable<R>>> taskSupplier, int parallellism,
             long timeout, TimeUnit timeoutUnit) {
@@ -64,13 +74,16 @@ public final class ExecutorServiceScheduledTask<R extends Reducible<R>> extends 
         List<ListenableFuture<R>> submitted = Lists.newArrayList();
         tasksProgress = new AtomicReference<>(START);
         items = new AtomicReference<>();
-        submitting = true;
+        submissionFailed = false;
         
+        msg.set("Submitting tasks");
         Iterator<? extends Callable<R>> tasks = taskSupplier.get().iterator();
         try {
             while(shouldContinue() && tasks.hasNext()) {
-                Callable<R> task = tasks.next();
+                final Callable<R> task = tasks.next();
                 if (!tryGetPermit(s, 3)) {
+                    msg.set("Failed to submit all tasks");
+                    submissionFailed = true;
                     break;
                 };
                 ListenableFuture<R> result = executor.submit(task);
@@ -86,16 +99,32 @@ public final class ExecutorServiceScheduledTask<R extends Reducible<R>> extends 
                     @Override
                     public void onFailure(Throwable t) {
                         add(tasksProgress, FAILURE);
+                        if (t instanceof CancellationException) {
+                            log.debug("Task " + task.toString() + " cancelled");
+                        } else {
+                            log.warn("Task " + task.toString() + " failed", t);
+                        }
                         s.release();
                     }
                 });
             }
-            submitting = false;
             
+            if (submissionFailed) {
+                msg.set(TASK_SUBMIT_FAILED_MSG);
+                if (!waitForFinish(s)) {
+                    cancel(submitted);
+                    msg.set(TASK_SUBMIT_FAILED_MSG + " " + TASK_TIMEOUT_FAILED);
+                }
+                throw new RuntimeException(TASK_SUBMIT_FAILED_MSG);
+            }
+            
+            msg.set(shouldContinue() ? "Waiting for finish" : "Aborted, waiting for finish");
             if (!waitForFinish(s)) {
                 cancel(submitted);
-                throw new RuntimeException("Task failed to finish within timeout");
+                msg.set(TASK_TIMEOUT_FAILED);
+                throw new RuntimeException(TASK_TIMEOUT_FAILED);
             }
+            
         } catch (InterruptedException ie) {
             cancel(submitted);
             throw new RuntimeException(ie);
@@ -140,17 +169,7 @@ public final class ExecutorServiceScheduledTask<R extends Reducible<R>> extends 
     
     @Override
     public String getCurrentStatusMessage() {
-        String msg = "";
-        if (isRunning()) {
-            if (!shouldContinue()) {
-                msg = "Aborting.";
-            } else if (submitting) {
-                msg = "Submitting tasks.";
-            } else {
-                msg = "Waiting for finish.";
-            }
-        }
-        return String.format("%s%s%s", msg, progress(" Tasks: ", tasksProgress), progress(" Items: ", items));
+        return String.format("%s%s%s", msg.get(), progress(" Tasks: ", tasksProgress), progress(" Items: ", items));
     }
 
     private <T extends Reducible<T>> String progress(String prefix, AtomicReference<T> reducible) {
