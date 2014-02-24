@@ -3,11 +3,16 @@ package org.atlasapi.system.legacy;
 import org.atlasapi.AtlasPersistenceModule;
 import org.atlasapi.content.ContentResolver;
 import org.atlasapi.content.NullContentResolver;
+import org.atlasapi.persistence.content.DefaultEquivalentContentResolver;
+import org.atlasapi.persistence.content.EquivalentContentResolver;
 import org.atlasapi.persistence.content.KnownTypeContentResolver;
+import org.atlasapi.persistence.content.LookupResolvingContentResolver;
 import org.atlasapi.persistence.content.mongo.MongoContentLister;
 import org.atlasapi.persistence.content.mongo.MongoContentResolver;
 import org.atlasapi.persistence.content.mongo.MongoTopicStore;
+import org.atlasapi.persistence.content.schedule.mongo.MongoScheduleStore;
 import org.atlasapi.persistence.lookup.mongo.MongoLookupEntryStore;
+import org.atlasapi.schedule.ScheduleResolver;
 import org.atlasapi.topic.TopicResolver;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -29,8 +34,8 @@ public class LegacyPersistenceModule {
         if (mongoDb == null) {
             return NullContentResolver.get();
         }
-        KnownTypeContentResolver contentResolver = new MongoContentResolver(mongoDb, legacyeEquiavlenceStore());
-        return new LegacyContentResolver(legacyeEquiavlenceStore(), contentResolver);
+        KnownTypeContentResolver contentResolver = new MongoContentResolver(mongoDb, legacyEquivalenceStore());
+        return new LegacyContentResolver(legacyEquivalenceStore(), contentResolver);
     }
     
     @Bean @Qualifier("legacy")
@@ -55,12 +60,21 @@ public class LegacyPersistenceModule {
     }
     
     @Bean @Qualifier("legacy")
-    public MongoLookupEntryStore legacyeEquiavlenceStore() {
+    public MongoLookupEntryStore legacyEquivalenceStore() {
         return new MongoLookupEntryStore(persistence.databasedMongo().collection("lookup"));
+    }
+    
+    @Bean @Qualifier("legacy")
+    public ScheduleResolver legacyScheduleStore() {
+        DatabasedMongo db = persistence.databasedMongo();
+        KnownTypeContentResolver contentResolver = new MongoContentResolver(db, legacyEquivalenceStore());
+        LookupResolvingContentResolver resolver = new LookupResolvingContentResolver(contentResolver, legacyEquivalenceStore());
+        EquivalentContentResolver equivalentContentResolver = new DefaultEquivalentContentResolver(contentResolver, legacyEquivalenceStore());
+        return new LegacyScheduleResolver(new MongoScheduleStore(db, persistence.channelStore(), resolver, equivalentContentResolver));
     }
 
     @Bean @Qualifier("legacy")
     public LegacyEquivalenceLister legacyEquivalenceLister() {
-        return new LegacyEquivalenceLister(legacyeEquiavlenceStore());
+        return new LegacyEquivalenceLister(legacyEquivalenceStore());
     }
 }

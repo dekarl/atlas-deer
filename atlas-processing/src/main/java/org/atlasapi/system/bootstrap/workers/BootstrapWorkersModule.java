@@ -62,7 +62,7 @@ public class BootstrapWorkersModule {
     @Bean
     @Lazy(true)
     DefaultMessageListenerContainer lookupEntryReadWriter() {
-        LookupEntryStore legacyResolver = legacy.legacyeEquiavlenceStore();
+        LookupEntryStore legacyResolver = legacy.legacyEquivalenceStore();
         EquivalenceRecordStore writer = persistence.equivalenceRecordStore();
         LookupEntryReadWriteWorker worker = new LookupEntryReadWriteWorker(legacyResolver, writer);
         return bootstrapQueueFactory().makeVirtualTopicConsumer(worker, "Bootstrap", CHANGES_EQUIV_PRODUCER, consumers, maxConsumers);
