@@ -25,6 +25,11 @@ public class Clip extends Item {
 		return clipOf;
 	}
 	
+	@Override
+	public ClipRef toRef() {
+	    return new ClipRef(getId(), getPublisher(), SortKey.keyFrom(this), getThisOrChildLastUpdated());
+	}
+	
 	public Clip() {}
 
     @Override

@@ -89,6 +89,11 @@ public class Episode extends Item {
 	}
 	
 	@Override
+	public EpisodeRef toRef() {
+	    return new EpisodeRef(getId(), getPublisher(), SortKey.keyFrom(this), getThisOrChildLastUpdated());
+	}
+	
+	@Override
 	public Episode copy() {
 	    return copyTo(this, new Episode());
 	}

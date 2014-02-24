@@ -41,7 +41,11 @@ public class Song extends Item {
     public Duration getDuration() {
         return duration != null ? Duration.standardSeconds(duration) : null;
     }
-	
+    
+    @Override
+    public SongRef toRef() {
+        return new SongRef(getId(), getPublisher(), SortKey.keyFrom(this), getThisOrChildLastUpdated());
+    }
 	
 	@Override
 	public Song copy() {

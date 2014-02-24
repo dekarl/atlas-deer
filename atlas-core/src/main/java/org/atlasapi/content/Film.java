@@ -49,6 +49,11 @@ public class Film extends Item {
     public void setReleaseDates(Iterable<ReleaseDate> releaseDates) {
         this.releaseDates = ImmutableSet.copyOf(releaseDates);
     }
+    
+    @Override
+    public FilmRef toRef() {
+        return new FilmRef(getId(), getPublisher(), SortKey.keyFrom(this), getThisOrChildLastUpdated());
+    }
 
     @Override
 	public Film copy() {

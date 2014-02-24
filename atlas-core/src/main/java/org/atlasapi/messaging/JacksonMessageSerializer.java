@@ -3,8 +3,12 @@ package org.atlasapi.messaging;
 import java.io.IOException;
 
 import org.atlasapi.content.BrandRef;
+import org.atlasapi.content.ClipRef;
+import org.atlasapi.content.EpisodeRef;
+import org.atlasapi.content.FilmRef;
 import org.atlasapi.content.ItemRef;
 import org.atlasapi.content.SeriesRef;
+import org.atlasapi.content.SongRef;
 import org.atlasapi.entity.Id;
 import org.atlasapi.equivalence.EquivalenceGraph;
 import org.atlasapi.equivalence.EquivalenceGraphUpdateMessage;
@@ -61,6 +65,10 @@ public class JacksonMessageSerializer implements MessageSerializer {
             context.setMixInAnnotations(BrandRef.class, ResourceRefConfiguration.class);
             context.setMixInAnnotations(TopicRef.class, ResourceRefConfiguration.class);
             context.setMixInAnnotations(ItemRef.class, ItemRefConfiguration.class);
+            context.setMixInAnnotations(EpisodeRef.class, ItemRefConfiguration.class);
+            context.setMixInAnnotations(SongRef.class, ItemRefConfiguration.class);
+            context.setMixInAnnotations(FilmRef.class, ItemRefConfiguration.class);
+            context.setMixInAnnotations(ClipRef.class, ItemRefConfiguration.class);
             context.setMixInAnnotations(SeriesRef.class, SeriesRefConfiguration.class);
             context.setMixInAnnotations(Timestamp.class, TimestampConfiguration.class);
             SimpleDeserializers desers = new SimpleDeserializers();
