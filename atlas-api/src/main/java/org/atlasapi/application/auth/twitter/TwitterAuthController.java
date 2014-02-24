@@ -76,7 +76,6 @@ public class TwitterAuthController {
         this.oauthResultResultWriter = oauthResultResultWriter;
     }
 
-    // TODO restrict callback URLs?
     @RequestMapping(value = { "/4.0/auth/twitter/login.*" }, method = RequestMethod.GET)
     public void getTwitterLogin(HttpServletRequest request,
             HttpServletResponse response,
@@ -90,8 +89,10 @@ public class TwitterAuthController {
             }
             RequestToken requestToken = twitter.getOAuthRequestToken(callbackUrl);
             OAuthRequest oauthRequest = OAuthRequest.builder()
+                    .withUuid(OAuthRequest.generateUuid())
                     .withNamespace(UserNamespace.TWITTER)
                     .withAuthUrl(requestToken.getAuthenticationURL())
+                    .withCallbackUrl(callbackUrl)
                     .withToken(requestToken.getToken())
                     .withSecret(requestToken.getTokenSecret())
                     .build();

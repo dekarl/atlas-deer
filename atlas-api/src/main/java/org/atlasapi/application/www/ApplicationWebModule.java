@@ -34,6 +34,9 @@ import org.atlasapi.application.auth.UserFetcher;
 import org.atlasapi.application.auth.github.GitHubAccessTokenChecker;
 import org.atlasapi.application.auth.github.GitHubAuthController;
 import org.atlasapi.application.auth.github.GitHubAuthClient;
+import org.atlasapi.application.auth.google.GoogleAccessTokenChecker;
+import org.atlasapi.application.auth.google.GoogleAuthClient;
+import org.atlasapi.application.auth.google.GoogleAuthController;
 import org.atlasapi.application.auth.twitter.TwitterAuthController;
 import org.atlasapi.application.auth.www.AuthController;
 import org.atlasapi.application.model.deserialize.IdDeserializer;
@@ -140,6 +143,9 @@ public class ApplicationWebModule {
     
     @Value("${github.auth.consumerKey}") private String githubConsumerKey;
     @Value("${github.auth.consumerSecret}") private String githubConsumerSecret;
+    
+    @Value("${google.auth.consumerKey}") private String googleConsumerKey;
+    @Value("${google.auth.consumerSecret}") private String googleConsumerSecret;
     
     @Value("${youtube.clientId}") private String youTubeClientId;
     @Value("${youtube.clientSecret}") private String youTubeClientSecret;
@@ -307,7 +313,7 @@ public class ApplicationWebModule {
         Map<UserNamespace, AccessTokenChecker> checkers = Maps.newHashMap();
         checkers.put(UserNamespace.TWITTER, new CachingAccessTokenChecker(twitterAccessTokenChecker()));
         checkers.put(UserNamespace.GITHUB, new CachingAccessTokenChecker(gitHubAccessTokenChecker()));
-        
+        checkers.put(UserNamespace.GOOGLE, new CachingAccessTokenChecker(googleAccessTokenChecker()));
         return new OAuthTokenUserFetcher(appPersistence.credentialsStore(), 
                 checkers,
                 appPersistence.userStore());
@@ -340,12 +346,16 @@ public class ApplicationWebModule {
                     )),
                 idCodec, contextParser);
     }
+    
+    private NewUserSupplier newUserSupplier() {
+        return new NewUserSupplier(new MongoSequentialIdGenerator(persistence.databasedMongo(), "users"));
+    }
 
     public @Bean TwitterAuthController twitterAuthController() {
         return new TwitterAuthController(new TwitterApplication(twitterConsumerKey, twitterConsumerSecret), 
                 new AccessTokenProcessor(twitterAccessTokenChecker(), appPersistence.credentialsStore()),
                 appPersistence.userStore(), 
-                new NewUserSupplier(new MongoSequentialIdGenerator(persistence.databasedMongo(), "users")),
+                newUserSupplier(),
                 appPersistence.tokenStore(),
                 new OAuthRequestQueryResultWriter(new OAuthRequestListWriter()),
                 new OAuthResultQueryResultWriter(new OAuthResultListWriter())
@@ -357,13 +367,23 @@ public class ApplicationWebModule {
                 gitHubClient(),
                 new AccessTokenProcessor(gitHubAccessTokenChecker(), appPersistence.credentialsStore()),
                 appPersistence.userStore(), 
-                new NewUserSupplier(new MongoSequentialIdGenerator(persistence.databasedMongo(), "users")),
+                newUserSupplier(),
                 appPersistence.tokenStore(),
                 new OAuthRequestQueryResultWriter(new OAuthRequestListWriter()),
                 new OAuthResultQueryResultWriter(new OAuthResultListWriter())
                 );
     }
-    
+
+    public @Bean GoogleAuthController googleAuthController() {
+        return new GoogleAuthController(googleClient(),
+                appPersistence.userStore(), 
+                newUserSupplier(),
+                new OAuthRequestQueryResultWriter(new OAuthRequestListWriter()),
+                new OAuthResultQueryResultWriter(new OAuthResultListWriter()),
+                new AccessTokenProcessor(googleAccessTokenChecker(), appPersistence.credentialsStore()), 
+                appPersistence.tokenStore());
+    }
+
     public @Bean FixedAppIdUserRefBuilder userRefBuilder() {
         return new FixedAppIdUserRefBuilder(APP_NAME);
     }
@@ -372,12 +392,20 @@ public class ApplicationWebModule {
         return new GitHubAuthClient(githubConsumerKey, githubConsumerSecret);
     }
     
+    private GoogleAuthClient googleClient() {
+        return new GoogleAuthClient(googleConsumerKey, googleConsumerSecret);
+    }
+    
     public @Bean AccessTokenChecker twitterAccessTokenChecker() {
         return new TwitterOAuth1AccessTokenChecker(userRefBuilder() , twitterConsumerKey, twitterConsumerSecret);
     }
     
     public @Bean AccessTokenChecker gitHubAccessTokenChecker() {
         return new GitHubAccessTokenChecker(userRefBuilder() , gitHubClient());
+    }
+    
+    public @Bean AccessTokenChecker googleAccessTokenChecker() {
+        return new GoogleAccessTokenChecker(userRefBuilder(), googleClient());
     }
     
     public @Bean VideoSourceController linkedServiceController() {
