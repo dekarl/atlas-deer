@@ -16,7 +16,6 @@ import org.atlasapi.content.Broadcast;
 import org.atlasapi.content.EsContentIndex;
 import org.atlasapi.content.Item;
 import org.atlasapi.content.TopicRef;
-import org.atlasapi.content.Version;
 import org.atlasapi.entity.Id;
 import org.atlasapi.entity.util.Resolved;
 import org.atlasapi.media.entity.Publisher;
@@ -62,34 +61,30 @@ public class EsPopularTopicsIndexTest {
     @Test
     public void testPopularTopics() throws Exception {
         Broadcast broadcast1 = new Broadcast("MB", new DateTime(), new DateTime().plusHours(1));
-        Version version1 = new Version();
         Broadcast broadcast2 = new Broadcast("MB", new DateTime().plusHours(2), new DateTime().plusHours(3));
-        Version version2 = new Version();
-        version1.addBroadcast(broadcast1);
-        version2.addBroadcast(broadcast2);
         
         TopicRef topic1 = new TopicRef(Id.valueOf(1), 1.0f, Boolean.TRUE, TopicRef.Relationship.ABOUT);
         TopicRef topic2 = new TopicRef(Id.valueOf(2), 1.0f, Boolean.TRUE, TopicRef.Relationship.ABOUT);
         
         Item item1 = new Item("uri1", "curie1", Publisher.METABROADCAST);
-        item1.addVersion(version1);
+        item1.addBroadcast(broadcast1);
         item1.setId(Id.valueOf(1));
         item1.addTopicRef(topic1);
         Item item2 = new Item("uri2", "curie2", Publisher.METABROADCAST);
-        item2.addVersion(version1);
+        item2.addBroadcast(broadcast1);
         item2.setId(Id.valueOf(2));
         item2.addTopicRef(topic1);
         Item item3 = new Item("uri3", "curie3", Publisher.METABROADCAST);
-        item3.addVersion(version1);
+        item3.addBroadcast(broadcast1);
         item3.setId(Id.valueOf(3));
         item3.addTopicRef(topic1);
         item3.addTopicRef(topic2);
         Item item4 = new Item("uri4", "curie4", Publisher.METABROADCAST);
-        item4.addVersion(version2);
+        item4.addBroadcast(broadcast2);
         item4.setId(Id.valueOf(4));
         item4.addTopicRef(topic2);
         Item item5 = new Item("uri5", "curie5", Publisher.METABROADCAST);
-        item5.addVersion(version2);
+        item5.addBroadcast(broadcast2);
         item5.setId(Id.valueOf(5));
         item5.addTopicRef(topic2);
         

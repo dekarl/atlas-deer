@@ -38,6 +38,8 @@ public class BroadcastSerializerTest {
         broadcast.setLive(true);
         broadcast.setNewSeries(false);
         broadcast.setPremiere(true);
+        broadcast.set3d(true);
+        broadcast.setVersionId("version");
         
         ContentProtos.Broadcast serialized = serializer.serialize(broadcast).build();
         
@@ -86,6 +88,8 @@ public class BroadcastSerializerTest {
         assertThat(actual.getLive(), is(expected.getLive()));
         assertThat(actual.getNewSeries(), is(expected.getNewSeries()));
         assertThat(actual.getPremiere(), is(expected.getPremiere()));
+        assertThat(actual.is3d(), is(expected.is3d()));
+        assertThat(actual.getVersionId(), is(expected.getVersionId()));
     }
 
 }

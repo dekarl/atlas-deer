@@ -67,11 +67,9 @@ public final class EsContentIndexingTest {
     public void testScheduleQueries() throws Exception {
         DateTime broadcastStart = new DateTime(1980, 10, 10, 10, 10, 10, 10, DateTimeZones.UTC);
         Broadcast broadcast = new Broadcast("MB", broadcastStart, broadcastStart.plusHours(1));
-        Version version = new Version();
         Item item = new Item("uri", "curie", Publisher.METABROADCAST);
         item.setId(Id.valueOf(1));
-        version.addBroadcast(broadcast);
-        item.addVersion(version);
+        item.addBroadcast(broadcast);
         
         contentIndexer.index(item);
         
@@ -108,26 +106,23 @@ public final class EsContentIndexingTest {
     public void testTopicFacets() throws Exception {
         DateTime now = new DateTime(DateTimeZones.UTC);
         Broadcast broadcast1 = new Broadcast("MB", now, now.plusHours(1));
-        Version version1 = new Version();
+
         Broadcast broadcast2 = new Broadcast("MB", now.plusHours(2), now.plusHours(3));
-        Version version2 = new Version();
-        version1.addBroadcast(broadcast1);
-        version2.addBroadcast(broadcast2);
-        //
+
         TopicRef topic1 = new TopicRef(Id.valueOf(1), 1.0f, Boolean.TRUE, TopicRef.Relationship.ABOUT);
         TopicRef topic2 = new TopicRef(Id.valueOf(2), 1.0f, Boolean.TRUE, TopicRef.Relationship.ABOUT);
-        //
+
         Item item1 = new Item("uri1", "curie1", Publisher.METABROADCAST);
-        item1.addVersion(version1);
+        item1.addBroadcast(broadcast1);
         item1.setId(Id.valueOf(1));
         item1.addTopicRef(topic1);
         item1.addTopicRef(topic2);
         Item item2 = new Item("uri2", "curie2", Publisher.METABROADCAST);
-        item2.addVersion(version1);
+        item2.addBroadcast(broadcast1);
         item2.setId(Id.valueOf(2));
         item2.addTopicRef(topic1);
         Item item3 = new Item("uri3", "curie3", Publisher.METABROADCAST);
-        item3.addVersion(version2);
+        item3.addBroadcast(broadcast2);
         item3.setId(Id.valueOf(3));
         item3.addTopicRef(topic2);
         

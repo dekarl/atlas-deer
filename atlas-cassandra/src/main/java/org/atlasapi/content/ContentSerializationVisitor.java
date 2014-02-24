@@ -1,17 +1,26 @@
 package org.atlasapi.content;
 
+import java.util.List;
+import java.util.Set;
+
 import org.atlasapi.entity.Alias;
 import org.atlasapi.entity.ProtoBufUtils;
 import org.atlasapi.equivalence.EquivalenceRef;
+import org.atlasapi.segment.SegmentEvent;
 import org.atlasapi.serialization.protobuf.CommonProtos;
 import org.atlasapi.serialization.protobuf.ContentProtos;
 import org.atlasapi.serialization.protobuf.ContentProtos.Content.Builder;
 
+import com.google.common.base.Function;
+import com.google.common.collect.Iterables;
 import com.metabroadcast.common.intl.Countries;
 
 final class ContentSerializationVisitor implements ContentVisitor<Builder> {
     
-    private final VersionsSerializer versionsSerializer = new VersionsSerializer();
+    private final BroadcastSerializer broadcastSerializer = new BroadcastSerializer();
+    private final EncodingSerializer encodingSerializer = new EncodingSerializer();
+    private final SegmentEventSerializer segmentEventSerializer = new SegmentEventSerializer();
+    private final RestrictionSerializer restrictionSerializer = new RestrictionSerializer();
     private final TopicRefSerializer topicRefSerializer = new TopicRefSerializer();
     private final RelatedLinkSerializer relatedLinkSerializer = new RelatedLinkSerializer();
     private final KeyPhraseSerializer keyPhraseSerializer = new KeyPhraseSerializer();
@@ -161,8 +170,47 @@ final class ContentSerializationVisitor implements ContentVisitor<Builder> {
         if (item.getIsLongForm()) {
             builder.setLongform(item.getIsLongForm());
         }
-        builder.mergeFrom(versionsSerializer.serialize(item.getVersions()));
+        builder.addAllBroadcasts(serializeBroadcasts(item.getBroadcasts()));
+        builder.addAllEncodings(serializeEncoding(item.getManifestedAs()));
+        builder.addAllSegmentEvents(serializeSegmentEvents(item.getSegmentEvents()));
+        builder.addAllRestrictions(serializeRestrictions(item.getRestrictions()));
         return builder;
+    }
+
+    private Iterable<ContentProtos.SegmentEvent> serializeSegmentEvents(List<SegmentEvent> segmentEvents) {
+        return Iterables.transform(segmentEvents, new Function<SegmentEvent, ContentProtos.SegmentEvent>() {
+            @Override
+            public ContentProtos.SegmentEvent apply(SegmentEvent segmentEvent) {
+                return segmentEventSerializer.serialize(segmentEvent).build();
+            }
+        });
+    }
+    
+    private Iterable<ContentProtos.Broadcast> serializeBroadcasts(Set<Broadcast> broadcasts) {
+      return Iterables.transform(broadcasts, new Function<Broadcast, ContentProtos.Broadcast>() {
+          @Override
+          public ContentProtos.Broadcast apply(Broadcast broadcast) {
+              return broadcastSerializer.serialize(broadcast).build();
+          }
+      });
+    }
+    
+    private Iterable<ContentProtos.Encoding> serializeEncoding(Set<Encoding> encodings) {
+      return Iterables.transform(encodings, new Function<Encoding, ContentProtos.Encoding>() {
+          @Override
+          public ContentProtos.Encoding apply(Encoding encoding) {
+              return encodingSerializer.serialize(encoding).build();
+          }
+      });
+    }
+
+    private Iterable<ContentProtos.Restriction> serializeRestrictions(Set<Restriction> restrictions) {
+        return Iterables.transform(restrictions, new Function<Restriction, ContentProtos.Restriction>() {
+            @Override
+            public ContentProtos.Restriction apply(Restriction restriction) {
+                return restrictionSerializer.serialize(restriction).build();
+            }
+        });
     }
 
     

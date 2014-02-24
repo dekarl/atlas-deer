@@ -1,9 +1,9 @@
 package org.atlasapi.content;
 
 import java.util.Comparator;
+import java.util.Iterator;
 import java.util.Map;
 
-import org.atlasapi.content.Item;
 import org.joda.time.DateTime;
 
 import com.google.common.base.Strings;
@@ -37,15 +37,15 @@ public enum SortKey {
     BROADCAST("75") {
         @Override
         protected String generateFrom(Item item) {
-            DateTime firstBroadcast = null;
-            for ( Version version : item.getVersions()) {
-                for (Broadcast broadcast : version.getBroadcasts()) {
-                    if(firstBroadcast == null || broadcast.getTransmissionTime().isBefore(firstBroadcast)) {
-                        firstBroadcast = broadcast.getTransmissionTime();
+            Iterator<Broadcast> broadcasts = item.getBroadcasts().iterator();
+            if (broadcasts.hasNext()) {
+                DateTime firstBroadcast = broadcasts.next().getTransmissionTime();
+                while (broadcasts.hasNext()) {
+                    DateTime transmissionTime = broadcasts.next().getTransmissionTime();
+                    if (transmissionTime.isBefore(firstBroadcast)) {
+                        firstBroadcast = transmissionTime;
                     }
                 }
-            }
-            if(firstBroadcast != null) {
                 return BROADCAST.append(String.format("%019d",firstBroadcast.getMillis()));
             }
             return null;

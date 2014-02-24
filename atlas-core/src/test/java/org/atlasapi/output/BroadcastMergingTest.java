@@ -9,7 +9,6 @@ import org.atlasapi.application.SourceReadEntry;
 import org.atlasapi.application.SourceStatus;
 import org.atlasapi.content.Broadcast;
 import org.atlasapi.content.Item;
-import org.atlasapi.content.Version;
 import org.atlasapi.entity.Alias;
 import org.atlasapi.media.entity.Publisher;
 import org.atlasapi.output.OutputContentMerger;
@@ -34,23 +33,19 @@ public class BroadcastMergingTest {
         chosenItem.setId(1L);
         chosenItem.setPublisher(Publisher.BBC);
         chosenItem.setCanonicalUri("chosenItem");
-        Version emptyVersion = new Version();
-        chosenItem.addVersion(emptyVersion);
 
         Item notChosenItem = new Item();
         notChosenItem.setId(2L);
         notChosenItem.setPublisher(Publisher.FACEBOOK);
         notChosenItem.setCanonicalUri("notChosenItem");
-        Version version = new Version();
-        version.addBroadcast(new Broadcast("www.bbc.co.uk/services/bbctwo", new DateTime(2012,1,1,0,0,0,UTC), new DateTime(2012,1,1,0,0,0,UTC)));
-        notChosenItem.addVersion(version);
+        notChosenItem.addBroadcast(new Broadcast("www.bbc.co.uk/services/bbctwo", new DateTime(2012,1,1,0,0,0,UTC), new DateTime(2012,1,1,0,0,0,UTC)));
         
         chosenItem.addEquivalentTo(notChosenItem);
         notChosenItem.addEquivalentTo(chosenItem);
         
         executor.merge(sources, ImmutableList.of(chosenItem, notChosenItem));
         
-        assertTrue(emptyVersion.getBroadcasts().isEmpty());
+        assertTrue(notChosenItem.getBroadcasts().isEmpty());
     }
     
     @Test
@@ -59,27 +54,23 @@ public class BroadcastMergingTest {
         chosenItem.setId(1L);
         chosenItem.setPublisher(Publisher.BBC);
         chosenItem.setCanonicalUri("chosenItem");
-        Version chosenVersion = new Version();
-        chosenVersion.addBroadcast(new Broadcast("www.bbc.co.uk/services/bbctwo", new DateTime(2012,1,1,0,0,0,UTC), new DateTime(2012,1,1,0,0,0,UTC)));
-        chosenItem.addVersion(chosenVersion);
+        chosenItem.addBroadcast(new Broadcast("www.bbc.co.uk/services/bbctwo", new DateTime(2012,1,1,0,0,0,UTC), new DateTime(2012,1,1,0,0,0,UTC)));
 
         Item notChosenItem = new Item();
         notChosenItem.setId(2L);
         notChosenItem.setPublisher(Publisher.FACEBOOK);
         notChosenItem.setCanonicalUri("notChosenItem");
-        Version version = new Version();
         // different broadcast channel
-        version.addBroadcast(new Broadcast("www.bbc.co.uk/services/bbcone", new DateTime(2012,1,1,0,0,0,UTC), new DateTime(2012,1,1,0,0,0,UTC)));
+        notChosenItem.addBroadcast(new Broadcast("www.bbc.co.uk/services/bbcone", new DateTime(2012,1,1,0,0,0,UTC), new DateTime(2012,1,1,0,0,0,UTC)));
         // different start time
-        version.addBroadcast(new Broadcast("www.bbc.co.uk/services/bbctwo", new DateTime(2012,1,4,0,0,0,UTC), new DateTime(2012,1,4,0,0,0,UTC)));
-        notChosenItem.addVersion(version);
+        notChosenItem.addBroadcast(new Broadcast("www.bbc.co.uk/services/bbctwo", new DateTime(2012,1,4,0,0,0,UTC), new DateTime(2012,1,4,0,0,0,UTC)));
         
         chosenItem.addEquivalentTo(notChosenItem);
         notChosenItem.addEquivalentTo(chosenItem);
         
         executor.merge(sources, ImmutableList.of(chosenItem, notChosenItem));
         
-        assertTrue(chosenVersion.getBroadcasts().size() == 1);
+        assertTrue(chosenItem.getBroadcasts().size() == 1);
     }
     
     @Test
@@ -88,19 +79,16 @@ public class BroadcastMergingTest {
         chosenItem.setId(1L);
         chosenItem.setPublisher(Publisher.BBC);
         chosenItem.setCanonicalUri("chosenItem");
-        Version chosenVersion = new Version();
         Broadcast chosenBroadcast = new Broadcast("www.bbc.co.uk/services/bbctwo", new DateTime(2012,1,1,0,0,0,UTC), new DateTime(2012,1,1,0,0,0,UTC));
         chosenBroadcast.addAliasUrl("chosenBroadcast");
         chosenBroadcast.addAlias(new Alias("chosenNamspace", "chosenValue"));
         chosenBroadcast.setSubtitled(true);
-        chosenVersion.addBroadcast(chosenBroadcast);
-        chosenItem.addVersion(chosenVersion);
+        chosenItem.addBroadcast(chosenBroadcast);
 
         Item notChosenItem = new Item();
         notChosenItem.setId(2L);
         notChosenItem.setCanonicalUri("notChosenItem");
         notChosenItem.setPublisher(Publisher.FACEBOOK);
-        Version version = new Version();
         Broadcast broadcast = new Broadcast("www.bbc.co.uk/services/bbctwo", new DateTime(2012,1,1,0,0,0,UTC), new DateTime(2012,1,1,0,0,0,UTC));
         broadcast.addAliasUrl("non-chosen alias");
         broadcast.addAlias(new Alias("notChosenNamespace", "notChosenValue"));
@@ -108,8 +96,7 @@ public class BroadcastMergingTest {
         broadcast.setHighDefinition(false);
         broadcast.setSurround(false);
         broadcast.setSubtitled(false);
-        version.addBroadcast(broadcast);
-        notChosenItem.addVersion(version);
+        notChosenItem.addBroadcast(broadcast);
         
         chosenItem.addEquivalentTo(notChosenItem);
         notChosenItem.addEquivalentTo(chosenItem);
@@ -119,7 +106,7 @@ public class BroadcastMergingTest {
         // ensure that the broadcast matched, 
         // and the fields on the non-chosen broadcast 
         // are merged only when the original broadcast's fields are null
-        Broadcast mergedBroadcast = Iterables.getOnlyElement(chosenVersion.getBroadcasts());
+        Broadcast mergedBroadcast = Iterables.getOnlyElement(chosenItem.getBroadcasts());
         assertTrue(mergedBroadcast.getAudioDescribed());
         assertFalse(mergedBroadcast.getHighDefinition());
         assertFalse(mergedBroadcast.getSurround());
@@ -133,33 +120,28 @@ public class BroadcastMergingTest {
         chosenItem.setId(1L);
         chosenItem.setCanonicalUri("chosenItem");
         chosenItem.setPublisher(Publisher.BBC);
-        Version chosenVersion = new Version();
         Broadcast chosenBroadcast = new Broadcast("www.bbc.co.uk/services/bbctwo", new DateTime(2012,1,1,0,0,0,UTC), new DateTime(2012,1,1,0,0,0,UTC));
         chosenBroadcast.addAliasUrl("chosenBroadcast");
         chosenBroadcast.addAlias(new Alias("chosenNamspace", "chosenValue"));
         chosenBroadcast.setSubtitled(true);
-        chosenVersion.addBroadcast(chosenBroadcast);
-        chosenItem.addVersion(chosenVersion);
+        chosenItem.addBroadcast(chosenBroadcast);
 
         Item notChosenBbcItem = new Item();
         notChosenBbcItem.setId(2L);
         notChosenBbcItem.setCanonicalUri("notChosenItem");
         notChosenBbcItem.setPublisher(Publisher.BBC);
-        Version version = new Version();
         Broadcast broadcast = new Broadcast("www.bbc.co.uk/services/bbctwo", new DateTime(2012,1,1,0,0,0,UTC), new DateTime(2012,1,1,0,0,0,UTC));
         broadcast.addAliasUrl("non-chosen alias");
         broadcast.addAlias(new Alias("notChosenNamespace", "notChosenValue"));
         broadcast.setAudioDescribed(true);
         broadcast.setHighDefinition(true);
         broadcast.setSubtitled(false);
-        version.addBroadcast(broadcast);
-        notChosenBbcItem.addVersion(version);
+        notChosenBbcItem.addBroadcast(broadcast);
         
         Item notChosenFbItem = new Item();
         notChosenFbItem.setId(2L);
         notChosenFbItem.setCanonicalUri("notChosenItem");
         notChosenFbItem.setPublisher(Publisher.FACEBOOK);
-        version = new Version();
         broadcast = new Broadcast("www.bbc.co.uk/services/bbctwo", new DateTime(2012,1,1,0,0,0,UTC), new DateTime(2012,1,1,0,0,0,UTC));
         broadcast.addAliasUrl("non-chosen alias");
         broadcast.addAlias(new Alias("notChosenFBNamespace", "notChosenFBValue"));
@@ -167,8 +149,7 @@ public class BroadcastMergingTest {
         broadcast.setHighDefinition(false);
         broadcast.setSurround(false);
         broadcast.setSubtitled(false);
-        version.addBroadcast(broadcast);
-        notChosenFbItem.addVersion(version);
+        notChosenFbItem.addBroadcast(broadcast);
         
         chosenItem.addEquivalentTo(notChosenBbcItem);
         chosenItem.addEquivalentTo(notChosenFbItem);
@@ -183,7 +164,7 @@ public class BroadcastMergingTest {
         // and the fields on the non-chosen broadcast 
         // are merged only when the original broadcast's fields are null
         // and that the most precedent broadcast's values are used
-        Broadcast mergedBroadcast = Iterables.getOnlyElement(chosenVersion.getBroadcasts());
+        Broadcast mergedBroadcast = Iterables.getOnlyElement(chosenItem.getBroadcasts());
         assertTrue(mergedBroadcast.getAudioDescribed());
         assertTrue(mergedBroadcast.getHighDefinition());
         assertFalse(mergedBroadcast.getSurround());

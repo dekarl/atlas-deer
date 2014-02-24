@@ -12,7 +12,6 @@ import org.atlasapi.content.Content;
 import org.atlasapi.content.ContentStore;
 import org.atlasapi.content.Item;
 import org.atlasapi.content.ItemAndBroadcast;
-import org.atlasapi.content.Version;
 import org.atlasapi.entity.Id;
 import org.atlasapi.entity.util.Resolved;
 import org.atlasapi.entity.util.WriteException;
@@ -103,12 +102,10 @@ public abstract class AbstractScheduleStore implements ScheduleStore {
 
             private Item removeAllBroadcastsBut(Item item, Broadcast broadcast) {
                 Item copy = item.copy();
-                for (Version version : copy.getVersions()) {
-                    if (version.getBroadcasts().contains(broadcast)) {
-                        version.setBroadcasts(ImmutableSet.of(broadcast));
-                    } else {
-                        version.setBroadcasts(ImmutableSet.<Broadcast>of());
-                    }
+                if (copy.getBroadcasts().contains(broadcast)) {
+                    copy.setBroadcasts(ImmutableSet.of(broadcast));
+                } else {
+                    copy.setBroadcasts(ImmutableSet.<Broadcast>of());
                 }
                 return copy;
             }
@@ -162,13 +159,11 @@ public abstract class AbstractScheduleStore implements ScheduleStore {
     }
 
     private Item updateBroadcast(String broadcastId, Item resolved) {
-        for (Version version : resolved.getVersions()) {
-            for (Broadcast broadcast : version.getBroadcasts()) {
-                if (broadcastId.equals(broadcast.getSourceId())) {
-                    //This will be more fun with an immutable model.
-                    broadcast.setIsActivelyPublished(false);
-                    return resolved;
-                }
+        for (Broadcast broadcast : resolved.getBroadcasts()) {
+            if (broadcastId.equals(broadcast.getSourceId())) {
+                //This will be more fun with an immutable model.
+                broadcast.setIsActivelyPublished(false);
+                return resolved;
             }
         }
         return resolved;

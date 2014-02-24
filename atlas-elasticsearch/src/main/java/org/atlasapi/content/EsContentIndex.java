@@ -205,11 +205,9 @@ public class EsContentIndex extends AbstractIdleService implements ContentIndex 
     
     private Collection<EsBroadcast> makeESBroadcasts(Item item) {
         Collection<EsBroadcast> esBroadcasts = new LinkedList<EsBroadcast>();
-        for (Version version : item.getVersions()) {
-            for (Broadcast broadcast : version.getBroadcasts()) {
-                if (broadcast.isActivelyPublished()) {
-                    esBroadcasts.add(toEsBroadcast(broadcast));
-                }
+        for (Broadcast broadcast : item.getBroadcasts()) {
+            if (broadcast.isActivelyPublished()) {
+                esBroadcasts.add(toEsBroadcast(broadcast));
             }
         }
         return esBroadcasts;
@@ -231,14 +229,12 @@ public class EsContentIndex extends AbstractIdleService implements ContentIndex 
 
     private Collection<EsLocation> makeESLocations(Item item) {
         Collection<EsLocation> esLocations = new LinkedList<EsLocation>();
-        for (Version version : item.getVersions()) {
-            for (Encoding encoding : version.getManifestedAs()) {
-                for (Location location : encoding.getAvailableAt()) {
-                    if (location.getPolicy() != null 
-                        && location.getPolicy().getAvailabilityStart() != null
-                        && location.getPolicy().getAvailabilityEnd() != null) {
-                            esLocations.add(toEsLocation(location.getPolicy()));
-                    }
+        for (Encoding encoding : item.getManifestedAs()) {
+            for (Location location : encoding.getAvailableAt()) {
+                if (location.getPolicy() != null 
+                    && location.getPolicy().getAvailabilityStart() != null
+                    && location.getPolicy().getAvailabilityEnd() != null) {
+                        esLocations.add(toEsLocation(location.getPolicy()));
                 }
             }
         }

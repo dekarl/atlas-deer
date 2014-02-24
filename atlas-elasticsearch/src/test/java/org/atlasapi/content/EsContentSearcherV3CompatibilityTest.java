@@ -2,7 +2,6 @@ package org.atlasapi.content;
 
 import static org.atlasapi.content.ComplexBroadcastTestDataBuilder.broadcast;
 import static org.atlasapi.content.ComplexItemTestDataBuilder.complexItem;
-import static org.atlasapi.content.VersionTestDataBuilder.version;
 import static org.atlasapi.util.ElasticSearchHelper.refresh;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
@@ -100,60 +99,60 @@ public class EsContentSearcherV3CompatibilityTest {
     public void testFindingBrandsByTitle() throws Exception {
         
         Brand dragonsDen = brand("/den", "Dragon's den");
-        Item dragonsDenItem = complexItem().withBrand(dragonsDen).withVersions(broadcast().buildInVersion()).build();
+        Item dragonsDenItem = complexItem().withBrand(dragonsDen).withBroadcasts(broadcast().build()).build();
         Brand doctorWho = brand("/doctorwho", "Doctor Who");
-        Item doctorWhoItem = complexItem().withBrand(doctorWho).withVersions(broadcast().buildInVersion()).build();
+        Item doctorWhoItem = complexItem().withBrand(doctorWho).withBroadcasts(broadcast().build()).build();
         Brand theCityGardener = brand("/garden", "The City Gardener");
-        Item theCityGardenerItem = complexItem().withBrand(theCityGardener).withVersions(broadcast().buildInVersion()).build();
+        Item theCityGardenerItem = complexItem().withBrand(theCityGardener).withBroadcasts(broadcast().build()).build();
         Brand eastendersWeddings = brand("/eastenders-weddings", "Eastenders Weddings");
-        Item eastendersWeddingsItem = complexItem().withBrand(eastendersWeddings).withVersions(broadcast().buildInVersion()).build();
+        Item eastendersWeddingsItem = complexItem().withBrand(eastendersWeddings).withBroadcasts(broadcast().build()).build();
         Brand eastenders = brand("/eastenders", "Eastenders");
-        Item eastendersItem = complexItem().withBrand(eastenders).withVersions(broadcast().buildInVersion()).build();
+        Item eastendersItem = complexItem().withBrand(eastenders).withBroadcasts(broadcast().build()).build();
         Brand politicsEast = brand("/politics", "The Politics Show East");
-        Item politicsEastItem = complexItem().withBrand(politicsEast).withVersions(broadcast().buildInVersion()).build();
+        Item politicsEastItem = complexItem().withBrand(politicsEast).withBroadcasts(broadcast().build()).build();
         Brand meetTheMagoons = brand("/magoons", "Meet the Magoons");
-        Item meetTheMagoonsItem = complexItem().withBrand(meetTheMagoons).withVersions(broadcast().buildInVersion()).build();
+        Item meetTheMagoonsItem = complexItem().withBrand(meetTheMagoons).withBroadcasts(broadcast().build()).build();
         Brand theJackDeeShow = brand("/dee", "The Jack Dee Show");
-        Item theJackDeeShowItem = complexItem().withBrand(theJackDeeShow).withVersions(broadcast().buildInVersion()).build();
+        Item theJackDeeShowItem = complexItem().withBrand(theJackDeeShow).withBroadcasts(broadcast().build()).build();
         Brand peepShow = brand("/peep-show", "Peep Show");
-        Item peepShowItem = complexItem().withBrand(peepShow).withVersions(broadcast().buildInVersion()).build();
+        Item peepShowItem = complexItem().withBrand(peepShow).withBroadcasts(broadcast().build()).build();
         Brand euromillionsDraw = brand("/draw", "EuroMillions Draw");
-        Item euromillionsDrawItem = complexItem().withBrand(euromillionsDraw).withVersions(broadcast().buildInVersion()).build();
+        Item euromillionsDrawItem = complexItem().withBrand(euromillionsDraw).withBroadcasts(broadcast().build()).build();
         Brand haveIGotNewsForYou = brand("/news", "Have I Got News For You");
-        Item haveIGotNewsForYouItem = complexItem().withBrand(haveIGotNewsForYou).withVersions(broadcast().buildInVersion()).build();
+        Item haveIGotNewsForYouItem = complexItem().withBrand(haveIGotNewsForYou).withBroadcasts(broadcast().build()).build();
         Brand brasseye = brand("/eye", "Brass Eye");
-        Item brasseyeItem = complexItem().withBrand(brasseye).withVersions(ComplexBroadcastTestDataBuilder.broadcast().buildInVersion()).build();
+        Item brasseyeItem = complexItem().withBrand(brasseye).withBroadcasts(broadcast().build()).build();
         Brand science = brand("/science", "The Story of Science: Power, Proof and Passion");
-        Item scienceItem = complexItem().withBrand(science).withVersions(ComplexBroadcastTestDataBuilder.broadcast().buildInVersion()).build();
+        Item scienceItem = complexItem().withBrand(science).withBroadcasts(broadcast().build()).build();
         Brand theApprentice = brand("/apprentice", "The Apprentice");
-        Item theApprenticeItem = complexItem().withBrand(theApprentice).withVersions(broadcast().buildInVersion()).build();
+        Item theApprenticeItem = complexItem().withBrand(theApprentice).withBroadcasts(broadcast().build()).build();
         
-        Item apparent = complexItem().withTitle("Without Apparent Motive").withUri("/item/apparent").withVersions(version().withBroadcasts(broadcast().build()).build()).build();
+        Item apparent = complexItem().withTitle("Without Apparent Motive").withUri("/item/apparent").withBroadcasts(broadcast().build()).build();
 
-        Item englishForCats = complexItem().withUri("/items/cats").withTitle("English for cats").withVersions(version().withBroadcasts(broadcast().build()).build()).build();
+        Item englishForCats = complexItem().withUri("/items/cats").withTitle("English for cats").withBroadcasts(broadcast().build()).build();
 
-        Item spookyTheCat = complexItem().withTitle("Spooky the Cat").withUri("/item/spookythecat").withVersions(version().withBroadcasts(broadcast().build()).build()).build();
+        Item spookyTheCat = complexItem().withTitle("Spooky the Cat").withUri("/item/spookythecat").withBroadcasts(broadcast().build()).build();
         Item spooks = complexItem().withTitle("Spooks").withUri("/item/spooks")
-                .withVersions(version().withBroadcasts(broadcast().withStartTime(new SystemClock().now().minus(Duration.standardDays(28))).build()).build()).build();
+                .withBroadcasts(broadcast().withStartTime(new SystemClock().now().minus(Duration.standardDays(28))).build()).build();
 
         Item jamieOliversCookingProgramme = complexItem().withUri("/items/oliver/1").withTitle("Jamie Oliver's cooking programme")
-                .withDescription("lots of words that are the same alpha beta").withVersions(broadcast().buildInVersion()).build();
+                .withDescription("lots of words that are the same alpha beta").withBroadcasts(broadcast().build()).build();
         Item gordonRamsaysCookingProgramme = complexItem().withUri("/items/ramsay/2").withTitle("Gordon Ramsay's cooking show").withDescription("lots of words that are the same alpha beta")
-                .withVersions(broadcast().buildInVersion()).build();
+                .withBroadcasts(broadcast().build()).build();
         
         Brand rugby = brand("/rugby", "Rugby");
-        Item rugbyItem = complexItem().withBrand(rugby).withVersions(ComplexBroadcastTestDataBuilder.broadcast().withChannel("http://minor-channel").buildInVersion()).build();
+        Item rugbyItem = complexItem().withBrand(rugby).withBroadcasts(broadcast().withChannel("http://minor-channel").build()).build();
         
         Brand sixNationsRugby = brand("/sixnations", "Six Nations Rugby Union");
-        Item sixNationsRugbyItem = complexItem().withBrand(sixNationsRugby).withVersions(ComplexBroadcastTestDataBuilder.broadcast().withChannel("http://www.bbc.co.uk/services/bbcone/east").buildInVersion()).build();
+        Item sixNationsRugbyItem = complexItem().withBrand(sixNationsRugby).withBroadcasts(broadcast().withChannel("http://www.bbc.co.uk/services/bbcone/east").build()).build();
 
         Brand hellsKitchen = brand("/hellskitchen", "Hell's Kitchen");
-        Item hellsKitchenItem = complexItem().withBrand(hellsKitchen).withVersions(broadcast().buildInVersion()).build();
+        Item hellsKitchenItem = complexItem().withBrand(hellsKitchen).withBroadcasts(broadcast().build()).build();
         
         Brand hellsKitchenUSA = brand("/hellskitchenusa", "Hell's Kitchen");
-        Item hellsKitchenUSAItem = complexItem().withBrand(hellsKitchenUSA).withVersions(broadcast().buildInVersion()).build();
+        Item hellsKitchenUSAItem = complexItem().withBrand(hellsKitchenUSA).withBroadcasts(broadcast().build()).build();
         
-        Item we = complexItem().withTitle("W.E.").withUri("/item/we").withVersions(version().withBroadcasts(broadcast().build()).build()).build();
+        Item we = complexItem().withTitle("W.E.").withUri("/item/we").withBroadcasts(broadcast().build()).build();
 
         indexAndWait(doctorWho, eastendersWeddings, dragonsDen, theCityGardener, 
             eastenders, meetTheMagoons, theJackDeeShow, peepShow, haveIGotNewsForYou,
@@ -202,8 +201,8 @@ public class EsContentSearcherV3CompatibilityTest {
     public void testFindingBrandsByTitleAfterUpdate() throws Exception {
         
         Brand theApprentice = brand("/apprentice", "The Apprentice");
-        Item theApprenticeItem = complexItem().withBrand(theApprentice).withVersions(broadcast().buildInVersion()).build();
-        Item apparent = complexItem().withTitle("Without Apparent Motive").withUri("/item/apparent").withVersions(version().withBroadcasts(broadcast().build()).build()).build();
+        Item theApprenticeItem = complexItem().withBrand(theApprentice).withBroadcasts(broadcast().build()).build();
+        Item apparent = complexItem().withTitle("Without Apparent Motive").withUri("/item/apparent").withBroadcasts(broadcast().build()).build();
         
         indexAndWait(theApprentice, theApprenticeItem, apparent);
         
@@ -225,7 +224,7 @@ public class EsContentSearcherV3CompatibilityTest {
         
         Brand theApprentice = brand("/apprentice", "The Apprentice");
         Item theApprenticeItem = complexItem().withBrand(theApprentice)
-            .withVersions(broadcast().buildInVersion()).build();
+            .withBroadcasts(broadcast().build()).build();
         
         indexAndWait(theApprentice, theApprenticeItem);
         
@@ -245,11 +244,11 @@ public class EsContentSearcherV3CompatibilityTest {
     public void testLimitingToPublishers() throws Exception {
         
         Brand eastenders = brand("/eastenders", "Eastenders");
-        Item eastendersItem = complexItem().withBrand(eastenders).withVersions(broadcast().buildInVersion()).build();
+        Item eastendersItem = complexItem().withBrand(eastenders).withBroadcasts(broadcast().build()).build();
         Brand eastendersWeddings = brand("/eastenders-weddings", "Eastenders Weddings");
-        Item eastendersWeddingsItem = complexItem().withBrand(eastendersWeddings).withVersions(broadcast().buildInVersion()).build();
+        Item eastendersWeddingsItem = complexItem().withBrand(eastendersWeddings).withBroadcasts(broadcast().build()).build();
         Brand politicsEast = brand("/politics", "The Politics Show East");
-        Item politicsEastItem = complexItem().withBrand(politicsEast).withVersions(broadcast().buildInVersion()).build();
+        Item politicsEastItem = complexItem().withBrand(politicsEast).withBroadcasts(broadcast().build()).build();
         
         indexAndWait(eastendersWeddings, eastendersWeddingsItem, 
             eastenders, eastendersItem, 
@@ -286,11 +285,11 @@ public class EsContentSearcherV3CompatibilityTest {
     @Test(enabled = false)
     public void testLimitAndOffset() throws Exception {
         Brand eastendersWeddings = brand("/eastenders-weddings", "Eastenders Weddings");
-        Item eastendersWeddingsItem = complexItem().withBrand(eastendersWeddings).withVersions(broadcast().buildInVersion()).build();
+        Item eastendersWeddingsItem = complexItem().withBrand(eastendersWeddings).withBroadcasts(broadcast().build()).build();
         Brand eastenders = brand("/eastenders", "Eastenders");
-        Item eastendersItem = complexItem().withBrand(eastenders).withVersions(broadcast().buildInVersion()).build();
+        Item eastendersItem = complexItem().withBrand(eastenders).withBroadcasts(broadcast().build()).build();
         Brand politicsEast = brand("/politics", "The Politics Show East");
-        Item politicsEastItem = complexItem().withBrand(politicsEast).withVersions(broadcast().buildInVersion()).build();
+        Item politicsEastItem = complexItem().withBrand(politicsEast).withBroadcasts(broadcast().build()).build();
 
         indexAndWait(eastendersWeddings, eastendersWeddingsItem, 
             eastenders, eastendersItem, 
@@ -303,9 +302,9 @@ public class EsContentSearcherV3CompatibilityTest {
 
     @Test
     public void testBroadcastLocationWeighting() throws Exception {
-        Item spookyTheCat = complexItem().withTitle("Spooky the Cat").withUri("/item/spookythecat").withVersions(version().withBroadcasts(broadcast().build()).build()).build();
+        Item spookyTheCat = complexItem().withTitle("Spooky the Cat").withUri("/item/spookythecat").withBroadcasts(broadcast().build()).build();
         Item spooks = complexItem().withTitle("Spooks").withUri("/item/spooks")
-                .withVersions(version().withBroadcasts(broadcast().withStartTime(new SystemClock().now().minus(Duration.standardDays(28))).build()).build()).build();
+                .withBroadcasts(broadcast().withStartTime(new SystemClock().now().minus(Duration.standardDays(28))).build()).build();
 
         indexAndWait(spookyTheCat, spooks);
         
@@ -317,9 +316,9 @@ public class EsContentSearcherV3CompatibilityTest {
      
     @Test(enabled = false)
     public void testBrandWithNoChildrenIsPickedWithTitleWeighting() throws Exception {
-        Item spookyTheCat = complexItem().withTitle("Spooky the Cat").withUri("/item/spookythecat").withVersions(version().withBroadcasts(broadcast().build()).build()).build();
+        Item spookyTheCat = complexItem().withTitle("Spooky the Cat").withUri("/item/spookythecat").withBroadcasts(broadcast().build()).build();
         Item spooks = complexItem().withTitle("Spooks").withUri("/item/spooks")
-                .withVersions(version().withBroadcasts(broadcast().withStartTime(new SystemClock().now().minus(Duration.standardDays(28))).build()).build()).build();
+                .withBroadcasts(broadcast().withStartTime(new SystemClock().now().minus(Duration.standardDays(28))).build()).build();
 
         indexAndWait(spookyTheCat, spooks);
 //        check(searcher.search(title("spook")).get(), spookyTheCat, spooks);
@@ -335,17 +334,15 @@ public class EsContentSearcherV3CompatibilityTest {
     @Test(enabled = false)
     public void testBrandWithNoChildrenIsNotPickedWithBroadcastWeighting() throws Exception {
         Item spookyTheCat = complexItem().withTitle("Spooky the Cat").withUri("/item/spookythecat")
-                .withVersions(version().withBroadcasts(
+                .withBroadcasts(
                     broadcast().build()
-                ).build())
-            .build();
+                ).build();
         Item spooks = complexItem().withTitle("Spooks").withUri("/item/spooks")
-                .withVersions(version().withBroadcasts(
+                .withBroadcasts(
                     broadcast().withStartTime(
                         new SystemClock().now().minus(Duration.standardDays(28))
                     ).build()
-                ).build())
-            .build();
+                ).build();
         
         indexAndWait(spookyTheCat, spooks);
         

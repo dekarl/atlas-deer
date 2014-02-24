@@ -15,16 +15,11 @@ permissions and limitations under the License. */
 
 package org.atlasapi.content;
 
-import java.util.Set;
-
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 import org.atlasapi.entity.Id;
 import org.atlasapi.media.entity.Publisher;
-
-import com.google.common.collect.Iterables;
-import com.google.common.collect.Sets;
 
 /**
  * @author Robert Chatley (robert@metabroadcast.com)
@@ -95,17 +90,16 @@ public class Episode extends Item {
 	
 	@Override
 	public Episode copy() {
-	    return copyWithVersions(Sets.newHashSet(Iterables.transform(this.getVersions(), Version.COPY)));
+	    return copyTo(this, new Episode());
 	}
 
-	public Episode copyWithVersions(Set<Version> versions) {
-	    Episode episode = new Episode();
-	    Item.copyToWithVersions(this, episode, versions);
-	    episode.episodeNumber = episodeNumber;
-	    episode.seriesNumber = seriesNumber;
-	    episode.seriesRef = seriesRef;
-	    episode.special = special;
-	    return episode;
+	public static Episode copyTo(Episode from, Episode to) {
+	    Item.copyTo(from, to);
+	    to.episodeNumber = from.episodeNumber;
+	    to.seriesNumber = from.seriesNumber;
+	    to.seriesRef = from.seriesRef;
+	    to.special = from.special;
+	    return to;
 	}
 
     public <V> V accept(ItemVisitor<V> visitor) {

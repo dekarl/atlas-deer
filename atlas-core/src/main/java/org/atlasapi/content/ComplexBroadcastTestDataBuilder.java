@@ -24,14 +24,6 @@ public class ComplexBroadcastTestDataBuilder {
         return broadcast;
     }
     
-    public Version buildInVersion() {
-        Version version = new Version();
-        
-        version.addBroadcast(build());
-        
-        return version;
-    }
-    
     public ComplexBroadcastTestDataBuilder withChannel(String channel) {
         this.channel = channel;
         return this;

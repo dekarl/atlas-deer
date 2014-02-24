@@ -1,6 +1,5 @@
 package org.atlasapi.system.bootstrap.workers;
 
-import static org.hamcrest.Matchers.hasItem;
 import static org.mockito.Mockito.when;
 
 import org.atlasapi.content.Broadcast;
@@ -8,7 +7,6 @@ import org.atlasapi.content.Content;
 import org.atlasapi.content.ContentStore;
 import org.atlasapi.content.Item;
 import org.atlasapi.content.ItemAndBroadcast;
-import org.atlasapi.content.Version;
 import org.atlasapi.entity.Id;
 import org.atlasapi.entity.util.MissingResourceException;
 import org.atlasapi.entity.util.Resolved;
@@ -21,7 +19,6 @@ import org.atlasapi.schedule.ScheduleWriter;
 import org.joda.time.DateTime;
 import org.joda.time.Interval;
 import org.mockito.Mock;
-import org.mockito.Mockito;
 import org.mockito.testng.MockitoTestNGListener;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Listeners;
@@ -64,15 +61,13 @@ public class BootstrapContentPersistorTest {
         channel.setId(1L);
         
         Item item = new Item(Id.valueOf(1), Publisher.METABROADCAST);
-        Version version = new Version();
-        item.addVersion(version);
         
         Item resolved = item.copy();
 
         Interval interval = new Interval(new DateTime(DateTimeZones.UTC),new DateTime(DateTimeZones.UTC));
         Broadcast broadcast = new Broadcast(channel.getUri(), interval);
         broadcast.withId("sourceId");
-        version.addBroadcast(broadcast);
+        item.addBroadcast(broadcast);
         
         ItemAndBroadcast iab = new ItemAndBroadcast(item, broadcast);
         when(scheduleWriter.writeSchedule(ImmutableList.of(ScheduleHierarchy.itemOnly(iab)), channel, interval))

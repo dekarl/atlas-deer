@@ -10,7 +10,6 @@ import static org.mockito.Mockito.when;
 import static org.testng.AssertJUnit.assertEquals;
 
 import java.util.List;
-import java.util.Map;
 
 import org.atlasapi.content.Brand;
 import org.atlasapi.content.Broadcast;
@@ -18,11 +17,9 @@ import org.atlasapi.content.ContainerRef;
 import org.atlasapi.content.Content;
 import org.atlasapi.content.ContentStore;
 import org.atlasapi.content.Episode;
-import org.atlasapi.content.Identified;
 import org.atlasapi.content.Item;
 import org.atlasapi.content.ItemAndBroadcast;
 import org.atlasapi.content.Series;
-import org.atlasapi.content.Version;
 import org.atlasapi.entity.Alias;
 import org.atlasapi.entity.Id;
 import org.atlasapi.entity.util.WriteException;
@@ -43,7 +40,6 @@ import org.testng.annotations.Test;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
-import com.google.common.collect.Maps;
 import com.metabroadcast.common.time.DateTimeZones;
 
 @Listeners(MockitoTestNGListener.class)
@@ -110,7 +106,7 @@ public class WritableScheduleHierarchyTest {
         Item written = (Item) contentCaptor.getValue();
         
         assertEquals(Iterables.getOnlyElement(results).getResource().getId(), written.getId());
-        assertThat(Iterables.getOnlyElement(written.getVersions()).getBroadcasts(), hasItems(b1, b2));
+        assertThat(written.getBroadcasts(), hasItems(b1, b2));
     }
     
     @Test
@@ -118,17 +114,11 @@ public class WritableScheduleHierarchyTest {
         
         Item i1 = item(1, "one", Publisher.METABROADCAST);
         Broadcast b1 = broadcast("one", channel);
-        Version v1 = new Version();
-        v1.setCanonicalUri("version");
-        v1.addBroadcast(b1);
-        i1.addVersion(v1);
+        i1.addBroadcast(b1);
         
         Item i2 = item(1, "one", Publisher.METABROADCAST);
         Broadcast b2 = broadcast("two", channel);
-        Version v2 = new Version();
-        v2.setCanonicalUri("version");
-        v2.addBroadcast(b2);
-        i2.addVersion(v2);
+        i2.addBroadcast(b2);
         
         ScheduleHierarchy iab1 = ScheduleHierarchy.itemOnly(new ItemAndBroadcast(i1, b1));
         ScheduleHierarchy iab2 = ScheduleHierarchy.itemOnly(new ItemAndBroadcast(i2, b2));
@@ -142,7 +132,7 @@ public class WritableScheduleHierarchyTest {
         Item written = (Item) contentCaptor.getValue();
         
         assertEquals(Iterables.getOnlyElement(results).getResource().getId(), written.getId());
-        assertThat(Iterables.getOnlyElement(written.getVersions()).getBroadcasts(), hasItems(b1, b2));
+        assertThat(written.getBroadcasts(), hasItems(b1, b2));
     }
 
     @Test
@@ -150,17 +140,13 @@ public class WritableScheduleHierarchyTest {
         
         Item i1 = item(1, "one", Publisher.METABROADCAST);
         Broadcast b1 = broadcast("one", channel);
-        Version v1 = new Version();
-        v1.setCanonicalUri("v1");
-        v1.addBroadcast(b1);
-        i1.addVersion(v1);
+        //b2.setVersion("v2");
+        i1.addBroadcast(b1);
         
         Item i2 = item(1, "one", Publisher.METABROADCAST);
         Broadcast b2 = broadcast("two", channel);
-        Version v2 = new Version();
-        v2.setCanonicalUri("v2");
-        v2.addBroadcast(b2);
-        i2.addVersion(v2);
+        //b2.setVersion("v2");
+        i2.addBroadcast(b2);
         
         ScheduleHierarchy iab1 = ScheduleHierarchy.itemOnly(new ItemAndBroadcast(i1, b1));
         ScheduleHierarchy iab2 = ScheduleHierarchy.itemOnly(new ItemAndBroadcast(i2, b2));
@@ -174,9 +160,7 @@ public class WritableScheduleHierarchyTest {
         Item written = (Item) contentCaptor.getValue();
         
         assertEquals(Iterables.getOnlyElement(results).getResource().getId(), written.getId());
-        Map<String,Version> versions = Maps.uniqueIndex(written.getVersions(), Identified.TO_URI);
-        assertThat(versions.get("v1").getBroadcasts(), hasItems(b1));
-        assertThat(versions.get("v2").getBroadcasts(), hasItems(b2));
+        assertThat(written.getBroadcasts(), hasItems(b1,b2));
     }
     
     @Test
@@ -231,9 +215,7 @@ public class WritableScheduleHierarchyTest {
     }
     
     private ItemAndBroadcast andBroadcast(Item item, Broadcast broadcast) {
-        Version version = new Version();
-        item.addVersion(version);
-        version.addBroadcast(broadcast);
+        item.addBroadcast(broadcast);
         return new ItemAndBroadcast(item, broadcast);
     }
     

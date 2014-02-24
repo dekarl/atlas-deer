@@ -1,20 +1,18 @@
 package org.atlasapi.output.annotation;
 
 import java.io.IOException;
-import java.util.Set;
 
-import org.atlasapi.content.Content;
 import org.atlasapi.content.Broadcast;
+import org.atlasapi.content.Content;
 import org.atlasapi.content.Item;
-import org.atlasapi.content.Version;
 import org.atlasapi.output.FieldWriter;
 import org.atlasapi.output.OutputContext;
 import org.atlasapi.output.writers.BroadcastWriter;
 import org.joda.time.DateTime;
 
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Iterables;
 import com.google.common.collect.ImmutableSet.Builder;
+import com.google.common.collect.Iterables;
 import com.metabroadcast.common.time.Clock;
 
 public class NextBroadcastAnnotation extends OutputAnnotation<Content> {
@@ -36,9 +34,7 @@ public class NextBroadcastAnnotation extends OutputAnnotation<Content> {
     }
 
     private void writeBroadcasts(FieldWriter writer, Item item, OutputContext ctxt) throws IOException {
-        Set<Version> versions = item.getVersions();
-        Iterable<Broadcast> broadcasts = Iterables.concat(Iterables.transform(versions, Version.TO_BROADCASTS));
-        writer.writeList(broadcastWriter, nextBroadcast(Iterables.filter(broadcasts, Broadcast.ACTIVELY_PUBLISHED)), ctxt);
+        writer.writeList(broadcastWriter, nextBroadcast(Iterables.filter(item.getBroadcasts(), Broadcast.ACTIVELY_PUBLISHED)), ctxt);
     }
 
     private Iterable<Broadcast> nextBroadcast(Iterable<Broadcast> broadcasts) {

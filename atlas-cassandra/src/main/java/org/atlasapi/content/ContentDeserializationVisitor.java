@@ -6,6 +6,7 @@ import org.atlasapi.entity.Alias;
 import org.atlasapi.entity.Id;
 import org.atlasapi.entity.ProtoBufUtils;
 import org.atlasapi.equivalence.EquivalenceRef;
+import org.atlasapi.segment.SegmentEvent;
 import org.atlasapi.serialization.protobuf.CommonProtos;
 import org.atlasapi.serialization.protobuf.CommonProtos.Reference;
 import org.atlasapi.serialization.protobuf.ContentProtos;
@@ -19,9 +20,12 @@ import com.google.common.collect.ImmutableSet.Builder;
 import com.google.common.collect.Ordering;
 import com.metabroadcast.common.intl.Countries;
 
-public class ContentDeserializationVisitor implements ContentVisitor<Content> {
+final class ContentDeserializationVisitor implements ContentVisitor<Content> {
 
-    private static final VersionsSerializer versionsSerializer = new VersionsSerializer();
+    private static final BroadcastSerializer broadcastSerializer = new BroadcastSerializer();
+    private static final EncodingSerializer encodingSerializer = new EncodingSerializer();
+    private static final SegmentEventSerializer segmentEventSerializer = new SegmentEventSerializer();
+    private static final RestrictionSerializer restrictionSerializer = new RestrictionSerializer();
     private static final TopicRefSerializer topicRefSerializer = new TopicRefSerializer();
     private static final RelatedLinkSerializer relatedLinkSerializer = new RelatedLinkSerializer();
     private static final KeyPhraseSerializer keyPhraseSerializer = new KeyPhraseSerializer();
@@ -269,10 +273,49 @@ public class ContentDeserializationVisitor implements ContentVisitor<Content> {
         if (msg.hasLongform()) {
             item.setIsLongForm(msg.getLongform());
         }
-        item.setVersions(versionsSerializer.deserialize(msg));
+        item.setBroadcasts(getBroadcasts());
+        item.setManifestedAs(getEncodings());
+        item.setSegmentEvents(getSegmentEvents());
+        item.setRestrictions(getRestrictions());
         return item;
     }
     
+    private ImmutableSet<Broadcast> getBroadcasts() {
+        ImmutableSet.Builder<Broadcast> broadcasts = ImmutableSet.builder();
+        for (int i = 0; i < msg.getBroadcastsCount(); i++) {
+            ContentProtos.Broadcast broadcast = msg.getBroadcasts(i);
+            broadcasts.add(broadcastSerializer.deserialize(broadcast));
+        }
+        return broadcasts.build();
+    }
+
+    private ImmutableSet<Encoding> getEncodings() {
+        ImmutableSet.Builder<Encoding> encodings = ImmutableSet.builder();
+        for (int i = 0; i < msg.getEncodingsCount(); i++) {
+            ContentProtos.Encoding encoding = msg.getEncodings(i);
+            encodings.add(encodingSerializer.deserialize(encoding));
+        }
+        return encodings.build();
+    }
+    
+    private ImmutableSet<SegmentEvent> getSegmentEvents() {
+        ImmutableSet.Builder<SegmentEvent> segmentEvents = ImmutableSet.builder();
+        for (int i = 0; i < msg.getSegmentEventsCount(); i++) {
+            ContentProtos.SegmentEvent segmentEvent = msg.getSegmentEvents(i);
+            segmentEvents.add(segmentEventSerializer.deserialize(segmentEvent));
+        }
+        return segmentEvents.build();
+    }
+    
+    private ImmutableSet<Restriction> getRestrictions() {
+        ImmutableSet.Builder<Restriction> restrictions = ImmutableSet.builder();
+        for (int i = 0; i < msg.getRestrictionsCount(); i++) {
+            ContentProtos.Restriction segmentEvent = msg.getRestrictions(i);
+            restrictions.add(restrictionSerializer.deserialize(segmentEvent));
+        }
+        return restrictions.build();
+    }
+
     @Override
     public Content visit(Clip clip) {
         return visitItem(clip);

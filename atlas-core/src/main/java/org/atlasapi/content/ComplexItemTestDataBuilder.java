@@ -6,10 +6,12 @@ import java.util.Set;
 import org.atlasapi.entity.Alias;
 import org.atlasapi.entity.Id;
 import org.atlasapi.media.entity.Publisher;
+import org.atlasapi.segment.SegmentEvent;
 import org.joda.time.DateTime;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Sets;
 import com.metabroadcast.common.time.DateTimeZones;
 
 public class ComplexItemTestDataBuilder {
@@ -33,7 +35,10 @@ public class ComplexItemTestDataBuilder {
     private String thumbnail;
     private String title;
     private Long id;
-    private Set<Version> versions;
+    private Set<Encoding> manifestedAs;
+    private Set<Broadcast> broadcasts; 
+    private List<SegmentEvent> segmentEvents; 
+    private Set<Restriction> restrictions; 
     
     public static ComplexItemTestDataBuilder complexItem() {
         return new ComplexItemTestDataBuilder();
@@ -59,7 +64,10 @@ public class ComplexItemTestDataBuilder {
         tags = ImmutableSet.of();
         thumbnail = "http://test.metabroadcast.com/thumbnails/default";
         title = "Default Test Item";
-        versions = ImmutableSet.of();
+        manifestedAs = Sets.newLinkedHashSet();
+        broadcasts = Sets.newLinkedHashSet();
+        segmentEvents = ImmutableList.of(); 
+        restrictions = Sets.newHashSet();
     }
     
     public Item build() {
@@ -73,7 +81,10 @@ public class ComplexItemTestDataBuilder {
             item.setContainer(brand);
         }
         item.setId(Id.valueOf(id));
-        item.setVersions(versions);
+        item.setBroadcasts(broadcasts);
+        item.setManifestedAs(manifestedAs);
+        item.setSegmentEvents(segmentEvents);
+        item.setRestrictions(restrictions);
         item.setClips(clips);
         item.setMediaType(mediaType);
         item.setMediaType(mediaType);
@@ -133,8 +144,23 @@ public class ComplexItemTestDataBuilder {
         return this;
     }
     
-    public ComplexItemTestDataBuilder withVersions(Version...versions) {
-        this.versions = ImmutableSet.copyOf(versions);
+    public ComplexItemTestDataBuilder withBroadcasts(Broadcast...broadcasts) {
+        this.broadcasts = ImmutableSet.copyOf(broadcasts);
+        return this;
+    }
+    
+    public ComplexItemTestDataBuilder withManifestedAs(Encoding...encodings) {
+        this.manifestedAs = ImmutableSet.copyOf(encodings);
+        return this;
+    }
+    
+    public ComplexItemTestDataBuilder withSegementEvents(SegmentEvent...segmentEvents) {
+        this.segmentEvents = ImmutableList.copyOf(segmentEvents);
+        return this;
+    }
+    
+    public ComplexItemTestDataBuilder withRestrictions(Restriction...restrictions) {
+        this.restrictions = ImmutableSet.copyOf(restrictions);
         return this;
     }
     
