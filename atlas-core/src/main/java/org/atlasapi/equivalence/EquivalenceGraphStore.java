@@ -8,7 +8,6 @@ import org.atlasapi.entity.util.WriteException;
 import org.atlasapi.media.entity.Publisher;
 
 import com.google.common.base.Optional;
-import com.google.common.collect.ImmutableSet;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.metabroadcast.common.collect.OptionalMap;
 
@@ -54,13 +53,13 @@ public interface EquivalenceGraphStore {
      *            - the {@link org.atlasapi.media.entity.Publisher Publisher}s
      *            for which this update should be applied.
      * 
-     * @return - the {@link EquivalenceGraph}s formed by this update, or
+     * @return - an {@link EquivalenceGraphUpdate} resulting from this update, or
      *         <code>Optional.absent()</code> if no update occurs.
      * @throws WriteException
      *             - if there is an exception recording the update of
      *             equivalences.
      */
-    Optional<ImmutableSet<EquivalenceGraph>> updateEquivalences(ResourceRef subject,
+    Optional<EquivalenceGraphUpdate> updateEquivalences(ResourceRef subject,
             Set<ResourceRef> assertedAdjacents, Set<Publisher> sources) throws WriteException;
 
     ListenableFuture<OptionalMap<Id, EquivalenceGraph>> resolveIds(Iterable<Id> ids);

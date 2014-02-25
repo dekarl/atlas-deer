@@ -11,6 +11,7 @@ import org.atlasapi.content.SeriesRef;
 import org.atlasapi.content.SongRef;
 import org.atlasapi.entity.Id;
 import org.atlasapi.equivalence.EquivalenceGraph;
+import org.atlasapi.equivalence.EquivalenceGraphUpdate;
 import org.atlasapi.equivalence.EquivalenceGraphUpdateMessage;
 import org.atlasapi.topic.TopicRef;
 
@@ -49,9 +50,12 @@ public class JacksonMessageSerializer implements MessageSerializer {
             context.setMixInAnnotations(EquivalenceGraphUpdateMessage.class, EquivalenceGraphUpdateMessageConfiguration.class);
             context.setMixInAnnotations(EquivalenceGraph.class, EquivalenceGraphConfiguration.class);
             context.setMixInAnnotations(EquivalenceGraph.Adjacents.class, AdjacentsConfiguration.class);
+            context.setMixInAnnotations(EquivalenceGraphUpdate.class, EquivalenceGraphUpdateConfiguration.class);
+            context.setMixInAnnotations(EquivalenceGraphUpdate.Builder.class, EquivalenceGraphUpdateConfiguration.Builder.class);
         }
+        
     }
-
+    
     public class AtlasModelModule extends SimpleModule {
         
         public AtlasModelModule() {

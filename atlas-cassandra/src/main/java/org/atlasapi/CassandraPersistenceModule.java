@@ -69,6 +69,7 @@ public class CassandraPersistenceModule extends AbstractIdleService implements P
 
     @Override
     protected void startUp() throws Exception {
+        dataStaxService.awaitRunning();
         Session session = dataStaxService.getSession(keyspace);
         com.datastax.driver.core.ConsistencyLevel read = com.datastax.driver.core.ConsistencyLevel.ONE;
         com.datastax.driver.core.ConsistencyLevel write = com.datastax.driver.core.ConsistencyLevel.QUORUM;

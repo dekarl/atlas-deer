@@ -10,12 +10,15 @@ import org.atlasapi.entity.ResourceRef;
 import org.atlasapi.entity.util.WriteException;
 import org.atlasapi.equivalence.EquivalenceGraph;
 import org.atlasapi.equivalence.EquivalenceGraphStore;
+import org.atlasapi.equivalence.EquivalenceGraphUpdate;
+import org.atlasapi.util.GroupLock;
 
 import com.google.common.base.Function;
 import com.google.common.base.Functions;
 import com.google.common.base.Optional;
 import com.google.common.collect.Collections2;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSetMultimap;
 import com.google.common.collect.Iterables;
 import com.google.common.util.concurrent.Futures;
@@ -26,6 +29,8 @@ public abstract class AbstractEquivalentContentStore implements EquivalentConten
 
     private final ContentResolver contentResolver;
     private final EquivalenceGraphStore graphStore;
+    
+    private static final GroupLock<Id> lock = GroupLock.natural();
 
     public AbstractEquivalentContentStore(ContentResolver contentResolver, EquivalenceGraphStore graphStore) {
         this.contentResolver = checkNotNull(contentResolver);
@@ -33,30 +38,49 @@ public abstract class AbstractEquivalentContentStore implements EquivalentConten
     }
 
     @Override
-    public synchronized void updateEquivalences(Set<EquivalenceGraph> graphs) throws WriteException {
-        ImmutableSetMultimap.Builder<EquivalenceGraph, Content> graphsAndContent
-            = ImmutableSetMultimap.builder();
-        Function<Id, Optional<Content>> toContent = Functions.forMap(contentFor(graphs));
-        for (EquivalenceGraph graph : graphs) {
-            Iterable<Optional<Content>> content = Collections2.transform(graph.getEquivalenceSet(), toContent);
-            graphsAndContent.putAll(graph, Optional.presentInstances(content));
-        }
-        updateEquivalences(graphsAndContent.build());
-    }
-
-    protected abstract void updateEquivalences(ImmutableSetMultimap<EquivalenceGraph, Content> graphsAndContent);
-
-    private OptionalMap<Id, Content> contentFor(Set<EquivalenceGraph> graphs) throws WriteException {
-        Iterable<Id> ids = Iterables.concat(Iterables.transform(graphs,
-            new Function<EquivalenceGraph, Set<Id>>() {
-                @Override
-                public Set<Id> apply(EquivalenceGraph input) {
-                    return input.getEquivalenceSet();
-                }
+    public void updateEquivalences(EquivalenceGraphUpdate update) throws WriteException {
+        Set<Id> ids = idsOf(update);
+        try {
+            lock.lock(ids);
+            ImmutableSetMultimap.Builder<EquivalenceGraph, Content> graphsAndContent
+                = ImmutableSetMultimap.builder();
+            Function<Id, Optional<Content>> toContent = Functions.forMap(resolveIds(ids));
+            for (EquivalenceGraph graph : graphsOf(update)) {
+                Iterable<Optional<Content>> content = Collections2.transform(graph.getEquivalenceSet(), toContent);
+                graphsAndContent.putAll(graph, Optional.presentInstances(content));
             }
-        ));
-        return resolveIds(ids);
+            updateEquivalences(graphsAndContent.build(), update);
+        } catch (InterruptedException e) {
+            throw new WriteException("Updating " + ids, e);
+        } finally {
+            lock.unlock(ids);
+        }
     }
+
+    private Iterable<EquivalenceGraph> graphsOf(EquivalenceGraphUpdate update) {
+        return ImmutableSet.<EquivalenceGraph>builder()
+                .add(update.getUpdated())
+                .addAll(update.getCreated())
+                .build();
+    }
+
+    private ImmutableSet<Id> idsOf(EquivalenceGraphUpdate update) {
+        return ImmutableSet.<Id>builder()
+            .addAll(update.getUpdated().getEquivalenceSet())
+            .addAll(Iterables.concat(Iterables.transform(update.getCreated(),
+                new Function<EquivalenceGraph, Set<Id>>() {
+                    @Override
+                    public Set<Id> apply(EquivalenceGraph input) {
+                        return input.getEquivalenceSet();
+                    }
+                }
+            )))
+            .addAll(update.getDeleted())
+            .build();
+    }
+
+    protected abstract void updateEquivalences(ImmutableSetMultimap<EquivalenceGraph, Content> graphsAndContent, 
+            EquivalenceGraphUpdate update);
 
     private OptionalMap<Id, Content> resolveIds(Iterable<Id> ids) throws WriteException {
         return get(contentResolver.resolveIds(ids)).toMap();
@@ -67,18 +91,26 @@ public abstract class AbstractEquivalentContentStore implements EquivalentConten
     }
 
     @Override
-    public synchronized void updateContent(ResourceRef ref) throws WriteException {
-        ImmutableList<Id> ids = ImmutableList.of(ref.getId());
-        OptionalMap<Id, Content> resolvedContent = resolveIds(ids);
-        Content content = resolvedContent.get(ref.getId()).get();
-        
-        ListenableFuture<OptionalMap<Id, EquivalenceGraph>> graphs = graphStore.resolveIds(ids);
-        Optional<EquivalenceGraph> possibleGraph = get(graphs).get(ref.getId());
-        
-        if (possibleGraph.isPresent()) {
-            updateInSet(possibleGraph.get(), content);
-        } else {
-            updateEquivalences(ImmutableSetMultimap.of(EquivalenceGraph.valueOf(ref), content));
+    public void updateContent(ResourceRef ref) throws WriteException {
+        try {
+            lock.lock(ref.getId());
+            ImmutableList<Id> ids = ImmutableList.of(ref.getId());
+            OptionalMap<Id, Content> resolvedContent = resolveIds(ids);
+            Content content = resolvedContent.get(ref.getId()).get();
+            
+            ListenableFuture<OptionalMap<Id, EquivalenceGraph>> graphs = graphStore.resolveIds(ids);
+            Optional<EquivalenceGraph> possibleGraph = get(graphs).get(ref.getId());
+            
+            if (possibleGraph.isPresent()) {
+                updateInSet(possibleGraph.get(), content);
+            } else {
+                EquivalenceGraph graph = EquivalenceGraph.valueOf(ref);
+                updateEquivalences(ImmutableSetMultimap.of(graph, content), EquivalenceGraphUpdate.builder(graph).build());
+            }
+        } catch (InterruptedException e) {
+            throw new WriteException("Updating " + ref.getId(), e);
+        } finally {
+            lock.unlock(ref.getId());
         }
     }
 

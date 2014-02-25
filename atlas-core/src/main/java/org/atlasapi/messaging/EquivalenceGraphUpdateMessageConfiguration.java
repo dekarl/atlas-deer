@@ -1,8 +1,6 @@
 package org.atlasapi.messaging;
 
-import java.util.Set;
-
-import org.atlasapi.equivalence.EquivalenceGraph;
+import org.atlasapi.equivalence.EquivalenceGraphUpdate;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -15,7 +13,7 @@ public class EquivalenceGraphUpdateMessageConfiguration {
     public EquivalenceGraphUpdateMessageConfiguration(
             @JsonProperty("messageId") String messageId,
             @JsonProperty("timestamp") Timestamp timestamp,
-            @JsonProperty("updatedGraphs") Set<EquivalenceGraph> updatedGraphs) {
+            @JsonProperty("update") EquivalenceGraphUpdate update) {
     }
     
 }
