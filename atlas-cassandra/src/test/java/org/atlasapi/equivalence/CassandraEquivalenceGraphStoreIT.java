@@ -33,7 +33,7 @@ import com.google.common.util.concurrent.ListenableFuture;
 import com.metabroadcast.common.collect.OptionalMap;
 import com.metabroadcast.common.time.DateTimeZones;
 
-public class CassandraEquivalenceGraphStoreTest {
+public class CassandraEquivalenceGraphStoreIT {
 
     private DatastaxCassandraService service
         = new DatastaxCassandraService(ImmutableList.of("localhost"));
