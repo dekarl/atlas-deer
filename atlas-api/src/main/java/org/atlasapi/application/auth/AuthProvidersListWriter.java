@@ -15,7 +15,6 @@ public class AuthProvidersListWriter implements EntityListWriter<OAuthProvider> 
         writer.writeField("namespace", entity.getNamespace().name().toLowerCase());
         writer.writeField("prompt", entity.getLoginPromptMessage());
         writer.writeField("authRequestUrl", entity.getAuthRequestUrl());
-        writer.writeField("image", entity.getImage());
     }
 
     @Override

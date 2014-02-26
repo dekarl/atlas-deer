@@ -149,8 +149,10 @@ public class YouTubeLinkedServiceController {
                 .setApprovalPrompt("force")
                 .build();
         OAuthRequest oauthRequest = OAuthRequest.builder()
+                .withUuid(OAuthRequest.generateUuid())
                 .withNamespace(UserNamespace.YOUTUBE)
                 .withAuthUrl(authUrl)
+                .withCallbackUrl(redirectUri)
                 .withToken("")
                 .withSecret("")
                 .build();

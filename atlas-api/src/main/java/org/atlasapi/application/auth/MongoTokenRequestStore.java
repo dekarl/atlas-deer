@@ -2,6 +2,8 @@ package org.atlasapi.application.auth;
 
 import static com.metabroadcast.common.persistence.mongo.MongoBuilders.where;
 
+import java.util.UUID;
+
 import org.atlasapi.application.model.auth.OAuthRequest;
 import org.atlasapi.application.model.auth.TokenRequestStore;
 
@@ -33,6 +35,20 @@ public class MongoTokenRequestStore implements TokenRequestStore {
         DBObject dbo = tokenRequests.findOne(where()
                 .fieldEquals(MongoOAuthRequestTranslator.NAMESPACE_KEY, namespace.name())
                 .fieldEquals(MongoOAuthRequestTranslator.TOKEN_KEY, token)
+                .build());
+        if (dbo != null) {
+            OAuthRequest oauthRequest = translator.fromDBObject(dbo);
+            tokenRequests.remove(dbo);
+            return Optional.of(oauthRequest);
+        } else {
+            return Optional.absent();
+        }
+    }
+
+    @Override
+    public Optional<OAuthRequest> lookupAndRemove(UUID uuid) {
+        DBObject dbo = tokenRequests.findOne(where()
+                .idEquals(uuid.toString())
                 .build());
         if (dbo != null) {
             OAuthRequest oauthRequest = translator.fromDBObject(dbo);

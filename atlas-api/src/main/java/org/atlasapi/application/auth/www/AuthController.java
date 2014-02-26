@@ -11,7 +11,6 @@ import javax.servlet.http.HttpServletResponse;
 import org.atlasapi.application.auth.UserFetcher;
 import org.atlasapi.application.model.auth.OAuthProvider;
 import org.atlasapi.application.users.User;
-import org.atlasapi.application.users.UserStore;
 import org.atlasapi.output.ErrorResultWriter;
 import org.atlasapi.output.ErrorSummary;
 import org.atlasapi.output.QueryResultWriter;
@@ -29,7 +28,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import com.google.common.base.Optional;
 import com.google.common.collect.Maps;
 import com.metabroadcast.common.ids.NumberToShortStringCodec;
-import com.metabroadcast.common.social.model.UserRef;
 import com.metabroadcast.common.url.Urls;
 
 @Controller

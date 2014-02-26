@@ -1,5 +1,7 @@
 package org.atlasapi.application.model.auth;
 
+import java.util.UUID;
+
 import org.atlasapi.application.model.auth.OAuthRequest;
 
 import com.google.common.base.Optional;
@@ -20,4 +22,9 @@ public interface TokenRequestStore {
      * Returns absent if not found
      */
     Optional<OAuthRequest> lookupAndRemove(UserNamespace namespace, String token);
+    
+    /**
+     * Looks up Oauth request by unique identifier
+     */
+    Optional<OAuthRequest> lookupAndRemove(UUID uuid);
 }

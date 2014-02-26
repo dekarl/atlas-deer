@@ -1,9 +1,10 @@
-package org.atlasapi.application.auth.github;
+package org.atlasapi.application.auth.google;
 
 import static com.google.api.client.repackaged.com.google.common.base.Preconditions.checkNotNull;
 
 import java.io.IOException;
 import java.util.Set;
+import java.util.UUID;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -31,6 +32,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 
+import com.google.api.services.oauth2.model.Userinfo;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableSet;
 import com.metabroadcast.common.base.Maybe;
@@ -39,32 +41,32 @@ import com.metabroadcast.common.social.model.UserRef;
 import com.metabroadcast.common.social.model.UserRef.UserNamespace;
 import com.metabroadcast.common.social.user.AccessTokenProcessor;
 import com.metabroadcast.common.url.UrlEncoding;
+import com.metabroadcast.common.url.Urls;
 
 @Controller
-public class GitHubAuthController {
-    private static Logger log = LoggerFactory.getLogger(GitHubAuthController.class);    
+public class GoogleAuthController {
+    private static final Set<String> SCOPES_REQUIRED = ImmutableSet.of(
+            "profile",
+            "https://www.googleapis.com/auth/userinfo.email",
+            "https://www.googleapis.com/auth/userinfo.profile");
+    private static Logger log = LoggerFactory.getLogger(GoogleAuthController.class);
     private final ResponseWriterFactory writerResolver = new ResponseWriterFactory();
-    private final GitHubAuthClient gitHubClient;
+    private final GoogleAuthClient googleClient;
     private final UserStore userStore; 
     private final NewUserSupplier userSupplier;
     private final QueryResultWriter<OAuthRequest> oauthRequestResultWriter;
     private final QueryResultWriter<OAuthResult> oauthResultResultWriter;
     private final AccessTokenProcessor accessTokenProcessor;
     private final TokenRequestStore tokenRequestStore;
-    
-    private static final Set<String> SCOPES_REQUIRED = ImmutableSet.of(
-            "user:email");
-    
-    public GitHubAuthController(
-            GitHubAuthClient gitHubClient,
-            AccessTokenProcessor accessTokenProcessor,
+
+    public GoogleAuthController(GoogleAuthClient googleClient, 
             UserStore userStore, 
             NewUserSupplier userSupplier,
-            TokenRequestStore tokenRequestStore,
             QueryResultWriter<OAuthRequest> oauthRequestResultWriter,
-            QueryResultWriter<OAuthResult> oauthResultResultWriter) {
+            QueryResultWriter<OAuthResult> oauthResultResultWriter,
+            AccessTokenProcessor accessTokenProcessor, TokenRequestStore tokenRequestStore) {
         super();
-        this.gitHubClient = checkNotNull(gitHubClient);
+        this.googleClient = checkNotNull(googleClient);
         this.userStore = checkNotNull(userStore);
         this.userSupplier = checkNotNull(userSupplier);
         this.oauthRequestResultWriter = checkNotNull(oauthRequestResultWriter);
@@ -72,9 +74,9 @@ public class GitHubAuthController {
         this.accessTokenProcessor = checkNotNull(accessTokenProcessor);
         this.tokenRequestStore = checkNotNull(tokenRequestStore);
     }
-    
-    @RequestMapping(value = { "/4.0/auth/github/login.*" }, method = RequestMethod.GET)
-    public void getGitHubLogin(HttpServletRequest request,
+
+    @RequestMapping(value = { "/4.0/auth/google/login.*" }, method = RequestMethod.GET)
+    public void getGoogleLogin(HttpServletRequest request,
         HttpServletResponse response,
             @RequestParam(required = true) String callbackUrl,
             @RequestParam(required = false) String targetUri) throws UnsupportedFormatException, NotAcceptableException, IOException {
@@ -82,11 +84,13 @@ public class GitHubAuthController {
         if (!Strings.isNullOrEmpty(targetUri)) {
             callbackUrl += "?targetUri=" + UrlEncoding.encode(targetUri);
         }
-        String authUrl = gitHubClient.getAuthorizationCodeRequestUrl(SCOPES_REQUIRED, callbackUrl);
+        UUID requestUuid = OAuthRequest.generateUuid();
+        String atlasCallbackUri = request.getRequestURL().toString().replace("login", "callback");
+        String authUrl = googleClient.getAuthorizationCodeRequestUrl(SCOPES_REQUIRED, atlasCallbackUri, requestUuid.toString());
             
         OAuthRequest oauthRequest = OAuthRequest.builder()
-             .withUuid(OAuthRequest.generateUuid())
-             .withNamespace(UserNamespace.GITHUB)
+             .withUuid(requestUuid)
+             .withNamespace(UserNamespace.GOOGLE)
              .withAuthUrl(authUrl)
              .withCallbackUrl(callbackUrl)
              .withToken("") 
@@ -96,34 +100,45 @@ public class GitHubAuthController {
         QueryResult<OAuthRequest> queryResult = QueryResult.singleResult(oauthRequest, QueryContext.standard());
         oauthRequestResultWriter.write(queryResult, writer);
     }
-
-    @RequestMapping(value = { "/4.0/auth/github/token.*" }, method = RequestMethod.GET)
+    
+    @RequestMapping(value = { "/4.0/auth/google/callback.json" }, method = RequestMethod.GET)
+    public void handleOauthCallback(HttpServletResponse response, HttpServletRequest request, 
+            @RequestParam(required = false) String code,
+            @RequestParam(required = false) String state,
+            @RequestParam(required = false) String error) throws IOException {
+        OAuthRequest oauthRequest = tokenRequestStore.lookupAndRemove(UUID.fromString(state)).get();
+        String redirectUrl = oauthRequest.getCallbackUrl().toExternalForm();
+        if (!Strings.isNullOrEmpty(code)) {
+            redirectUrl = Urls.appendParameters(redirectUrl, "code", code);
+        } else {
+            redirectUrl = Urls.appendParameters(redirectUrl, "error", error); 
+        }
+        response.sendRedirect(redirectUrl);
+    }
+    
+    @RequestMapping(value = { "/4.0/auth/google/token.*" }, method = RequestMethod.GET)
     public void getAccessToken(HttpServletResponse response, HttpServletRequest request, 
             @RequestParam String code,
             @RequestParam(required = false) String targetUri) throws IOException {
         ResponseWriter writer = null;
         try {
             writer = writerResolver.writerFor(request, response);
-            AuthToken token = gitHubClient.getAuthTokenForCode(code);           
+            String redirectUri = request.getRequestURL().toString().replace("token", "callback");
+            AuthToken token = googleClient.getAuthTokenForCode(code, redirectUri);
             Maybe<UserRef> userRef = accessTokenProcessor.process(token);
-            OAuthResult oauthResult;
-            if (userRef.hasValue()) {
+            boolean success = userRef.hasValue();
+            OAuthResult.Builder oauthResult = OAuthResult.builder()
+                                               .withProvider(OAuthProvider.GOOGLE)
+                                               .withSuccess(success)
+                                               .withToken("");
+            
+            if (success) {
                 // Make sure we have a user 
                 updateUser(token, userRef.requireValue());
-                oauthResult = OAuthResult.builder()
-                        .withSuccess(true)
-                        .withProvider(OAuthProvider.GITHUB)
-                        .withToken(token.tokenPayload())
-                        .build();
-            } else {
-                oauthResult = OAuthResult.builder()
-                        .withSuccess(false)
-                        .withProvider(OAuthProvider.GITHUB)
-                        .withToken("")
-                        .build();
+                oauthResult.withToken(token.tokenPayload());
             }
             
-            QueryResult<OAuthResult> queryResult = QueryResult.singleResult(oauthResult, QueryContext.standard());
+            QueryResult<OAuthResult> queryResult = QueryResult.singleResult(oauthResult.build(), QueryContext.standard());
             oauthResultResultWriter.write(queryResult, writer);
         }  catch (Exception e) {
             log.error("Request exception " + request.getRequestURI(), e);
@@ -133,7 +148,7 @@ public class GitHubAuthController {
     }
     
     private void updateUser(AuthToken token, UserRef userRef) throws IOException {
-        GitHubUser gitHubUser = gitHubClient.getUserForToken(token);
+        Userinfo googleUser = googleClient.getUserForToken(token);
         User user = userStore.userForRef(userRef).or(userSupplier);
         if (user.getUserRef() == null) {
             user = user.copy().withUserRef(userRef).build();
@@ -141,28 +156,15 @@ public class GitHubAuthController {
         if (user.isProfileComplete()) {
             return;
         }
-        // If profile not complete then populate with info from GitHub
-        String website = "";
-        if (!Strings.isNullOrEmpty(gitHubUser.getBlog())) {
-            website = gitHubUser.getBlog();
-        } 
-        else if (!Strings.isNullOrEmpty(gitHubUser.getHtmlUrl())) {
-            website = gitHubUser.getHtmlUrl();
-        }
-
+        
+        // If profile not complete then populate with info from Google
         User.Builder modified = user.copy()
-            .withScreenName(gitHubUser.getLogin())
-            .withFullName(gitHubUser.getName())
-            .withProfileImage(gitHubUser.getAvatarUrl())
-            .withCompany(gitHubUser.getCompany())
-            .withWebsite(website)
+            .withScreenName(googleUser.getName())
+            .withFullName(googleUser.getName())
+            .withProfileImage(googleUser.getPicture())
+            .withEmail(googleUser.getEmail())
+            .withWebsite(googleUser.getLink())
             .withProfileComplete(false);
-
-        try {
-            modified = modified.withEmail(gitHubClient.getPrimaryEmailAddress(token));
-        } catch (IllegalStateException | IOException e) {
-           log.error("Could not get email from GitHub", e);
-        }
         userStore.store(modified.build());
     }
 }
