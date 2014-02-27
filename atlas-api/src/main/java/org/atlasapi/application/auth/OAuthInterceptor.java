@@ -1,6 +1,7 @@
 package org.atlasapi.application.auth;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+
 import java.io.IOException;
 import java.util.Set;
 
@@ -11,6 +12,7 @@ import org.atlasapi.application.users.User;
 import org.atlasapi.output.ErrorResultWriter;
 import org.atlasapi.output.ErrorSummary;
 import org.atlasapi.output.NotAcceptableException;
+import org.atlasapi.output.NotAuthenticatedException;
 import org.atlasapi.output.NotAuthorizedException;
 import org.atlasapi.output.ResponseWriter;
 import org.atlasapi.output.ResponseWriterFactory;
@@ -53,7 +55,7 @@ public class OAuthInterceptor extends HandlerInterceptorAdapter {
         String uri = request.getRequestURI();
         
         if (!authorized(user, uri)) {
-            writeError(request, response, new NotAuthorizedException());
+            writeError(request, response, new NotAuthenticatedException());
             return false;
         } else if (user.isPresent() && !hasProfile(user.get()) && needsProfile(uri, user.get())) {
             writeError(request, response, new UserProfileIncompleteException());
@@ -72,7 +74,7 @@ public class OAuthInterceptor extends HandlerInterceptorAdapter {
         new ErrorResultWriter().write(summary, writer, request, response);
     }
     
-    private boolean authorized(Optional<User> user, String requestUri) throws NotAuthorizedException, UserProfileIncompleteException {
+    private boolean authorized(Optional<User> user, String requestUri) throws NotAuthenticatedException, UserProfileIncompleteException {
         if (urlsToProtect.isEmpty()) {
             return true; 
         }

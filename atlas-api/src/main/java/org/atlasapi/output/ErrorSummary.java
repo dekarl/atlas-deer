@@ -56,7 +56,10 @@ public class ErrorSummary {
 		    .put(NotFoundException.class, new DefaultErrorSummaryFactory("RESOURCE_NOT_FOUND", HttpStatusCode.NOT_FOUND))
 		    .put(NotAcceptableException.class, new DefaultErrorSummaryFactory("NOT_ACCEPTABLE", HttpStatusCode.NOT_ACCEPTABLE))
 		    .put(InvalidAnnotationException.class, new DefaultErrorSummaryFactory("BAD_ANNOTATION_VALUE", HttpStatusCode.BAD_REQUEST))
-		    .put(NotAuthorizedException.class, new DefaultErrorSummaryFactory("UNAUTHORIZED", HttpStatusCode.UNAUTHORIZED))
+		    // Sent when oauth tokens are not present. Request is invalid as missing params. Compatible with IE.
+		    .put(NotAuthenticatedException.class, new DefaultErrorSummaryFactory("NOT_AUTHENTICATED", HttpStatusCode.BAD_REQUEST))
+		    // Sent when logged in user does not have permission.
+		    .put(NotAuthorizedException.class, new DefaultErrorSummaryFactory("UNAUTHORIZED", HttpStatusCode.FORBIDDEN))
 		    .put(UserProfileIncompleteException.class, new DefaultErrorSummaryFactory("FORBIDDEN_USER_INCOMPLETE", HttpStatusCode.FORBIDDEN))
 		    .put(ResourceForbiddenException.class, new DefaultErrorSummaryFactory("FORBIDDEN_RESOURCE", HttpStatusCode.FORBIDDEN))
 		    .put(InvalidApiKeyException.class, new DefaultErrorSummaryFactory("INVALID_API_KEY", HttpStatusCode.FORBIDDEN))
