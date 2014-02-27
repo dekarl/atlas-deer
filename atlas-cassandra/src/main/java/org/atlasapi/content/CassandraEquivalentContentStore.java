@@ -26,6 +26,8 @@ import org.atlasapi.equivalence.ResolvedEquivalents;
 import org.atlasapi.media.entity.Publisher;
 import org.atlasapi.serialization.protobuf.ContentProtos;
 import org.atlasapi.util.SecondaryIndex;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.datastax.driver.core.ConsistencyLevel;
 import com.datastax.driver.core.Query;
@@ -67,7 +69,8 @@ public class CassandraEquivalentContentStore extends AbstractEquivalentContentSt
     private final ConsistencyLevel readConsistency;
 
     private final SecondaryIndex index;
-    
+
+    private final Logger log = LoggerFactory.getLogger(getClass());
     private final EquivalenceGraphSerializer graphSerializer = new EquivalenceGraphSerializer();
     private final ContentSerializer contentSerializer = new ContentSerializer();
 
@@ -204,10 +207,14 @@ public class CassandraEquivalentContentStore extends AbstractEquivalentContentSt
                 .where(in(SET_ID_KEY, ImmutableSet.copyOf(keys).toArray()))
                 .orderBy(asc(CONTENT_ID_KEY));
     }
-
+    
     @Override
     protected void updateEquivalences(
             ImmutableSetMultimap<EquivalenceGraph, Content> graphsAndContent, EquivalenceGraphUpdate update) {
+        if (graphsAndContent.isEmpty()) {
+            log.warn("Empty content for " + update);
+            return;
+        }
         updateDataRows(graphsAndContent);
         updateIndexRows(graphsAndContent);
         deleteStaleSets(update.getDeleted());
