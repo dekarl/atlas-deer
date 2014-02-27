@@ -67,7 +67,7 @@ public class SourcesController {
      * Post with app id and permission (read/write) required Params: "id":
      * "abc", "permission": "read"
      * @throws NotFoundException 
-     * @throws NotAuthorizedException If Oauth token not valid
+     * @throws ResourceForbiddenException if user does not manage source
      */
     @RequestMapping(value = "/4.0/sources/{sourceId}/applications", method = RequestMethod.POST)
     public void writeSourceForApplication(HttpServletRequest request, 
@@ -109,7 +109,7 @@ public class SourcesController {
      * (read/write) from an app on a source. Post with app id and permission
      * needed.
      * @throws QueryExecutionException 
-     * @throws NotAuthorizedException 
+     * @throws ResourceForbiddenException 
      */
     @RequestMapping(value = "/4.0/sources/{sourceId}/applications", method = RequestMethod.DELETE)
     public void deleteSourceForApplication(HttpServletRequest request, 
@@ -150,7 +150,7 @@ public class SourcesController {
      * POST /4.0/sources/:sourceId/applications/readers/:appId/state Changes
      * state of app for source, e.g. "available", "requested". Params: "state":
      * "available"
-     * @throws NotAuthorizedException 
+     * @throws ResourceForbiddenException 
      * @throws Exception 
      */
     @RequestMapping(value = "/4.0/sources/{sourceId}/applications/readers/{id}/state", method = RequestMethod.POST)
