@@ -34,7 +34,6 @@ import com.datastax.driver.core.ResultSetFuture;
 import com.datastax.driver.core.Row;
 import com.datastax.driver.core.Session;
 import com.datastax.driver.core.Statement;
-import com.datastax.driver.core.querybuilder.Update.Assignments;
 import com.google.common.base.Function;
 import com.google.common.base.Optional;
 import com.google.common.collect.Collections2;
@@ -216,11 +215,14 @@ public class CassandraEquivalentContentStore extends AbstractEquivalentContentSt
     }
 
     private void deleteStaleRows(EquivalenceGraph updated, ImmutableSet<EquivalenceGraph> created) {
+        if (created.isEmpty()) {
+            return;
+        }
         long id = updated.getId().longValue();
         List<Statement> deletes = Lists.newArrayList();
         for (EquivalenceGraph graph : created) {
             for (Id elem : graph.getEquivalenceSet()) {
-                deletes.add(delete().all()
+                deletes.add(delete()
                     .from(EQUIVALENT_CONTENT_TABLE)
                     .where(eq(SET_ID_KEY, id))
                         .and(eq(CONTENT_ID_KEY, elem.longValue())));
@@ -231,6 +233,9 @@ public class CassandraEquivalentContentStore extends AbstractEquivalentContentSt
     }
 
     private void deleteStaleSets(Set<Id> deletedGraphs) {
+        if (deletedGraphs.isEmpty()) {
+            return;
+        }
         Object[] ids = Collections2.transform(deletedGraphs, Id.toLongValue()).toArray();
         session.execute(delete().all()
                 .from(EQUIVALENT_CONTENT_TABLE)
