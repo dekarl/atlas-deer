@@ -243,17 +243,19 @@ public class CassandraEquivalentContentStore extends AbstractEquivalentContentSt
         for (Entry<EquivalenceGraph, Content> graphAndContent : graphsAndContent.entries()) {
             EquivalenceGraph graph = graphAndContent.getKey();
             Content content = graphAndContent.getValue();
-            Assignments update = dataRowUpdateFor(graph, content);
-            if (graph.getId().equals(content.getId())) {
-                update.and(set(GRAPH_KEY, graphSerializer.serialize(graph)));
-            }
-            updates.add(update);
+            updates.add(dataRowUpdateFor(graph, content));
+        }
+        for (EquivalenceGraph graph : graphsAndContent.keySet()) {
+            updates.add(update(EQUIVALENT_CONTENT_TABLE)
+                    .where(eq(SET_ID_KEY, graph.getId().longValue()))
+                    .and(eq(CONTENT_ID_KEY, graph.getId().longValue()))
+                    .with(set(GRAPH_KEY, graphSerializer.serialize(graph))));
         }
         session.execute(batch(updates.toArray(new Statement[updates.size()]))
                 .setConsistencyLevel(writeConsistency));        
     }
 
-    private Assignments dataRowUpdateFor(EquivalenceGraph graph, Content content) {
+    private Statement dataRowUpdateFor(EquivalenceGraph graph, Content content) {
         return update(EQUIVALENT_CONTENT_TABLE)
                 .where(eq(SET_ID_KEY, graph.getId().longValue()))
                 .and(eq(CONTENT_ID_KEY, content.getId().longValue()))
