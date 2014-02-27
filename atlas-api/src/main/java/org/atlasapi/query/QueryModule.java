@@ -58,7 +58,7 @@ public class QueryModule {
 
     private MergingEquivalentsResolver<Content> mergingContentResolver() {
         return new DefaultMergingEquivalentsResolver<Content>(
-            persistenceModule.equivalentContentResolver(), 
+            persistenceModule.getEquivalentContentStore(), 
             new StrategyBackedEquivalentsMerger<Content>(new OutputContentMerger())
         );
     }
