@@ -1,6 +1,7 @@
 package org.atlasapi.equivalence;
 
 import static org.hamcrest.Matchers.is;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
 import static org.testng.AssertJUnit.assertTrue;
 
@@ -32,7 +33,7 @@ import com.google.common.util.concurrent.ListenableFuture;
 import com.metabroadcast.common.collect.OptionalMap;
 import com.metabroadcast.common.time.DateTimeZones;
 
-public class CassandraEquivalenceGraphStoreTest {
+public class CassandraEquivalenceGraphStoreIT {
 
     private DatastaxCassandraService service
         = new DatastaxCassandraService(ImmutableList.of("localhost"));
@@ -67,7 +68,6 @@ public class CassandraEquivalenceGraphStoreTest {
             + "PRIMARY KEY (graph_id)"
         + ");");
         store = new CassandraEquivalenceGraphStore(messageSender, session , ConsistencyLevel.ONE, ConsistencyLevel.ONE);
-        System.out.println("blah " + store);
     }
     
     @AfterClass
@@ -110,13 +110,19 @@ public class CassandraEquivalenceGraphStoreTest {
         
         graph = graphs.get(Id.valueOf(1)).get();
         assertThat(graph.getEquivalenceSet(), is(ImmutableSet.of(Id.valueOf(1),Id.valueOf(2),Id.valueOf(4))));
+        
+        resolveIds = store.resolveIds(ImmutableList.of(Id.valueOf(1),Id.valueOf(2)));
+        graphs = Futures.get(resolveIds, ResolveException.class);
+        
+        EquivalenceGraph graph1 = graphs.get(Id.valueOf(1)).get();
+        EquivalenceGraph graph2 = graphs.get(Id.valueOf(2)).get();
+        assertEquals(graph1, graph2);
+        assertTrue(graph1 == graph2);
     }
     
     @Test
     public void testCreatingEquivalences() throws Exception {
 
-        System.out.println("bleh " + store);
-        
         ResourceRef subject = new BrandRef(Id.valueOf(1), Publisher.BBC);
         BrandRef equiv = new BrandRef(Id.valueOf(2), Publisher.PA);
         Set<ResourceRef> assertedAdjacents = ImmutableSet.<ResourceRef>of(equiv);

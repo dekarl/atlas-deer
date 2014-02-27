@@ -99,7 +99,7 @@ public final class CassandraEquivalenceGraphStore extends AbstractEquivalenceGra
     private Query queryForGraphRows(final Map<Id, Long> idIndex) {
         return select().all()
                 .from(EQUIVALENCE_GRAPHS_TABLE)
-                .where(in(GRAPH_ID_KEY, idIndex.values().toArray()))
+                .where(in(GRAPH_ID_KEY, ImmutableSet.copyOf(idIndex.values()).toArray()))
                 .setConsistencyLevel(read);
     }
 

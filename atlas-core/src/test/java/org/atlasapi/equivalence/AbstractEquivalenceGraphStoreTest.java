@@ -30,6 +30,7 @@ import java.util.concurrent.TimeUnit;
 import org.atlasapi.content.Item;
 import org.atlasapi.content.ItemRef;
 import org.atlasapi.entity.Id;
+import org.atlasapi.entity.Identifiables;
 import org.atlasapi.entity.ResourceRef;
 import org.atlasapi.entity.Sourced;
 import org.atlasapi.entity.Sourceds;
@@ -55,6 +56,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Range;
 import com.google.common.util.concurrent.Futures;
@@ -204,6 +206,74 @@ public class AbstractEquivalenceGraphStoreTest {
     }
     
     @Test
+    public void testJoiningTwoPairsOfEquivalents() throws WriteException {
+        makeEquivalent(paItem, c4Item);
+        makeEquivalent(itvItem, fiveItem);
+        
+        assertEfferentAdjacents(paItem, c4Item);
+        assertAfferentAdjacent(c4Item, paItem);
+        assertEfferentAdjacents(itvItem, fiveItem);
+        assertAfferentAdjacent(fiveItem, itvItem);
+        
+        makeEquivalent(bbcItem, paItem, itvItem);
+        
+        assertEquals(ImmutableSet.copyOf(Lists.transform(ImmutableList.of(bbcItem, paItem, itvItem, c4Item, fiveItem), Identifiables.toId())), 
+                graphOf(bbcItem).getEquivalenceSet());
+                        
+        makeEquivalent(bbcItem, Publisher.all());
+        
+        assertEquals(ImmutableSet.of(bbcItem.getId()), graphOf(bbcItem).getEquivalenceSet());
+        
+    }
+    
+    @Test
+    public void testUpdatesForIdInItsOwnGraph() throws WriteException {
+        
+        Optional<EquivalenceGraphUpdate> possibleUpdate = makeEquivalent(bbcItem, paItem, itvItem);
+
+        checkUpdate(possibleUpdate, bbcItem, ImmutableSet.<EquivalenceGraph>of(), ImmutableSet.of(paItem.getId(), itvItem.getId()));
+        
+        possibleUpdate = makeEquivalent(bbcItem, Publisher.all(), itvItem, c4Item);
+
+        checkUpdate(possibleUpdate, bbcItem, ImmutableSet.of(graphOf(paItem)), ImmutableSet.of(c4Item.getId()));
+        
+        possibleUpdate = makeEquivalent(bbcItem, Publisher.all());
+        
+        checkUpdate(possibleUpdate, bbcItem, ImmutableSet.of(graphOf(itvItem), graphOf(c4Item)), ImmutableSet.<Id>of());
+        
+    }
+
+    @Test
+    public void testUpdatesForIdInAnotherGraph() throws WriteException {
+        
+        Optional<EquivalenceGraphUpdate> possibleUpdate = makeEquivalent(paItem, c4Item);
+        
+        checkUpdate(possibleUpdate, paItem, ImmutableSet.<EquivalenceGraph>of(), ImmutableSet.of(c4Item.getId()));
+        
+        possibleUpdate = makeEquivalent(bbcItem, paItem, itvItem);
+        
+        checkUpdate(possibleUpdate, bbcItem, ImmutableSet.<EquivalenceGraph>of(), ImmutableSet.of(paItem.getId(), itvItem.getId()));
+
+        possibleUpdate = makeEquivalent(paItem, Publisher.all(), itvItem, fiveItem);
+
+        checkUpdate(possibleUpdate, bbcItem, ImmutableSet.of(graphOf(c4Item)), ImmutableSet.of(fiveItem.getId()));
+        
+        possibleUpdate = makeEquivalent(paItem, Publisher.all(), fiveItem);
+        
+        checkUpdate(possibleUpdate, bbcItem, ImmutableSet.<EquivalenceGraph>of(), ImmutableSet.<Id>of());
+        
+    }
+
+    private void checkUpdate(Optional<EquivalenceGraphUpdate> possibleUpdate, Item updated,
+            ImmutableSet<EquivalenceGraph> created, ImmutableSet<Id> deleted) {
+        assertTrue(possibleUpdate.isPresent());
+        EquivalenceGraphUpdate update = possibleUpdate.get();
+        assertThat("updated", update.getUpdated(), is(graphOf(updated)));
+        assertThat("created", update.getCreated(), is(created));
+        assertThat("deleted", update.getDeleted(), is(deleted));
+    }
+    
+    @Test
     public void testRemovingAnEquivalentResource() throws WriteException {
         
         makeEquivalent(bbcItem, paItem, c4Item);
@@ -326,7 +396,7 @@ public class AbstractEquivalenceGraphStoreTest {
         
     }
     
-    private Optional<ImmutableSet<EquivalenceGraph>> makeEquivalent(Item subj, Item...equivs) throws WriteException {
+    private Optional<EquivalenceGraphUpdate> makeEquivalent(Item subj, Item...equivs) throws WriteException {
         Iterable<Item> items = Iterables.concat(ImmutableList.of(subj), ImmutableList.copyOf(equivs));
         ImmutableSet<Publisher> sources = FluentIterable.from(items)
                 .transform(Sourceds.toPublisher())
@@ -334,7 +404,7 @@ public class AbstractEquivalenceGraphStoreTest {
         return makeEquivalent(subj, sources, equivs);
     }
 
-    private Optional<ImmutableSet<EquivalenceGraph>> makeEquivalent(Item subj, Set<Publisher> sources, Item...equivs) throws WriteException {
+    private Optional<EquivalenceGraphUpdate> makeEquivalent(Item subj, Set<Publisher> sources, Item...equivs) throws WriteException {
         ImmutableList<Item> es = ImmutableList.copyOf(equivs);
         return store.updateEquivalences(subj.toRef(), ImmutableSet.copyOf(Iterables.transform(es,new Function<Item,ResourceRef>(){
             @Override
@@ -362,9 +432,10 @@ public class AbstractEquivalenceGraphStoreTest {
         assertThat(initialBbcGraph, adjacencyList(not(hasKey(paItem.getId()))));
         assertThat(initialPaGraph, adjacencyList(not(hasKey(bbcItem.getId()))));
 
-        Optional<ImmutableSet<EquivalenceGraph>> update = makeEquivalent(bbcItem, paItem, bbcItem, paItem);
+        Optional<EquivalenceGraphUpdate> update = makeEquivalent(bbcItem, paItem);
         assertTrue(update.isPresent());
-        assertEquals(1, update.get().size());
+        assertEquals(graphOf(bbcItem), update.get().getUpdated());
+        assertEquals(1, update.get().getDeleted().size());
         
         assertThat(graphOf(bbcItem).getAdjacencyList().size(), is(82));
         assertThat(graphOf(paItem).getAdjacencyList().size(), is(82));
@@ -375,7 +446,8 @@ public class AbstractEquivalenceGraphStoreTest {
         
         update = makeEquivalent(bbcItem, sources(bbcItem, paItem));
         assertTrue(update.isPresent());
-        assertEquals(2, update.get().size());
+        assertEquals(graphOf(bbcItem), update.get().getUpdated());
+        assertEquals(1, update.get().getCreated().size());
         
         assertThat(graphOf(bbcItem).getAdjacencyList().size(), is(41));
         assertThat(graphOf(paItem).getAdjacencyList().size(), is(41));

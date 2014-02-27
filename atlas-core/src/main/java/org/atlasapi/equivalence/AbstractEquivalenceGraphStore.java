@@ -5,8 +5,8 @@ import static com.google.common.base.Predicates.in;
 import static com.google.common.base.Predicates.not;
 
 import java.io.IOException;
-import java.util.Iterator;
 import java.util.Map;
+import java.util.Queue;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
@@ -27,14 +27,15 @@ import org.slf4j.Logger;
 
 import com.google.common.base.Function;
 import com.google.common.base.Functions;
-import com.google.common.base.Objects;
 import com.google.common.base.Optional;
+import com.google.common.base.Predicate;
 import com.google.common.base.Predicates;
 import com.google.common.base.Throwables;
 import com.google.common.collect.Collections2;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.google.common.util.concurrent.Futures;
@@ -58,7 +59,7 @@ public abstract class AbstractEquivalenceGraphStore implements EquivalenceGraphS
     }
     
     @Override
-    public final Optional<ImmutableSet<EquivalenceGraph>> updateEquivalences(ResourceRef subject,
+    public final Optional<EquivalenceGraphUpdate> updateEquivalences(ResourceRef subject,
             Set<ResourceRef> assertedAdjacents, Set<Publisher> sources) throws WriteException {
 
         ImmutableSet<Id> newAdjacents
@@ -73,7 +74,7 @@ public abstract class AbstractEquivalenceGraphStore implements EquivalenceGraphS
                 }
             }
 
-            Optional<ImmutableSet<EquivalenceGraph>> updated
+            Optional<EquivalenceGraphUpdate> updated
                 = updateGraphs(subject, ImmutableSet.<ResourceRef>copyOf(assertedAdjacents), sources);
             if (updated.isPresent()) {
                 sendUpdateMessage(subject, updated);
@@ -102,7 +103,7 @@ public abstract class AbstractEquivalenceGraphStore implements EquivalenceGraphS
         
     }
 
-    private void sendUpdateMessage(ResourceRef subject, Optional<ImmutableSet<EquivalenceGraph>> updated)  {
+    private void sendUpdateMessage(ResourceRef subject, Optional<EquivalenceGraphUpdate> updated)  {
         try {
             messageSender.sendMessage(new EquivalenceGraphUpdateMessage(
                 UUID.randomUUID().toString(),
@@ -140,7 +141,7 @@ public abstract class AbstractEquivalenceGraphStore implements EquivalenceGraphS
         ));
     }
 
-    private Optional<ImmutableSet<EquivalenceGraph>> updateGraphs(ResourceRef subject, 
+    private Optional<EquivalenceGraphUpdate> updateGraphs(ResourceRef subject, 
             ImmutableSet<ResourceRef> assertedAdjacents, Set<Publisher> sources) throws StoreException {
         
         EquivalenceGraph subjGraph = existingGraph(subject).or(EquivalenceGraph.valueOf(subject));
@@ -151,49 +152,78 @@ public abstract class AbstractEquivalenceGraphStore implements EquivalenceGraphS
             return Optional.absent();
         }
         
-        Map<Id, Adjacents> updatedAdjacents = updateAdjacencies(subject,
-                subjGraph.getAdjacencyList().values(), assertedAdjacents, sources);
+        Map<ResourceRef, EquivalenceGraph> assertedAdjacentGraphs = resolveRefs(assertedAdjacents);
         
-        return Optional.of(store(recomputeGraphs(updatedAdjacents)));
+        Map<Id, Adjacents> updatedAdjacents = updateAdjacencies(subject,
+                subjGraph.getAdjacencyList().values(), assertedAdjacentGraphs, sources);
+        
+        EquivalenceGraphUpdate update =
+                computeUpdate(subject, assertedAdjacentGraphs, updatedAdjacents);
+        
+        store(update.getAllGraphs());
+        
+        return Optional.of(update);
     }
 
-    private ImmutableSet<EquivalenceGraph> recomputeGraphs(Map<Id, Adjacents> updatedAdjacents) {
-        Function<Identifiable, Adjacents> toAdjs
-            = Functions.compose(Functions.forMap(updatedAdjacents), Identifiables.toId());
-        
-        Map<Id, Set<Adjacents>> updated = Maps.newHashMap();
-        for (Adjacents adj : updatedAdjacents.values()) {
-            Set<Adjacents> transitiveSet = transitiveSet(updated, adj);
-            transitiveSet.addAll(Collections2.transform(adj.getEfferent(), toAdjs));
-            for (ResourceRef r : adj.getEfferent()) {
-                updated.put(r.getId(), transitiveSet);
+    private EquivalenceGraphUpdate computeUpdate(ResourceRef subject,
+            Map<ResourceRef, EquivalenceGraph> assertedAdjacentGraphs, Map<Id, Adjacents> updatedAdjacents) {
+        Map<Id, EquivalenceGraph> updatedGraphs = computeUpdatedGraphs(updatedAdjacents);
+        EquivalenceGraph updatedGraph = graphFor(subject, updatedGraphs);
+        return new EquivalenceGraphUpdate(updatedGraph,
+            Collections2.filter(updatedGraphs.values(), Predicates.not(Predicates.equalTo(updatedGraph))), 
+            Iterables.filter(Iterables.transform(assertedAdjacentGraphs.values(), Identifiables.toId()), 
+                    Predicates.not(Predicates.in(updatedGraphs.keySet())))
+        );
+    }
+
+    private EquivalenceGraph graphFor(ResourceRef subject, Map<Id, EquivalenceGraph> updatedGraphs) {
+        for (EquivalenceGraph graph : updatedGraphs.values()) {
+            if (graph.getEquivalenceSet().contains(subject.getId())) {
+                return graph;
             }
         }
-        ImmutableSet.Builder<EquivalenceGraph> updatedGraphs = ImmutableSet.builder();
-        for (Set<Adjacents> set : ImmutableSet.copyOf(updated.values())) {
-            updatedGraphs.add(EquivalenceGraph.valueOf(set));
-        }
-        return updatedGraphs.build();
+        throw new IllegalStateException("Couldn't find updated graph for " + subject);
     }
 
-    private Set<Adjacents> transitiveSet(Map<Id, Set<Adjacents>> updated, Adjacents adj) {
-        Set<Adjacents> transitiveSet = null;
-        Iterator<ResourceRef> efferent = adj.getEfferent().iterator();
-        while(transitiveSet == null && efferent.hasNext()) {
-            transitiveSet = updated.get(efferent.next().getId());
+    private Map<Id, EquivalenceGraph> computeUpdatedGraphs(Map<Id, Adjacents> updatedAdjacents) {
+        Function<Identifiable, Adjacents> toAdjs = 
+                Functions.compose(Functions.forMap(updatedAdjacents), Identifiables.toId());
+        Set<Id> seen = Sets.newHashSetWithExpectedSize(updatedAdjacents.size());
+        
+        Map<Id, EquivalenceGraph> updated = Maps.newHashMap();
+        for (Adjacents adj : updatedAdjacents.values()) {
+            if (!seen.contains(adj.getId())) {
+                EquivalenceGraph graph = EquivalenceGraph.valueOf(transitiveSet(adj, toAdjs));
+                updated.put(graph.getId(), graph);
+                seen.addAll(graph.getEquivalenceSet());
+            }
         }
-        transitiveSet = Objects.firstNonNull(transitiveSet, Sets.<Adjacents>newHashSet());
-        return transitiveSet;
+        return updated;
+    }
+
+    private Set<Adjacents> transitiveSet(Adjacents adj, Function<Identifiable, Adjacents> toAdjs) {
+        Set<Adjacents> set = Sets.newHashSet();
+        Predicate<Adjacents> notSeen = Predicates.not(Predicates.in(set));
+        
+        Queue<Adjacents> work = Lists.newLinkedList();
+        work.add(adj);
+        while(!work.isEmpty()) {
+            Adjacents curr = work.poll();
+            set.add(curr);
+            work.addAll(Collections2.filter(Collections2.transform(curr.getAdjacent(), toAdjs),notSeen));
+        }
+        return set;
     }
 
     private Map<Id, Adjacents> updateAdjacencies(ResourceRef subject,
-            Iterable<Adjacents> subjAdjacencies, ImmutableSet<ResourceRef> assertedAdjacents,
+            Iterable<Adjacents> subjAdjacencies, Map<ResourceRef, EquivalenceGraph> adjacentGraphs,
             Set<Publisher> sources) throws StoreException {
         ImmutableMap.Builder<Id, Adjacents> updated = ImmutableMap.builder();
-        ImmutableSet<Adjacents> allAdjacents = currentTransitiveAdjacents(assertedAdjacents)
+
+        ImmutableSet<Adjacents> allAdjacents = currentTransitiveAdjacents(adjacentGraphs)
                 .addAll(subjAdjacencies).build();
         for (Adjacents adj : allAdjacents) {
-            updated.put(adj.getId(), updateAdjacents(adj, subject, assertedAdjacents, sources));
+            updated.put(adj.getId(), updateAdjacents(adj, subject, adjacentGraphs.keySet(), sources));
         }
         return updated.build();
     }
@@ -222,20 +252,23 @@ public abstract class AbstractEquivalenceGraphStore implements EquivalenceGraphS
         return subj.copyWithEfferents(updatedEfferents.build());
     }
 
-    private ImmutableSet.Builder<Adjacents> currentTransitiveAdjacents(Set<ResourceRef> adjacents)
+    private ImmutableSet.Builder<Adjacents> currentTransitiveAdjacents(Map<ResourceRef, EquivalenceGraph> resolved)
             throws StoreException {
-        Iterable<Id> adjacentsIds = Iterables.transform(adjacents, Identifiables.toId());
-        OptionalMap<Id,EquivalenceGraph> resolved = get(resolveIds(adjacentsIds));
         ImmutableSet.Builder<Adjacents> result = ImmutableSet.<Adjacents>builder();
-        for (ResourceRef ref : adjacents) {
-            Optional<EquivalenceGraph> g = resolved.get(ref.getId());
-            if (g.isPresent()) {
-                result.addAll(g.get().getAdjacencyList().values());
-            } else {
-                result.add(Adjacents.valueOf(ref));
-            }
+        for (EquivalenceGraph graph : resolved.values()) {
+            result.addAll(graph.getAdjacencyList().values());
         }
         return result;
+    }
+
+    private Map<ResourceRef, EquivalenceGraph> resolveRefs(Set<ResourceRef> adjacents)
+            throws WriteException {
+        OptionalMap<Id, EquivalenceGraph> existing = get(resolveIds(Iterables.transform(adjacents, Identifiables.toId())));
+        Map<ResourceRef, EquivalenceGraph> graphs = Maps.newHashMapWithExpectedSize(adjacents.size());
+        for (ResourceRef adj : adjacents) {
+            graphs.put(adj, existing.get(adj.getId()).or(EquivalenceGraph.valueOf(adj)));
+        }
+        return graphs;
     }
     
     private boolean changeInAdjacents(Adjacents subjAdjs,

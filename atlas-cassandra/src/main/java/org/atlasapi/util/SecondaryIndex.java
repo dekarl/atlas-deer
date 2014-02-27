@@ -69,14 +69,18 @@ public class SecondaryIndex {
     }
 
     public ListenableFuture<ImmutableMap<Long, Long>> lookup(Iterable<Long> keys) {
-        return Futures.transform(session.executeAsync(queryFor(keys)), toMap);
+        return Futures.transform(session.executeAsync(queryFor(keys, readConsistency)), toMap);
     }
 
-    private Query queryFor(Iterable<Long> keys) {
+    public ListenableFuture<ImmutableMap<Long, Long>> lookup(Iterable<Long> keys, ConsistencyLevel level) {
+        return Futures.transform(session.executeAsync(queryFor(keys, level)), toMap);
+    }
+
+    private Query queryFor(Iterable<Long> keys, ConsistencyLevel level) {
         return select(KEY_KEY, VALUE_KEY)
                 .from(indexTable)
                 .where(in(KEY_KEY, Iterables.toArray(keys, Object.class)))
-                .setConsistencyLevel(readConsistency);
+                .setConsistencyLevel(level);
     }
 
 }
