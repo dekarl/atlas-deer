@@ -102,6 +102,9 @@ public class LegacyMessageSerializer implements MessageSerializer {
                 }
 
                 private Set<ResourceRef> toResourceRef(ContentEquivalenceAssertionMessage leg) {
+                    if (leg.getAdjacent() == null || leg.getAdjacent().isEmpty()) {
+                        return ImmutableSet.of();
+                    }
                     DateTime madeUpUpdatedTime = new DateTime(leg.getTimestamp(), DateTimeZones.UTC);
                     ImmutableSet.Builder<ResourceRef> resourceRefs = ImmutableSet.builder();
                     for (AdjacentRef adjacentRef : leg.getAdjacent()) {
