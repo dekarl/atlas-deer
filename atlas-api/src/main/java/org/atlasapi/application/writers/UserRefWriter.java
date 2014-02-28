@@ -31,7 +31,7 @@ public class UserRefWriter implements EntityListWriter<UserRef> {
     @Override
     public void write(UserRef entity, FieldWriter writer, OutputContext ctxt) throws IOException {
         writer.writeField("userId", entity.getUserId());
-        writer.writeField("userNamespace", entity.getNamespace().prefix());
+        writer.writeField("userNamespace", entity.getNamespace().name().toLowerCase());
         writer.writeField("appId", entity.getAppId());
         writer.writeField("opaqueId", entity.getOpaqueId());
     }
