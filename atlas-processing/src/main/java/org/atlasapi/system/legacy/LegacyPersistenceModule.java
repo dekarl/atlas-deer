@@ -73,8 +73,4 @@ public class LegacyPersistenceModule {
         return new LegacyScheduleResolver(new MongoScheduleStore(db, persistence.channelStore(), resolver, equivalentContentResolver));
     }
 
-    @Bean @Qualifier("legacy")
-    public LegacyEquivalenceLister legacyEquivalenceLister() {
-        return new LegacyEquivalenceLister(legacyEquivalenceStore());
-    }
 }

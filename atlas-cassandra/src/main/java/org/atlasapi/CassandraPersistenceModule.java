@@ -5,7 +5,6 @@ import org.atlasapi.content.CassandraEquivalentContentStore;
 import org.atlasapi.content.ContentHasher;
 import org.atlasapi.content.EquivalentContentStore;
 import org.atlasapi.equivalence.CassandraEquivalenceGraphStore;
-import org.atlasapi.equivalence.CassandraEquivalenceRecordStore;
 import org.atlasapi.equivalence.EquivalenceGraphStore;
 import org.atlasapi.messaging.ProducerQueueFactory;
 import org.atlasapi.schedule.CassandraScheduleStore;
@@ -33,7 +32,6 @@ public class CassandraPersistenceModule extends AbstractIdleService implements P
     private final CassandraContentStore contentStore;
     private final CassandraTopicStore topicStore;
     private final CassandraScheduleStore scheduleStore;
-    private final CassandraEquivalenceRecordStore equivalenceRecordStore;
     private final DatastaxCassandraService dataStaxService;
 
     private CassandraEquivalenceGraphStore contentEquivalenceGraphStore;
@@ -61,9 +59,6 @@ public class CassandraPersistenceModule extends AbstractIdleService implements P
                 .withReadConsistency(ConsistencyLevel.CL_ONE)
                 .withWriteConsistency(ConsistencyLevel.CL_QUORUM)
                 .build();
-        this.equivalenceRecordStore = new CassandraEquivalenceRecordStore(
-            context, "equivalence_record", ConsistencyLevel.CL_ONE, ConsistencyLevel.CL_QUORUM
-        );
         this.dataStaxService = datastaxCassandraService;
     }
 
@@ -114,10 +109,6 @@ public class CassandraPersistenceModule extends AbstractIdleService implements P
                 return 0;
             }
         };
-    }
-    
-    public CassandraEquivalenceRecordStore getEquivalenceRecordStore() {
-        return this.equivalenceRecordStore;
     }
 
     public EquivalenceGraphStore contentEquivalenceGraphStore() {
