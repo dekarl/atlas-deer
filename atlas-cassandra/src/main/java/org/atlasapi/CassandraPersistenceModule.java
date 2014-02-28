@@ -25,6 +25,7 @@ public class CassandraPersistenceModule extends AbstractIdleService implements P
     private String contentEquivalenceGraphChanges = Configurer.get("messaging.destination.equivalence.content.graph.changes").get();
     private String contentChanges = Configurer.get("messaging.destination.content.changes").get();
     private String topicChanges = Configurer.get("messaging.destination.topics.changes").get();
+    private String scheduleChanges = Configurer.get("messaging.destination.schedule.changes").get();
     
     private final String keyspace;
 
@@ -55,7 +56,7 @@ public class CassandraPersistenceModule extends AbstractIdleService implements P
             .withReadConsistency(ConsistencyLevel.CL_ONE)
             .withWriteConsistency(ConsistencyLevel.CL_QUORUM)
             .build();
-        this.scheduleStore = CassandraScheduleStore.builder(context, "schedule", contentStore)
+        this.scheduleStore = CassandraScheduleStore.builder(context, "schedule", contentStore, messageSenderFactory.makeMessageSender(scheduleChanges))
                 .withReadConsistency(ConsistencyLevel.CL_ONE)
                 .withWriteConsistency(ConsistencyLevel.CL_QUORUM)
                 .build();

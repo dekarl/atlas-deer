@@ -99,6 +99,10 @@ public class Broadcast extends Identified {
 		return transmissionEndTime;
 	}
     
+    public Interval getTransmissionInterval() {
+        return new Interval(transmissionTime, transmissionTime);
+    }
+    
     public Maybe<Interval> transmissionInterval() {
         if (transmissionTime != null && transmissionEndTime != null) {
             return Maybe.fromPossibleNullValue(new Interval(transmissionTime, transmissionEndTime));

@@ -3,8 +3,10 @@ package org.atlasapi.schedule;
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 
+import java.io.IOException;
 import java.util.Iterator;
 import java.util.List;
+import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
 import org.atlasapi.content.Broadcast;
@@ -18,6 +20,10 @@ import org.atlasapi.entity.util.WriteException;
 import org.atlasapi.entity.util.WriteResult;
 import org.atlasapi.media.channel.Channel;
 import org.atlasapi.media.entity.Publisher;
+import org.atlasapi.messaging.MessageSender;
+import org.atlasapi.schedule.ScheduleRef.Builder;
+import org.atlasapi.schedule.ScheduleRef.ScheduleRefEntry;
+import org.joda.time.DateTime;
 import org.joda.time.Interval;
 
 import com.google.common.base.Function;
@@ -27,6 +33,8 @@ import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
+import com.metabroadcast.common.time.DateTimeZones;
+import com.metabroadcast.common.time.Timestamp;
 
 /**
  * {@code AbstractScheduleStore} is a base implementation of a
@@ -48,11 +56,13 @@ import com.google.common.util.concurrent.ListenableFuture;
 public abstract class AbstractScheduleStore implements ScheduleStore {
     
     private final ContentStore contentStore;
+    private final MessageSender messageSender;
     private final BroadcastContiguityCheck contiguityCheck;
     private final ScheduleBlockUpdater blockUpdater;
 
-    public AbstractScheduleStore(ContentStore contentStore) {
+    public AbstractScheduleStore(ContentStore contentStore, MessageSender sender) {
         this.contentStore = checkNotNull(contentStore);
+        this.messageSender = checkNotNull(sender);
         this.contiguityCheck = new BroadcastContiguityCheck();
         this.blockUpdater = new ScheduleBlockUpdater();
     }
@@ -81,9 +91,30 @@ public abstract class AbstractScheduleStore implements ScheduleStore {
             updateItemInContentStore(staleEntry);
         }
         doWrite(source, removeAdditionalBroadcasts(updated.getUpdatedBlocks()));
+        sendUpdateMessage(content, channel, interval);
         return writeResults;
     }
     
+    private void sendUpdateMessage(List<ScheduleHierarchy> content, Channel channel, Interval interval) throws WriteException {
+        try {
+            messageSender.sendMessage(new ScheduleUpdateMessage(UUID.randomUUID().toString(), 
+                    Timestamp.of(DateTime.now(DateTimeZones.UTC)), scheduleRef(content, channel, interval)));
+        } catch (IOException e) {
+            throw new WriteException(e);
+        }
+    }
+
+    private ScheduleRef scheduleRef(List<ScheduleHierarchy> content, Channel channel, Interval interval) {
+        Id cid = Id.valueOf(channel.getId());
+        Builder builder = ScheduleRef.forChannel(cid, interval);
+        for (ScheduleHierarchy scheduleHierarchy : content) {
+            ItemAndBroadcast iab = scheduleHierarchy.getItemAndBroadcast();
+            Broadcast broadcast = iab.getBroadcast();
+            builder.addEntry(new ScheduleRefEntry(iab.getItem().getId(),cid,broadcast.getTransmissionInterval(), broadcast.getSourceId()));
+        }
+        return builder.build();
+    }
+
     private List<ChannelSchedule> removeAdditionalBroadcasts(List<ChannelSchedule> updatedBlocks) {
         ImmutableList.Builder<ChannelSchedule> blocks = ImmutableList.builder();
         for (ChannelSchedule block : updatedBlocks) {

@@ -105,7 +105,7 @@ public class CassandraScheduleStoreIT {
                 .withClock(clock)
                 .build();
         store = CassandraScheduleStore
-                .builder(context, SCHEDULE_CF_NAME, contentStore)
+                .builder(context, SCHEDULE_CF_NAME, contentStore, sender)
                 .withReadConsistency(ConsistencyLevel.CL_ONE)
                 .withWriteConsistency(ConsistencyLevel.CL_ONE)
                 .withClock(clock)
