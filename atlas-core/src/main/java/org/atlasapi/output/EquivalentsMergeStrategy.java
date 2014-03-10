@@ -1,14 +1,14 @@
 package org.atlasapi.output;
 
 import org.atlasapi.application.ApplicationSources;
-import org.atlasapi.equivalence.Equivalent;
+import org.atlasapi.equivalence.Equivalable;
 
 /**
  *  Merges a set of equivalents into a single chosen resource.
  *
  * @param <E>
  */
-public interface EquivalentsMergeStrategy<E extends Equivalent<E>> {
+public interface EquivalentsMergeStrategy<E extends Equivalable<E>> {
 
     /**
      * @param chosen - resource in to which {@code equivalents} is merged.

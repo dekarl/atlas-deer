@@ -14,7 +14,7 @@ import com.google.common.base.Function;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 
-public class DefaultMergingEquivalentsResolver<E extends Equivalent<E>>
+public class DefaultMergingEquivalentsResolver<E extends Equivalable<E>>
         implements MergingEquivalentsResolver<E> {
     
     private final EquivalentsResolver<E> resolver;

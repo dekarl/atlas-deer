@@ -1,13 +1,13 @@
 package org.atlasapi.content;
 
 import org.atlasapi.equivalence.EquivalenceRef;
-import org.atlasapi.equivalence.Equivalent;
+import org.atlasapi.equivalence.Equivalable;
 import org.atlasapi.media.entity.Publisher;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 
-public class ContentGroup extends Described implements MutableContentList, Equivalent<ContentGroup> {
+public class ContentGroup extends Described implements MutableContentList, Equivalable<ContentGroup> {
 
     private transient String readHash;
     //

@@ -5,7 +5,8 @@ import java.util.Set;
 import org.atlasapi.entity.Identifiable;
 import org.atlasapi.entity.Sourced;
 
-public interface Equivalent<E extends Equivalent<E>> extends Identifiable, Sourced {
+@Deprecated
+public interface Equivalable<E extends Equivalable<E>> extends Identifiable, Sourced {
 
     Set<EquivalenceRef> getEquivalentTo();
     

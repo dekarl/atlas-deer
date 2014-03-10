@@ -24,13 +24,13 @@ import com.google.common.collect.Sets;
  *
  * @param <E>
  */
-public class ResolvedEquivalents<E extends Equivalent<E>> extends ForwardingSetMultimap<Id, E> {
+public class ResolvedEquivalents<E extends Equivalable<E>> extends ForwardingSetMultimap<Id, E> {
 
-    public static <E extends Equivalent<E>> Builder<E> builder() {
+    public static <E extends Equivalable<E>> Builder<E> builder() {
         return new Builder<E>();
     }
 
-    public static class Builder<E extends Equivalent<E>> {
+    public static class Builder<E extends Equivalable<E>> {
 
         private ImmutableSetMultimap.Builder<Id,E> entries = ImmutableSetMultimap.builder();
 
@@ -45,9 +45,9 @@ public class ResolvedEquivalents<E extends Equivalent<E>> extends ForwardingSetM
         
         private Iterable<E> setEquivalentToFields(Iterable<? extends E> equivalents) {
             Map<Id, EquivalenceRef> refMap = Maps.uniqueIndex(Iterables.transform(equivalents,
-                    new Function<Equivalent<?>, EquivalenceRef>() {
+                    new Function<Equivalable<?>, EquivalenceRef>() {
                         @Override
-                        public EquivalenceRef apply(Equivalent<?> input) {
+                        public EquivalenceRef apply(Equivalable<?> input) {
                             return EquivalenceRef.valueOf(input);
                         }
                     }), Identifiables.toId());
@@ -97,7 +97,7 @@ public class ResolvedEquivalents<E extends Equivalent<E>> extends ForwardingSetM
             = new ResolvedEquivalents(ImmutableSetMultimap.<Id,Object>of());
     
     @SuppressWarnings("unchecked")
-    public static <E extends Equivalent<E>> ResolvedEquivalents<E> empty() {
+    public static <E extends Equivalable<E>> ResolvedEquivalents<E> empty() {
         return (ResolvedEquivalents<E>) EMPTY_INSTANCE;
     }
 }

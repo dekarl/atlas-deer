@@ -8,12 +8,12 @@ import org.atlasapi.application.ApplicationSources;
 import org.atlasapi.entity.Sourced;
 import org.atlasapi.entity.Sourceds;
 import org.atlasapi.equivalence.ApplicationEquivalentsMerger;
-import org.atlasapi.equivalence.Equivalent;
+import org.atlasapi.equivalence.Equivalable;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Ordering;
 
-public class StrategyBackedEquivalentsMerger<E extends Equivalent<E>>
+public class StrategyBackedEquivalentsMerger<E extends Equivalable<E>>
         implements ApplicationEquivalentsMerger<E> {
 
     private final EquivalentsMergeStrategy<E> strategy;

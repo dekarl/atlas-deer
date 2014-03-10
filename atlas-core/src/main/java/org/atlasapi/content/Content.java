@@ -20,7 +20,7 @@ import org.atlasapi.entity.Aliased;
 import org.atlasapi.entity.Id;
 import org.atlasapi.entity.Sourced;
 import org.atlasapi.equivalence.EquivalenceRef;
-import org.atlasapi.equivalence.Equivalent;
+import org.atlasapi.equivalence.Equivalable;
 import org.atlasapi.media.entity.Publisher;
 
 import com.google.common.base.Function;
@@ -29,7 +29,7 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 
-public abstract class Content extends Described implements Aliased, Sourced, Equivalent<Content> {
+public abstract class Content extends Described implements Aliased, Sourced, Equivalable<Content> {
 
     private transient String readHash;
     private ImmutableList<Clip> clips = ImmutableList.of();
