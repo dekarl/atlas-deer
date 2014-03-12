@@ -38,7 +38,7 @@ public abstract class AbstractEquivalentContentStore implements EquivalentConten
     }
 
     @Override
-    public void updateEquivalences(EquivalenceGraphUpdate update) throws WriteException {
+    public final void updateEquivalences(EquivalenceGraphUpdate update) throws WriteException {
         Set<Id> ids = idsOf(update);
         try {
             lock.lock(ids);
@@ -91,12 +91,17 @@ public abstract class AbstractEquivalentContentStore implements EquivalentConten
     }
 
     @Override
-    public void updateContent(ResourceRef ref) throws WriteException {
+    public final void updateContent(ResourceRef ref) throws WriteException {
         try {
             lock.lock(ref.getId());
             ImmutableList<Id> ids = ImmutableList.of(ref.getId());
             OptionalMap<Id, Content> resolvedContent = resolveIds(ids);
-            Content content = resolvedContent.get(ref.getId()).get();
+            
+            Optional<Content> possibleContent = resolvedContent.get(ref.getId());
+            if (!possibleContent.isPresent()) {
+                throw new WriteException("update failed. content not found for id " + ref.getId());
+            }
+            Content content = possibleContent.get();
             
             ListenableFuture<OptionalMap<Id, EquivalenceGraph>> graphs = graphStore.resolveIds(ids);
             Optional<EquivalenceGraph> possibleGraph = get(graphs).get(ref.getId());
