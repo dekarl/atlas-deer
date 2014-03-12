@@ -1,22 +1,11 @@
 package org.atlasapi.schedule;
 
-import java.util.Set;
+/**
+ * <p>A store for {@link EquivalentSchedule}s, with a full equivalence set of
+ * {@link org.atlasapi.content.Item Item}s for each
+ * {@link org.atlasapi.content.Broadcast Broadcast} in the schedule.</p>
+ */
+public interface EquivalentScheduleStore extends EquivalentScheduleResolver,
+        EquivalentScheduleWriter {
 
-import org.atlasapi.equivalence.EquivalenceGraphUpdate;
-import org.atlasapi.media.channel.Channel;
-import org.atlasapi.media.entity.Publisher;
-import org.joda.time.Interval;
-
-import com.google.common.util.concurrent.ListenableFuture;
-
-
-public interface EquivalentScheduleStore {
-
-    ListenableFuture<EquivalentSchedule> resolveSchedules(Iterable<Channel> channels,
-            Interval interval, Publisher source, Set<Publisher> selectedSources);
-    
-    void updateSchedule(ScheduleRef refs);
-    
-    void updateEquivalences(EquivalenceGraphUpdate update);
-    
 }

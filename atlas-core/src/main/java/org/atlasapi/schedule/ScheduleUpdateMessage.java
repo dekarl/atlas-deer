@@ -2,35 +2,21 @@ package org.atlasapi.schedule;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
-import org.atlasapi.messaging.Message;
+import org.atlasapi.messaging.AbstractMessage;
 
 import com.metabroadcast.common.time.Timestamp;
 
+public class ScheduleUpdateMessage extends AbstractMessage {
 
-public class ScheduleUpdateMessage implements Message {
+    private final ScheduleUpdate update;
 
-    private final String mid;
-    private final Timestamp ts;
-    private final ScheduleRef updateRef;
-
-    public ScheduleUpdateMessage(String mid, Timestamp ts, ScheduleRef updateRef) {
-        this.mid = checkNotNull(mid);
-        this.ts = checkNotNull(ts);
-        this.updateRef = checkNotNull(updateRef);
+    public ScheduleUpdateMessage(String mid, Timestamp ts, ScheduleUpdate update) {
+        super(mid, ts);
+        this.update = checkNotNull(update);
     }
     
-    @Override
-    public String getMessageId() {
-        return mid;
-    }
-
-    @Override
-    public Timestamp getTimestamp() {
-        return ts;
-    }
-
-    public ScheduleRef getScheduleUpdateRef() {
-        return updateRef;
+    public ScheduleUpdate getScheduleUpdate() {
+        return update;
     }
     
 }

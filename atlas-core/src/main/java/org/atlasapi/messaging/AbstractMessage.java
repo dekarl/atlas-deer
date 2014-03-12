@@ -1,5 +1,7 @@
 package org.atlasapi.messaging;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import com.metabroadcast.common.time.Timestamp;
 
 public abstract class AbstractMessage implements Message {
@@ -8,8 +10,8 @@ public abstract class AbstractMessage implements Message {
     private final Timestamp timestamp;
     
     public AbstractMessage(String messageId, Timestamp timestamp) {
-        this.messageId = messageId;
-        this.timestamp = timestamp;
+        this.messageId = checkNotNull(messageId);
+        this.timestamp = checkNotNull(timestamp);
     }
 
     @Override

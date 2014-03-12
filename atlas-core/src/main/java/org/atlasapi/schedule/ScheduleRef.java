@@ -2,13 +2,11 @@ package org.atlasapi.schedule;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
-import javax.annotation.Nullable;
-
+import org.atlasapi.content.BroadcastRef;
 import org.atlasapi.entity.Id;
 import org.joda.time.Interval;
 
 import com.google.common.base.Objects;
-import com.google.common.base.Optional;
 import com.google.common.collect.ComparisonChain;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
@@ -25,24 +23,19 @@ public final class ScheduleRef {
 
         private final Id channel;
         private final Interval interval;
-        private ImmutableSet.Builder<ScheduleRefEntry> entries;
+        private ImmutableSet.Builder<Entry> entries;
 
         private Builder(Id channel, Interval interval) {
-            this.channel = channel;
-            this.interval = interval;
+            this.channel = checkNotNull(channel);
+            this.interval = checkNotNull(interval);
             this.entries = ImmutableSet.builder();
         }
         
-        public Builder addEntry(ScheduleRefEntry entry) {
-            this.entries.add(entry);
+        public Builder addEntry(Id item, BroadcastRef broadcast) {
+            this.entries.add(new Entry(item, broadcast));
             return this;
         }
-        
-        public Builder addEntries(Iterable<ScheduleRefEntry> entries) {
-            this.entries.addAll(entries);
-            return this;
-        }
-        
+
         public ScheduleRef build() {
             return new ScheduleRef(channel, interval, Ordering.natural().immutableSortedCopy(entries.build()));
         }
@@ -50,9 +43,9 @@ public final class ScheduleRef {
 
     private final Id channel;
     private final Interval interval;
-    private final ImmutableList<ScheduleRefEntry> entries;
+    private final ImmutableList<Entry> entries;
 
-    private ScheduleRef(Id channel, Interval interval, ImmutableList<ScheduleRefEntry> entries) {
+    private ScheduleRef(Id channel, Interval interval, ImmutableList<Entry> entries) {
         this.channel = channel;
         this.interval = interval;
         this.entries = entries;
@@ -66,7 +59,7 @@ public final class ScheduleRef {
         return interval;
     }
     
-    public ImmutableList<ScheduleRefEntry> getScheduleEntries() {
+    public ImmutableList<Entry> getScheduleEntries() {
         return entries;
     }
     
@@ -101,24 +94,22 @@ public final class ScheduleRef {
                 .toString();
     }
     
-    public static final class ScheduleRefEntry implements Comparable<ScheduleRefEntry> {
+    public static final class Entry implements Comparable<Entry> {
         
         private final Id item;
-        private final Id channel;
-        private final Interval broadcastInterval;
-        private final Optional<String> broadcastId;
+        private final BroadcastRef broadcast;
 
-        public ScheduleRefEntry(Id item, Id channel, Interval broadcastInterval, @Nullable String broadcastId) {
+        public Entry(Id item, BroadcastRef broadcast) {
             this.item = checkNotNull(item);
-            this.channel = checkNotNull(channel);
-            this.broadcastInterval = checkNotNull(broadcastInterval);
-            this.broadcastId = Optional.fromNullable(broadcastId);
+            this.broadcast = checkNotNull(broadcast);
         }
 
         @Override
-        public int compareTo(ScheduleRefEntry o) {
-            return ComparisonChain.start().compare(channel, o.channel)
-                    .compare(broadcastInterval, o.broadcastInterval, IntervalOrdering.byStartShortestFirst())
+        public int compareTo(Entry o) {
+            return ComparisonChain.start()
+                    .compare(broadcast.getChannelId(), o.broadcast.getChannelId())
+                    .compare(broadcast.getTransmissionInterval(), o.broadcast.getTransmissionInterval(), 
+                            IntervalOrdering.byStartShortestFirst())
                     .result();
         }
 
@@ -126,16 +117,8 @@ public final class ScheduleRef {
             return item;
         }
 
-        public Id getChannel() {
-            return channel;
-        }
-
-        public Interval getBroadcastInterval() {
-            return broadcastInterval;
-        }
-
-        public Optional<String> getBroadcastId() {
-            return broadcastId;
+        public BroadcastRef getBroadcast() {
+            return broadcast;
         }
 
         @Override
@@ -143,18 +126,17 @@ public final class ScheduleRef {
             if (this == that) {
                 return true;
             }
-            if (that instanceof ScheduleRefEntry) {
-                ScheduleRefEntry other = (ScheduleRefEntry) that;
+            if (that instanceof Entry) {
+                Entry other = (Entry) that;
                 return item.equals(other.item)
-                    && channel.equals(other.channel)
-                    && broadcastInterval.equals(other.broadcastInterval);
+                    && broadcast.equals(other.broadcast);
             }
             return false;
         }
 
         @Override
         public int hashCode() {
-            return Objects.hashCode(item, channel, broadcastInterval);
+            return Objects.hashCode(item, broadcast);
         }
 
         @Override
@@ -162,9 +144,7 @@ public final class ScheduleRef {
             return Objects.toStringHelper(this)
                     .omitNullValues()
                     .add("item", item)
-                    .add("channel", channel)
-                    .add("start", broadcastInterval)
-                    .add("id", broadcastId)
+                    .add("channel", broadcast)
                     .toString();
         }
 

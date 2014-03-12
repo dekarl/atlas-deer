@@ -2,24 +2,23 @@ package org.atlasapi.schedule;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
-import org.atlasapi.content.Broadcast;
-import org.atlasapi.content.Item;
 import org.atlasapi.media.channel.Channel;
 import org.joda.time.Interval;
 
 import com.google.common.base.Objects;
-import com.google.common.collect.ImmutableSetMultimap;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Ordering;
 
 public class EquivalentChannelSchedule {
 
     private final Channel channel;
     private final Interval interval;
-    private final ImmutableSetMultimap<Broadcast, Item> entries;
-
-    public EquivalentChannelSchedule(Channel channel, Interval interval, ImmutableSetMultimap<Broadcast, Item> entries) {
+    private final ImmutableList<EquivalentScheduleEntry> entries;
+    
+    public EquivalentChannelSchedule(Channel channel, Interval interval, Iterable<EquivalentScheduleEntry> entries) {
         this.channel = checkNotNull(channel);
         this.interval = checkNotNull(interval);
-        this.entries = ImmutableSetMultimap.copyOf(entries);
+        this.entries = Ordering.natural().immutableSortedCopy(entries);
     }
     
     public Channel getChannel() {
@@ -30,7 +29,7 @@ public class EquivalentChannelSchedule {
         return interval;
     }
 
-    public ImmutableSetMultimap<Broadcast, Item> getEntries() {
+    public ImmutableList<EquivalentScheduleEntry> getEntries() {
         return entries;
     }
     

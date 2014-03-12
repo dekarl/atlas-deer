@@ -7,7 +7,7 @@ import java.util.Set;
 
 import org.atlasapi.content.ItemAndBroadcast;
 
-class ScheduleBlocksUpdate {
+final class ScheduleBlocksUpdate {
 
     private final List<ChannelSchedule> updatedBlocks;
     private final Set<ItemAndBroadcast> staleEntries;

@@ -1,7 +1,11 @@
 package org.atlasapi.content;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import org.atlasapi.entity.Id;
 import org.joda.time.Interval;
+
+import com.google.common.base.Objects;
 
 public final class BroadcastRef {
 
@@ -10,9 +14,9 @@ public final class BroadcastRef {
     private final Interval transmissionInterval;
 
     public BroadcastRef(String sourceId, Id channelId, Interval transmissionInterval) {
-        this.sourceId = sourceId;
-        this.channelId = channelId;
-        this.transmissionInterval = transmissionInterval;
+        this.sourceId = checkNotNull(sourceId);
+        this.channelId = checkNotNull(channelId);
+        this.transmissionInterval = checkNotNull(transmissionInterval);
     }
 
     public String getSourceId() {
@@ -45,5 +49,15 @@ public final class BroadcastRef {
     public int hashCode() {
         return sourceId.hashCode();
     }
+    
+    @Override
+    public String toString() {
+        return Objects.toStringHelper(getClass())
+            .add("id", sourceId)
+            .add("channel", channelId)
+            .add("interval", transmissionInterval)
+            .toString();
+    }
+    
     
 }

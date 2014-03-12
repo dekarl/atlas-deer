@@ -6,10 +6,12 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import java.io.IOException;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
 import org.atlasapi.content.Broadcast;
+import org.atlasapi.content.BroadcastRef;
 import org.atlasapi.content.Content;
 import org.atlasapi.content.ContentStore;
 import org.atlasapi.content.Item;
@@ -22,7 +24,6 @@ import org.atlasapi.media.channel.Channel;
 import org.atlasapi.media.entity.Publisher;
 import org.atlasapi.messaging.MessageSender;
 import org.atlasapi.schedule.ScheduleRef.Builder;
-import org.atlasapi.schedule.ScheduleRef.ScheduleRefEntry;
 import org.joda.time.DateTime;
 import org.joda.time.Interval;
 
@@ -86,22 +87,32 @@ public abstract class AbstractScheduleStore implements ScheduleStore {
         }
         
         List<ChannelSchedule> currentBlocks = resolveCurrentScheduleBlocks(source, channel, interval);
-        ScheduleBlocksUpdate updated = blockUpdater.updateBlocks(currentBlocks, itemsAndBroadcasts, channel, interval);
-        for (ItemAndBroadcast staleEntry : updated.getStaleEntries()) {
+        ScheduleBlocksUpdate update = blockUpdater.updateBlocks(currentBlocks, itemsAndBroadcasts, channel, interval);
+        for (ItemAndBroadcast staleEntry : update.getStaleEntries()) {
             updateItemInContentStore(staleEntry);
         }
-        doWrite(source, removeAdditionalBroadcasts(updated.getUpdatedBlocks()));
-        sendUpdateMessage(content, channel, interval);
+        doWrite(source, removeAdditionalBroadcasts(update.getUpdatedBlocks()));
+        sendUpdateMessage(source, content, update, channel, interval);
         return writeResults;
     }
     
-    private void sendUpdateMessage(List<ScheduleHierarchy> content, Channel channel, Interval interval) throws WriteException {
+    private void sendUpdateMessage(Publisher source, List<ScheduleHierarchy> content, ScheduleBlocksUpdate update, Channel channel, Interval interval) throws WriteException {
         try {
             messageSender.sendMessage(new ScheduleUpdateMessage(UUID.randomUUID().toString(), 
-                    Timestamp.of(DateTime.now(DateTimeZones.UTC)), scheduleRef(content, channel, interval)));
+                Timestamp.of(DateTime.now(DateTimeZones.UTC)), 
+                new ScheduleUpdate(source, scheduleRef(content, channel, interval), broadcastRefs(update.getStaleEntries()))
+            ));
         } catch (IOException e) {
             throw new WriteException(e);
         }
+    }
+
+    private ImmutableSet<BroadcastRef> broadcastRefs(Set<ItemAndBroadcast> staleEntries) {
+        ImmutableSet.Builder<BroadcastRef> ids = ImmutableSet.builder();
+        for (ItemAndBroadcast staleEntry : staleEntries) {
+            ids.add(staleEntry.getBroadcast().toRef());
+        }
+        return ids.build();
     }
 
     private ScheduleRef scheduleRef(List<ScheduleHierarchy> content, Channel channel, Interval interval) {
@@ -109,8 +120,7 @@ public abstract class AbstractScheduleStore implements ScheduleStore {
         Builder builder = ScheduleRef.forChannel(cid, interval);
         for (ScheduleHierarchy scheduleHierarchy : content) {
             ItemAndBroadcast iab = scheduleHierarchy.getItemAndBroadcast();
-            Broadcast broadcast = iab.getBroadcast();
-            builder.addEntry(new ScheduleRefEntry(iab.getItem().getId(),cid,broadcast.getTransmissionInterval(), broadcast.getSourceId()));
+            builder.addEntry(iab.getItem().getId(),iab.getBroadcast().toRef());
         }
         return builder.build();
     }

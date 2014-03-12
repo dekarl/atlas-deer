@@ -7,7 +7,9 @@ import org.atlasapi.content.EquivalentContentStore;
 import org.atlasapi.equivalence.CassandraEquivalenceGraphStore;
 import org.atlasapi.equivalence.EquivalenceGraphStore;
 import org.atlasapi.messaging.ProducerQueueFactory;
+import org.atlasapi.schedule.CassandraEquivalentScheduleStore;
 import org.atlasapi.schedule.CassandraScheduleStore;
+import org.atlasapi.schedule.EquivalentScheduleStore;
 import org.atlasapi.topic.CassandraTopicStore;
 import org.atlasapi.topic.Topic;
 
@@ -16,6 +18,7 @@ import com.google.common.base.Equivalence;
 import com.google.common.util.concurrent.AbstractIdleService;
 import com.metabroadcast.common.ids.IdGeneratorBuilder;
 import com.metabroadcast.common.properties.Configurer;
+import com.metabroadcast.common.time.SystemClock;
 import com.netflix.astyanax.AstyanaxContext;
 import com.netflix.astyanax.Keyspace;
 import com.netflix.astyanax.model.ConsistencyLevel;
@@ -37,6 +40,7 @@ public class CassandraPersistenceModule extends AbstractIdleService implements P
 
     private CassandraEquivalenceGraphStore contentEquivalenceGraphStore;
     private CassandraEquivalentContentStore equivalentContentStore;
+    private CassandraEquivalentScheduleStore equivalentScheduleStore;
 
     private ProducerQueueFactory messageSenderFactory;
     
@@ -71,6 +75,7 @@ public class CassandraPersistenceModule extends AbstractIdleService implements P
         com.datastax.driver.core.ConsistencyLevel write = com.datastax.driver.core.ConsistencyLevel.QUORUM;
         this.contentEquivalenceGraphStore = new CassandraEquivalenceGraphStore(messageSenderFactory.makeMessageSender(contentEquivalenceGraphChanges), session, read, write);
         this.equivalentContentStore = new CassandraEquivalentContentStore(contentStore, contentEquivalenceGraphStore, session, read, write);
+        this.equivalentScheduleStore = new CassandraEquivalentScheduleStore(contentEquivalenceGraphStore, contentStore, session, read, write, new SystemClock());
     }
 
     @Override
@@ -118,6 +123,10 @@ public class CassandraPersistenceModule extends AbstractIdleService implements P
 
     public EquivalentContentStore equivalentContentStore() {
         return this.equivalentContentStore;
+    }
+    
+    public EquivalentScheduleStore equivalentScheduleStore() {
+        return this.equivalentScheduleStore;
     }
     
 }
