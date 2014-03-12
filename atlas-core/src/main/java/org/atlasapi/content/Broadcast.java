@@ -262,6 +262,10 @@ public class Broadcast extends Identified {
         this.versionId = versionId;
     }
     
+    public BroadcastRef toRef() {
+        return new BroadcastRef(sourceId, channelId, getTransmissionInterval());
+    }
+    
     @Override
     public boolean equals(Object that) {
         if (this == that) {
