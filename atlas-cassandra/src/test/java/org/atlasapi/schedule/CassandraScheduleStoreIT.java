@@ -408,7 +408,7 @@ public class CassandraScheduleStoreIT {
     }
 
     private Broadcast broadcast(String broadacstId, Channel channel, DateTime start, DateTime end) {
-        Broadcast b = new Broadcast(channel.getCanonicalUri(), start, end);
+        Broadcast b = new Broadcast(channel, start, end);
         b.withId(broadacstId);
         return b;
     }

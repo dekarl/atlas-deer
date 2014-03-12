@@ -4,9 +4,6 @@ import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 
-import java.net.URL;
-import java.net.URLClassLoader;
-
 import org.atlasapi.entity.ResourceType;
 import org.atlasapi.messaging.v3.EntityUpdatedMessage;
 import org.atlasapi.messaging.v3.Message;
@@ -23,14 +20,6 @@ public class LegacyMessageSerializerTest {
     
     @Test
     public void testDeSerializesLegacyMessage() throws Exception {
-        ClassLoader cl = ClassLoader.getSystemClassLoader();
-        
-        URL[] urls = ((URLClassLoader)cl).getURLs();
- 
-        for(URL url: urls){
-            System.out.println(url.getFile());
-        }
-        
         Message msg = new EntityUpdatedMessage("1", new DateTime().getMillis(), "1", "item", "bbc.co.uk");
         
         ByteSource serialized = ByteSource.wrap(JsonFactory.makeJsonMapper().writeValueAsBytes(msg));

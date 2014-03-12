@@ -240,8 +240,8 @@ public class ContentSerializerTest {
         item.setIsLongForm(true);
         
         item.setBroadcasts(ImmutableSet.of(
-            new Broadcast("one", new DateTime(DateTimeZones.UTC), new DateTime(DateTimeZones.UTC)),
-            new Broadcast("two", new DateTime(DateTimeZones.UTC), new DateTime(DateTimeZones.UTC))
+            new Broadcast(Id.valueOf(1), new DateTime(DateTimeZones.UTC), new DateTime(DateTimeZones.UTC)),
+            new Broadcast(Id.valueOf(2), new DateTime(DateTimeZones.UTC), new DateTime(DateTimeZones.UTC))
         ));
         item.setManifestedAs(ImmutableSet.of(encoding("one")));
         item.setSegmentEvents(ImmutableSet.of(segmentEvent("one")));

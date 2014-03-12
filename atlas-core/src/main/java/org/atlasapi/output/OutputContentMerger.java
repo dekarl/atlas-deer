@@ -293,7 +293,7 @@ public class OutputContentMerger implements EquivalentsMergeStrategy<Content> {
             Optional<Broadcast> matched = Iterables.tryFind(notChosenBroadcasts, new Predicate<Broadcast>() {
                 @Override
                 public boolean apply(Broadcast input) {
-                    return chosenBroadcast.getBroadcastOn().equals(input.getBroadcastOn())
+                    return chosenBroadcast.getChannelId().equals(input.getChannelId())
                             && chosenBroadcast.getTransmissionTime().equals(input.getTransmissionTime());
                 }
              });

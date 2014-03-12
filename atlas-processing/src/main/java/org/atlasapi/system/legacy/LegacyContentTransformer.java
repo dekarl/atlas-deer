@@ -1,5 +1,7 @@
 package org.atlasapi.system.legacy;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import java.util.Set;
 
 import org.atlasapi.content.BrandRef;
@@ -20,6 +22,8 @@ import org.atlasapi.content.TransportSubType;
 import org.atlasapi.content.TransportType;
 import org.atlasapi.entity.Alias;
 import org.atlasapi.entity.Id;
+import org.atlasapi.media.channel.Channel;
+import org.atlasapi.media.channel.ChannelResolver;
 import org.atlasapi.media.entity.Brand;
 import org.atlasapi.media.entity.Clip;
 import org.atlasapi.media.entity.Container;
@@ -45,10 +49,17 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Sets;
+import com.metabroadcast.common.base.Maybe;
 import com.metabroadcast.common.time.DateTimeZones;
 
 public class LegacyContentTransformer extends DescribedLegacyResourceTransformer<Content, org.atlasapi.content.Content> {
 
+    private final ChannelResolver channelResolver;
+
+    public LegacyContentTransformer(ChannelResolver channelResolver) {
+        this.channelResolver = checkNotNull(channelResolver);
+    }
+    
     @Override
     protected org.atlasapi.content.Content createDescribed(Content input) {
         org.atlasapi.content.Content c = null;
@@ -287,7 +298,7 @@ public class LegacyContentTransformer extends DescribedLegacyResourceTransformer
     }
 
     private Broadcast transformBroadcast(org.atlasapi.media.entity.Broadcast input, Version version) {
-        Broadcast b = new Broadcast(input.getBroadcastOn(), 
+        Broadcast b = new Broadcast(channelId(input.getBroadcastOn()), 
                 input.getTransmissionTime(), input.getTransmissionEndTime());
         setIdentifiedFields(b, input);
         b.setScheduleDate(input.getScheduleDate());
@@ -309,6 +320,14 @@ public class LegacyContentTransformer extends DescribedLegacyResourceTransformer
         return b;
     }
     
+    private Id channelId(String broadcastOn) {
+        Maybe<Channel> possibleChannel = channelResolver.fromUri(broadcastOn);
+        if (possibleChannel.isNothing()) {
+            throw new RuntimeException("no channel found for uri " + broadcastOn);
+        }
+        return Id.valueOf(possibleChannel.requireValue().getId());
+    }
+
     private Restriction transformRestriction(org.atlasapi.media.entity.Restriction input) {
         Restriction r = new Restriction();
         setIdentifiedFields(r, input);

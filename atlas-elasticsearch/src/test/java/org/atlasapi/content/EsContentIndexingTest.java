@@ -66,7 +66,7 @@ public final class EsContentIndexingTest {
     @Test
     public void testScheduleQueries() throws Exception {
         DateTime broadcastStart = new DateTime(1980, 10, 10, 10, 10, 10, 10, DateTimeZones.UTC);
-        Broadcast broadcast = new Broadcast("MB", broadcastStart, broadcastStart.plusHours(1));
+        Broadcast broadcast = new Broadcast(Id.valueOf(1), broadcastStart, broadcastStart.plusHours(1));
         Item item = new Item("uri", "curie", Publisher.METABROADCAST);
         item.setId(Id.valueOf(1));
         item.addBroadcast(broadcast);
@@ -78,7 +78,7 @@ public final class EsContentIndexingTest {
         ListenableActionFuture<SearchResponse> result1 = esClient.client()
             .prepareSearch(EsSchema.CONTENT_INDEX)
             .setQuery(QueryBuilders.nestedQuery("broadcasts", 
-                    QueryBuilders.fieldQuery("channel", "MB")
+                    QueryBuilders.fieldQuery("channel", 1L)
             )).execute();
         SearchHits hits1 = result1.actionGet(60, TimeUnit.SECONDS).getHits();
         assertEquals(1, hits1.totalHits());
@@ -105,9 +105,9 @@ public final class EsContentIndexingTest {
     @Test
     public void testTopicFacets() throws Exception {
         DateTime now = new DateTime(DateTimeZones.UTC);
-        Broadcast broadcast1 = new Broadcast("MB", now, now.plusHours(1));
+        Broadcast broadcast1 = new Broadcast(Id.valueOf(1), now, now.plusHours(1));
 
-        Broadcast broadcast2 = new Broadcast("MB", now.plusHours(2), now.plusHours(3));
+        Broadcast broadcast2 = new Broadcast(Id.valueOf(1), now.plusHours(2), now.plusHours(3));
 
         TopicRef topic1 = new TopicRef(Id.valueOf(1), 1.0f, Boolean.TRUE, TopicRef.Relationship.ABOUT);
         TopicRef topic2 = new TopicRef(Id.valueOf(2), 1.0f, Boolean.TRUE, TopicRef.Relationship.ABOUT);

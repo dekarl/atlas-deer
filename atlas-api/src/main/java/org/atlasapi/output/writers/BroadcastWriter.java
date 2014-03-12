@@ -22,7 +22,7 @@ public final class BroadcastWriter implements EntityListWriter<Broadcast> {
         writer.writeField("transmission_time", entity.getTransmissionTime());
         writer.writeField("transmission_end_time", entity.getTransmissionEndTime());
         writer.writeField("broadcast_duration", entity.getBroadcastDuration());
-        writer.writeField("broadcast_on", entity.getBroadcastOn());
+        writer.writeField("broadcast_on", entity.getChannelId());
         writer.writeField("schedule_date", entity.getScheduleDate());
         writer.writeField("repeat", entity.getRepeat());
         writer.writeField("subtitled", entity.getSubtitled());

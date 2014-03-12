@@ -34,6 +34,7 @@ public class ScheduleBlockUpdaterTest {
     @BeforeMethod
     public void setUp() {
         channel.setCanonicalUri("channel");
+        channel.setId(1L);
     }
     
     @Test
@@ -261,7 +262,7 @@ public class ScheduleBlockUpdaterTest {
     }
 
     private Broadcast broadcast(Channel channel, String bId, Interval interval) {
-        Broadcast b = new Broadcast(channel.getCanonicalUri(), interval.getStart(), interval.getEnd());
+        Broadcast b = new Broadcast(channel, interval.getStart(), interval.getEnd());
         b.withId(bId);
         return b;
     }

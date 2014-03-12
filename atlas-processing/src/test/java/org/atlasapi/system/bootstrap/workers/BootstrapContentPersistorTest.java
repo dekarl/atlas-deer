@@ -65,14 +65,14 @@ public class BootstrapContentPersistorTest {
         Item resolved = item.copy();
 
         Interval interval = new Interval(new DateTime(DateTimeZones.UTC),new DateTime(DateTimeZones.UTC));
-        Broadcast broadcast = new Broadcast(channel.getUri(), interval);
+        Broadcast broadcast = new Broadcast(channel, interval);
         broadcast.withId("sourceId");
         item.addBroadcast(broadcast);
         
         ItemAndBroadcast iab = new ItemAndBroadcast(item, broadcast);
         when(scheduleWriter.writeSchedule(ImmutableList.of(ScheduleHierarchy.itemOnly(iab)), channel, interval))
             .thenThrow(new MissingResourceException(Id.valueOf(2)));
-        when(channelResolver.fromUri(channel.getCanonicalUri())).thenReturn(Maybe.just(channel));
+        when(channelResolver.fromId(channel.getId())).thenReturn(Maybe.just(channel));
         when(contentStore.resolveIds(ImmutableList.of(Id.valueOf(1))))
             .thenReturn(Futures.immediateFuture(Resolved.valueOf(ImmutableList.<Content>of(resolved))));
         

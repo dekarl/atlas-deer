@@ -2,12 +2,16 @@ package org.atlasapi.schedule;
 
 import static org.testng.AssertJUnit.assertFalse;
 import static org.testng.AssertJUnit.assertTrue;
+
 import org.testng.annotations.Test;
+
 import java.util.List;
 
 import org.atlasapi.content.Broadcast;
+import org.atlasapi.entity.Id;
 import org.joda.time.DateTime;
 import org.joda.time.Duration;
+
 import com.google.common.collect.ImmutableList;
 import com.metabroadcast.common.time.DateTimeZones;
 
@@ -71,7 +75,7 @@ public class BroadcastContiguityCheckTest {
     }
 
     private Broadcast broadcast(int s, int e) {
-        return new Broadcast("chan", new DateTime(s*1000, DateTimeZones.UTC), 
+        return new Broadcast(Id.valueOf(1), new DateTime(s*1000, DateTimeZones.UTC), 
             new DateTime(e * 1000, DateTimeZones.UTC));
     }
 

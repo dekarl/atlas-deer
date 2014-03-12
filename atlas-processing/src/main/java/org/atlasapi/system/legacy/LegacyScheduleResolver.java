@@ -9,6 +9,7 @@ import org.atlasapi.content.Broadcast;
 import org.atlasapi.content.Item;
 import org.atlasapi.content.ItemAndBroadcast;
 import org.atlasapi.media.channel.Channel;
+import org.atlasapi.media.channel.ChannelResolver;
 import org.atlasapi.media.entity.Publisher;
 import org.atlasapi.media.entity.Schedule.ScheduleChannel;
 import org.atlasapi.schedule.ChannelSchedule;
@@ -30,9 +31,9 @@ public class LegacyScheduleResolver implements ScheduleResolver {
     private final org.atlasapi.persistence.content.ScheduleResolver legacyResolver;
     private final LegacyContentTransformer transformer;
 
-    public LegacyScheduleResolver(org.atlasapi.persistence.content.ScheduleResolver legacyResolver) {
+    public LegacyScheduleResolver(org.atlasapi.persistence.content.ScheduleResolver legacyResolver, ChannelResolver channelResolver) {
         this.legacyResolver = checkNotNull(legacyResolver);
-        this.transformer = new LegacyContentTransformer();
+        this.transformer = new LegacyContentTransformer(channelResolver);
     }
 
     @Override
@@ -63,7 +64,7 @@ public class LegacyScheduleResolver implements ScheduleResolver {
             public ItemAndBroadcast apply(org.atlasapi.media.entity.Item input) {
                 Item item = (Item) transformer.apply(input);
                 Broadcast broadcast = onlyBroadcastFrom(item);
-                checkState(channel.getUri().equals(broadcast.getBroadcastOn()),
+                checkState(channel.getUri().equals(broadcast.getChannelId()),
                     "%s not on expected channel %s", broadcast, channel);
                 return new ItemAndBroadcast(item, broadcast);
             }

@@ -2,17 +2,22 @@ package org.atlasapi.output;
 
 import static org.testng.AssertJUnit.assertFalse;
 import static org.testng.AssertJUnit.assertTrue;
+
 import org.testng.annotations.Test;
+
 import static com.metabroadcast.common.time.DateTimeZones.UTC;
+
 import org.atlasapi.application.ApplicationSources;
 import org.atlasapi.application.SourceReadEntry;
 import org.atlasapi.application.SourceStatus;
 import org.atlasapi.content.Broadcast;
 import org.atlasapi.content.Item;
 import org.atlasapi.entity.Alias;
+import org.atlasapi.entity.Id;
 import org.atlasapi.media.entity.Publisher;
 import org.atlasapi.output.OutputContentMerger;
 import org.joda.time.DateTime;
+
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 
@@ -38,7 +43,7 @@ public class BroadcastMergingTest {
         notChosenItem.setId(2L);
         notChosenItem.setPublisher(Publisher.FACEBOOK);
         notChosenItem.setCanonicalUri("notChosenItem");
-        notChosenItem.addBroadcast(new Broadcast("www.bbc.co.uk/services/bbctwo", new DateTime(2012,1,1,0,0,0,UTC), new DateTime(2012,1,1,0,0,0,UTC)));
+        notChosenItem.addBroadcast(new Broadcast(Id.valueOf(2), new DateTime(2012,1,1,0,0,0,UTC), new DateTime(2012,1,1,0,0,0,UTC)));
         
         chosenItem.addEquivalentTo(notChosenItem);
         notChosenItem.addEquivalentTo(chosenItem);
@@ -54,16 +59,16 @@ public class BroadcastMergingTest {
         chosenItem.setId(1L);
         chosenItem.setPublisher(Publisher.BBC);
         chosenItem.setCanonicalUri("chosenItem");
-        chosenItem.addBroadcast(new Broadcast("www.bbc.co.uk/services/bbctwo", new DateTime(2012,1,1,0,0,0,UTC), new DateTime(2012,1,1,0,0,0,UTC)));
+        chosenItem.addBroadcast(new Broadcast(Id.valueOf(2), new DateTime(2012,1,1,0,0,0,UTC), new DateTime(2012,1,1,0,0,0,UTC)));
 
         Item notChosenItem = new Item();
         notChosenItem.setId(2L);
         notChosenItem.setPublisher(Publisher.FACEBOOK);
         notChosenItem.setCanonicalUri("notChosenItem");
         // different broadcast channel
-        notChosenItem.addBroadcast(new Broadcast("www.bbc.co.uk/services/bbcone", new DateTime(2012,1,1,0,0,0,UTC), new DateTime(2012,1,1,0,0,0,UTC)));
+        notChosenItem.addBroadcast(new Broadcast(Id.valueOf(1), new DateTime(2012,1,1,0,0,0,UTC), new DateTime(2012,1,1,0,0,0,UTC)));
         // different start time
-        notChosenItem.addBroadcast(new Broadcast("www.bbc.co.uk/services/bbctwo", new DateTime(2012,1,4,0,0,0,UTC), new DateTime(2012,1,4,0,0,0,UTC)));
+        notChosenItem.addBroadcast(new Broadcast(Id.valueOf(2), new DateTime(2012,1,4,0,0,0,UTC), new DateTime(2012,1,4,0,0,0,UTC)));
         
         chosenItem.addEquivalentTo(notChosenItem);
         notChosenItem.addEquivalentTo(chosenItem);
@@ -79,7 +84,7 @@ public class BroadcastMergingTest {
         chosenItem.setId(1L);
         chosenItem.setPublisher(Publisher.BBC);
         chosenItem.setCanonicalUri("chosenItem");
-        Broadcast chosenBroadcast = new Broadcast("www.bbc.co.uk/services/bbctwo", new DateTime(2012,1,1,0,0,0,UTC), new DateTime(2012,1,1,0,0,0,UTC));
+        Broadcast chosenBroadcast = new Broadcast(Id.valueOf(2), new DateTime(2012,1,1,0,0,0,UTC), new DateTime(2012,1,1,0,0,0,UTC));
         chosenBroadcast.addAliasUrl("chosenBroadcast");
         chosenBroadcast.addAlias(new Alias("chosenNamspace", "chosenValue"));
         chosenBroadcast.setSubtitled(true);
@@ -89,7 +94,7 @@ public class BroadcastMergingTest {
         notChosenItem.setId(2L);
         notChosenItem.setCanonicalUri("notChosenItem");
         notChosenItem.setPublisher(Publisher.FACEBOOK);
-        Broadcast broadcast = new Broadcast("www.bbc.co.uk/services/bbctwo", new DateTime(2012,1,1,0,0,0,UTC), new DateTime(2012,1,1,0,0,0,UTC));
+        Broadcast broadcast = new Broadcast(Id.valueOf(2), new DateTime(2012,1,1,0,0,0,UTC), new DateTime(2012,1,1,0,0,0,UTC));
         broadcast.addAliasUrl("non-chosen alias");
         broadcast.addAlias(new Alias("notChosenNamespace", "notChosenValue"));
         broadcast.setAudioDescribed(true);
@@ -120,7 +125,7 @@ public class BroadcastMergingTest {
         chosenItem.setId(1L);
         chosenItem.setCanonicalUri("chosenItem");
         chosenItem.setPublisher(Publisher.BBC);
-        Broadcast chosenBroadcast = new Broadcast("www.bbc.co.uk/services/bbctwo", new DateTime(2012,1,1,0,0,0,UTC), new DateTime(2012,1,1,0,0,0,UTC));
+        Broadcast chosenBroadcast = new Broadcast(Id.valueOf(2), new DateTime(2012,1,1,0,0,0,UTC), new DateTime(2012,1,1,0,0,0,UTC));
         chosenBroadcast.addAliasUrl("chosenBroadcast");
         chosenBroadcast.addAlias(new Alias("chosenNamspace", "chosenValue"));
         chosenBroadcast.setSubtitled(true);
@@ -130,7 +135,7 @@ public class BroadcastMergingTest {
         notChosenBbcItem.setId(2L);
         notChosenBbcItem.setCanonicalUri("notChosenItem");
         notChosenBbcItem.setPublisher(Publisher.BBC);
-        Broadcast broadcast = new Broadcast("www.bbc.co.uk/services/bbctwo", new DateTime(2012,1,1,0,0,0,UTC), new DateTime(2012,1,1,0,0,0,UTC));
+        Broadcast broadcast = new Broadcast(Id.valueOf(2), new DateTime(2012,1,1,0,0,0,UTC), new DateTime(2012,1,1,0,0,0,UTC));
         broadcast.addAliasUrl("non-chosen alias");
         broadcast.addAlias(new Alias("notChosenNamespace", "notChosenValue"));
         broadcast.setAudioDescribed(true);
@@ -142,7 +147,7 @@ public class BroadcastMergingTest {
         notChosenFbItem.setId(2L);
         notChosenFbItem.setCanonicalUri("notChosenItem");
         notChosenFbItem.setPublisher(Publisher.FACEBOOK);
-        broadcast = new Broadcast("www.bbc.co.uk/services/bbctwo", new DateTime(2012,1,1,0,0,0,UTC), new DateTime(2012,1,1,0,0,0,UTC));
+        broadcast = new Broadcast(Id.valueOf(2), new DateTime(2012,1,1,0,0,0,UTC), new DateTime(2012,1,1,0,0,0,UTC));
         broadcast.addAliasUrl("non-chosen alias");
         broadcast.addAlias(new Alias("notChosenFBNamespace", "notChosenFBValue"));
         broadcast.setAudioDescribed(true);
