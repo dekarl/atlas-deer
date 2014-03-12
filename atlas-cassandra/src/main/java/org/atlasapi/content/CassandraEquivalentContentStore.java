@@ -73,19 +73,6 @@ public class CassandraEquivalentContentStore extends AbstractEquivalentContentSt
     private final Logger log = LoggerFactory.getLogger(getClass());
     private final EquivalenceGraphSerializer graphSerializer = new EquivalenceGraphSerializer();
     private final ContentSerializer contentSerializer = new ContentSerializer();
-
-    private final Function<ByteBuffer, Content> toContent = new Function<ByteBuffer, Content>() {
-        @Override
-        public Content apply(ByteBuffer input) {
-            try {
-                ByteString bytes = ByteString.copyFrom(input);
-                ContentProtos.Content buffer = ContentProtos.Content.parseFrom(bytes);
-                return contentSerializer.deserialize(buffer);
-            } catch (InvalidProtocolBufferException e) {
-                throw new RuntimeException(e);
-            }
-        }
-    };
     
     public CassandraEquivalentContentStore(ContentResolver contentResolver,
             EquivalenceGraphStore graphStore, Session session, ConsistencyLevel read,
@@ -117,6 +104,10 @@ public class CassandraEquivalentContentStore extends AbstractEquivalentContentSt
                 new FutureCallback<Optional<ResolvedEquivalents<Content>>>(){
                     @Override
                     public void onSuccess(Optional<ResolvedEquivalents<Content>> resolved) {
+                        /* Because QUORUM writes are used, reads may see a set in an inconsistent 
+                         * state. If a set is read in an inconsistent state then a second read is 
+                         * attempted at QUORUM level; slower being better than incorrect.
+                         */
                         if (resolved.isPresent()) {
                             result.set(resolved.get());
                         } else if (readConsistency != ConsistencyLevel.QUORUM) {
@@ -172,22 +163,36 @@ public class CassandraEquivalentContentStore extends AbstractEquivalentContentSt
             if (!row.isNull(GRAPH_KEY)) {
                 graphs.put(setId, graphSerializer.deserialize(row.getBytes(GRAPH_KEY)));
             }
-            Content content = toContent.apply(row.getBytes(DATA_KEY));
+            Content content = deserialize(row);
             EquivalenceGraph graphForContent = graphs.get(setId);
             if (contentSelected(content, graphForContent, selectedSources)) {
                 sets.put(setId, content);
             }
         }
+        return checkIntegrity(index, graphs) ? sets.build() : null;
+    }
+
+    private boolean checkIntegrity(Map<Long, Long> index, Map<Long, EquivalenceGraph> graphs) {
         //check integrity
         for (Entry<Long, Long> requests : index.entrySet()) {
             EquivalenceGraph requestedGraph = graphs.get(requests.getValue());
             if (requestedGraph == null
                 || !requestedGraph.getEquivalenceSet().contains(Id.valueOf(requests.getKey()))) {
                 //stale read of index, pointing a graph that doesn't exist.
-                return null;
+                return false;
             }
         }
-        return sets.build();
+        return true;
+    }
+
+    private Content deserialize(Row row) {
+        try {
+            ByteString bytes = ByteString.copyFrom(row.getBytes(DATA_KEY));
+            ContentProtos.Content buffer = ContentProtos.Content.parseFrom(bytes);
+            return contentSerializer.deserialize(buffer);
+        } catch (InvalidProtocolBufferException e) {
+            throw new RuntimeException(row.getLong(SET_ID_KEY)+":"+row.getLong(CONTENT_ID_KEY), e);
+        }
     }
 
     //TODO more complex following of graph.
