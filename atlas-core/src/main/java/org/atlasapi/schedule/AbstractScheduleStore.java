@@ -86,7 +86,7 @@ public abstract class AbstractScheduleStore implements ScheduleStore {
         }
         
         List<ChannelSchedule> currentBlocks = resolveCurrentScheduleBlocks(source, channel, interval);
-        ScheduleUpdate updated = blockUpdater.updateBlocks(currentBlocks, itemsAndBroadcasts, channel, interval);
+        ScheduleBlocksUpdate updated = blockUpdater.updateBlocks(currentBlocks, itemsAndBroadcasts, channel, interval);
         for (ItemAndBroadcast staleEntry : updated.getStaleEntries()) {
             updateItemInContentStore(staleEntry);
         }

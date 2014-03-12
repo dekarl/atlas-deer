@@ -7,12 +7,12 @@ import java.util.Set;
 
 import org.atlasapi.content.ItemAndBroadcast;
 
-class ScheduleUpdate {
+class ScheduleBlocksUpdate {
 
     private final List<ChannelSchedule> updatedBlocks;
     private final Set<ItemAndBroadcast> staleEntries;
 
-    public ScheduleUpdate(List<ChannelSchedule> updatedBlocks, Set<ItemAndBroadcast> staleEntries) {
+    public ScheduleBlocksUpdate(List<ChannelSchedule> updatedBlocks, Set<ItemAndBroadcast> staleEntries) {
         this.updatedBlocks = checkNotNull(updatedBlocks);
         this.staleEntries = checkNotNull(staleEntries);
     }

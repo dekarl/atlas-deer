@@ -44,7 +44,7 @@ public class ScheduleBlockUpdaterTest {
                 new ChannelSchedule(channel, interval, ImmutableList.<ItemAndBroadcast>of()));
         
         ItemAndBroadcast updateEntry = itemAndBroadcast(1, source, channel, "one", interval);
-        ScheduleUpdate scheduleUpdate = updater.updateBlocks(currentSchedule, ImmutableList.of(updateEntry), channel, interval);
+        ScheduleBlocksUpdate scheduleUpdate = updater.updateBlocks(currentSchedule, ImmutableList.of(updateEntry), channel, interval);
         
         assertTrue(scheduleUpdate.getStaleEntries().isEmpty());
         assertThat(Iterables.getOnlyElement(scheduleUpdate.getUpdatedBlocks().get(0).getEntries()), is(updateEntry));
@@ -59,7 +59,7 @@ public class ScheduleBlockUpdaterTest {
         List<ItemAndBroadcast> entries = ImmutableList.of(updateEntry);
         List<ChannelSchedule> currentSchedule = ImmutableList.of(new ChannelSchedule(channel, interval, entries));
         
-        ScheduleUpdate scheduleUpdate = updater.updateBlocks(currentSchedule, ImmutableList.of(updateEntry), channel, interval);
+        ScheduleBlocksUpdate scheduleUpdate = updater.updateBlocks(currentSchedule, ImmutableList.of(updateEntry), channel, interval);
 
         assertTrue(scheduleUpdate.getStaleEntries().isEmpty());
         
@@ -81,7 +81,7 @@ public class ScheduleBlockUpdaterTest {
         List<ItemAndBroadcast> updatedSchedule = ImmutableList.of(updatedEntry);
         List<ChannelSchedule> currentSchedule = ImmutableList.of(new ChannelSchedule(channel, interval, ImmutableList.of(currentEntry)));
         
-        ScheduleUpdate scheduleUpdate = updater.updateBlocks(currentSchedule, updatedSchedule, channel, interval);
+        ScheduleBlocksUpdate scheduleUpdate = updater.updateBlocks(currentSchedule, updatedSchedule, channel, interval);
         
         ChannelSchedule updatedBlock = Iterables.getOnlyElement(scheduleUpdate.getUpdatedBlocks());
         assertThat(Iterables.getOnlyElement(updatedBlock.getEntries()), is(updatedEntry));
@@ -100,7 +100,7 @@ public class ScheduleBlockUpdaterTest {
             currentEntry.getBroadcast().copy().withId("different")
         ));
         
-        ScheduleUpdate scheduleUpdate = updater.updateBlocks(currentSchedule, updateEntries, channel, interval);
+        ScheduleBlocksUpdate scheduleUpdate = updater.updateBlocks(currentSchedule, updateEntries, channel, interval);
         
         assertThat(scheduleUpdate.getStaleEntries(), hasItem(currentEntry));
     }
@@ -117,7 +117,7 @@ public class ScheduleBlockUpdaterTest {
         
         ItemAndBroadcast updateEntry = itemAndBroadcast(1, METABROADCAST, channel, "one", new Interval(100, 200, DateTimeZones.UTC));
         
-        ScheduleUpdate scheduleUpdate = updater.updateBlocks(currentSchedule, ImmutableList.of(updateEntry), channel, new Interval(interval1.getStart(), interval2.getEnd()));
+        ScheduleBlocksUpdate scheduleUpdate = updater.updateBlocks(currentSchedule, ImmutableList.of(updateEntry), channel, new Interval(interval1.getStart(), interval2.getEnd()));
         
         assertThat(Iterables.getOnlyElement(scheduleUpdate.getUpdatedBlocks().get(0).getEntries()), is(updateEntry));
         assertThat(Iterables.getOnlyElement(scheduleUpdate.getUpdatedBlocks().get(1).getEntries()), is(updateEntry));
@@ -136,7 +136,7 @@ public class ScheduleBlockUpdaterTest {
         
         ItemAndBroadcast updateEntry = itemAndBroadcast(1, METABROADCAST, channel, "one", new Interval(25, 100, DateTimeZones.UTC));
 
-        ScheduleUpdate scheduleUpdate = updater.updateBlocks(currentSchedule, ImmutableList.of(updateEntry), channel, new Interval(interval1.getStart(), interval2.getEnd()));
+        ScheduleBlocksUpdate scheduleUpdate = updater.updateBlocks(currentSchedule, ImmutableList.of(updateEntry), channel, new Interval(interval1.getStart(), interval2.getEnd()));
         
         assertThat(Iterables.getOnlyElement(scheduleUpdate.getUpdatedBlocks().get(0).getEntries()), is(updateEntry));
         assertTrue(scheduleUpdate.getUpdatedBlocks().get(1).getEntries().isEmpty());
@@ -161,7 +161,7 @@ public class ScheduleBlockUpdaterTest {
 
         ItemAndBroadcast episodeAndBroadcast3 = itemAndBroadcast(3, METABROADCAST, channel, "two", overwrittenInterval);
         
-        ScheduleUpdate scheduleUpdate = updater.updateBlocks(currentSchedule, ImmutableList.of(episodeAndBroadcast3), channel, overwrittenInterval);
+        ScheduleBlocksUpdate scheduleUpdate = updater.updateBlocks(currentSchedule, ImmutableList.of(episodeAndBroadcast3), channel, overwrittenInterval);
         
         assertThat(scheduleUpdate.getUpdatedBlocks().get(0).getEntries().get(0), is(episodeAndBroadcast1));
         assertThat(scheduleUpdate.getUpdatedBlocks().get(0).getEntries().get(1), is(episodeAndBroadcast3));
@@ -180,7 +180,7 @@ public class ScheduleBlockUpdaterTest {
             new ChannelSchedule(channel, interval, ImmutableList.of(iab1))
         );
         
-        ScheduleUpdate updatedSchedule = updater.updateBlocks(currentSchedule, ImmutableList.of(iab2), channel, interval);
+        ScheduleBlocksUpdate updatedSchedule = updater.updateBlocks(currentSchedule, ImmutableList.of(iab2), channel, interval);
         
         assertThat(updatedSchedule.getUpdatedBlocks().get(0).getEntries().size(), is(1));
         assertThat(updatedSchedule.getUpdatedBlocks().get(0).getEntries().get(0), is(iab2));
@@ -206,7 +206,7 @@ public class ScheduleBlockUpdaterTest {
         
         List<ItemAndBroadcast> updateEntries = ImmutableList.of(iab4, iab3);
 
-        ScheduleUpdate update = updater.updateBlocks(currentSchedule, updateEntries, channel, overwrittenInterval);
+        ScheduleBlocksUpdate update = updater.updateBlocks(currentSchedule, updateEntries, channel, overwrittenInterval);
         
         ChannelSchedule block = update.getUpdatedBlocks().get(0);
         assertThat(block.getEntries().size(), is(3));
@@ -239,7 +239,7 @@ public class ScheduleBlockUpdaterTest {
         ItemAndBroadcast episode2 = itemAndBroadcast(2, METABROADCAST, channel, "one", new Interval(0, 200, DateTimeZones.UTC));
         List<ItemAndBroadcast> updateEntries = ImmutableList.of(episode2);
         
-        ScheduleUpdate updatedSchedule = updater.updateBlocks(currentSchedule, updateEntries, channel, interval);
+        ScheduleBlocksUpdate updatedSchedule = updater.updateBlocks(currentSchedule, updateEntries, channel, interval);
         
         assertThat(updatedSchedule.getUpdatedBlocks().get(0).getEntries().size(), is(1));
         assertThat(updatedSchedule.getUpdatedBlocks().get(0).getEntries().get(0), is(episode2));
