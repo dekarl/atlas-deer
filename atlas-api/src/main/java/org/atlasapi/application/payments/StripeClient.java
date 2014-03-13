@@ -2,6 +2,7 @@ package org.atlasapi.application.payments;
 
 import static com.google.api.client.repackaged.com.google.common.base.Preconditions.checkNotNull;
 
+import java.util.List;
 import java.util.Map;
 
 import org.atlasapi.application.Application;
@@ -19,6 +20,7 @@ import com.stripe.exception.CardException;
 import com.stripe.exception.InvalidRequestException;
 import com.stripe.model.Customer;
 import com.stripe.model.DeletedCustomer;
+import com.stripe.model.Subscription;
 
 
 public class StripeClient {
@@ -48,5 +50,19 @@ public class StripeClient {
     public Customer retrieveCustomer(Application application) throws AuthenticationException, InvalidRequestException, APIConnectionException, CardException, APIException {
         Preconditions.checkArgument(application.getStripeCustomerId().isPresent());
         return Customer.retrieve(application.getStripeCustomerId().get());
+    }
+    
+    public Subscription addPlan(Application application, String stripePlanId) throws AuthenticationException, InvalidRequestException, APIConnectionException, CardException, APIException {
+        Customer customer = retrieveCustomer(application);
+        // TODO Check does not already have plan
+        Map<String, Object> planMap = Maps.newHashMap();
+        planMap.put("plan", stripePlanId);
+        return customer.createSubscription(planMap);
+    }
+    
+    public List<Subscription> getSubscriptions(Application application) throws AuthenticationException, InvalidRequestException, APIConnectionException, CardException, APIException {
+        Customer customer = retrieveCustomer(application);
+        Map<String, Object> subscriptionParams = Maps.newHashMap();
+        return customer.getSubscriptions().all(subscriptionParams).getData();
     }
 }
