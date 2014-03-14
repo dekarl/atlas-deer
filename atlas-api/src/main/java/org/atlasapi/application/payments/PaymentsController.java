@@ -65,7 +65,7 @@ public class PaymentsController {
                 throw new ResourceForbiddenException();
             }
             Application existing = applicationStore.applicationFor(applicationId).get();
-            stripeClient.addPlan(existing, planId);
+            stripeClient.addPlan(existing, planId, token);
         } catch (Exception e) {
             ErrorSummary summary = ErrorSummary.forException(e);
             new ErrorResultWriter().write(summary, null, request, response);

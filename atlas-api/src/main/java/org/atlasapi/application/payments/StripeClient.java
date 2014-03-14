@@ -52,11 +52,12 @@ public class StripeClient {
         return Customer.retrieve(application.getStripeCustomerId().get());
     }
     
-    public Subscription addPlan(Application application, String stripePlanId) throws AuthenticationException, InvalidRequestException, APIConnectionException, CardException, APIException {
+    public Subscription addPlan(Application application, String stripePlanId, String token) throws AuthenticationException, InvalidRequestException, APIConnectionException, CardException, APIException {
         Customer customer = retrieveCustomer(application);
         // TODO Check does not already have plan
         Map<String, Object> planMap = Maps.newHashMap();
         planMap.put("plan", stripePlanId);
+        planMap.put("token", token);
         return customer.createSubscription(planMap);
     }
     

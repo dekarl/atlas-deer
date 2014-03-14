@@ -478,7 +478,7 @@ public class ApplicationWebModule {
     @Bean 
     public PaymentsController paymentsController() {
         StripeClient stripeClient = new StripeClient(stripePublishableKey, stripeSecretKey);
-        return new PaymentsController(stripeClient, userFetcher());
+        return new PaymentsController(stripeClient, idCodec, appPersistence.applicationStore(), userFetcher());
     }
   
 }
