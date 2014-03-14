@@ -26,6 +26,7 @@ import org.atlasapi.output.ResponseWriter;
 import org.atlasapi.output.ResponseWriterFactory;
 import org.atlasapi.output.useraware.UserAwareQueryResult;
 import org.atlasapi.output.useraware.UserAwareQueryResultWriter;
+import org.atlasapi.query.annotation.ActiveAnnotations;
 import org.atlasapi.query.common.QueryExecutionException;
 import org.atlasapi.query.common.useraware.UserAwareQuery;
 import org.atlasapi.query.common.useraware.UserAwareQueryContext;
@@ -125,7 +126,16 @@ public class ApplicationsController {
                 // Add application to user ownership
                 userStore.store(user.copyWithAdditionalApplication(application));
             }
-            UserAwareQueryResult<Application> queryResult = UserAwareQueryResult.singleResult(application, UserAwareQueryContext.standard());
+            // We do not want non-admins to see admin only sources
+            // So we run the application through the query executor
+            // to filter out anything they should not see
+            UserAwareQueryContext context = new UserAwareQueryContext(
+                    ApplicationSources.defaults(), 
+                    ActiveAnnotations.standard(),
+                    Optional.of(user)
+            );
+            UserAwareQuery<Application> applicationsQuery = UserAwareQuery.singleQuery(application.getId(), context);
+            UserAwareQueryResult<Application> queryResult = queryExecutor.execute(applicationsQuery);
 
             resultWriter.write(queryResult, writer);
         } catch (Exception e) {
