@@ -23,8 +23,8 @@ import org.atlasapi.output.StrategyBackedEquivalentsMerger;
 import org.atlasapi.query.common.ContextualQueryExecutor;
 import org.atlasapi.query.common.QueryExecutor;
 import org.atlasapi.query.v4.content.IndexBackedEquivalentContentQueryExecutor;
+import org.atlasapi.query.v4.schedule.EquivalentScheduleResolverBackedScheduleQueryExecutor;
 import org.atlasapi.query.v4.schedule.ScheduleQueryExecutor;
-import org.atlasapi.query.v4.schedule.ScheduleResolverBackedScheduleQueryExecutor;
 import org.atlasapi.query.v4.search.support.ContentResolvingSearcher;
 import org.atlasapi.query.v4.topic.IndexBackedTopicQueryExecutor;
 import org.atlasapi.query.v4.topic.TopicContentQueryExecutor;
@@ -59,14 +59,18 @@ public class QueryModule {
     private MergingEquivalentsResolver<Content> mergingContentResolver() {
         return new DefaultMergingEquivalentsResolver<Content>(
             persistenceModule.getEquivalentContentStore(), 
-            new StrategyBackedEquivalentsMerger<Content>(new OutputContentMerger())
+            equivalentsMerger()
         );
+    }
+
+    private StrategyBackedEquivalentsMerger<Content> equivalentsMerger() {
+        return new StrategyBackedEquivalentsMerger<Content>(new OutputContentMerger());
     }
     
     @Qualifier("store")
-    @Bean ScheduleQueryExecutor scheduleStoreScheduleQueryExecutor() {
-        return new ScheduleResolverBackedScheduleQueryExecutor(persistenceModule.channelStore(), 
-            persistenceModule.scheduleStore(), mergingContentResolver());
+    @Bean ScheduleQueryExecutor equivalentScheduleStoreScheduleQueryExecutor() {
+        return new EquivalentScheduleResolverBackedScheduleQueryExecutor(persistenceModule.channelStore(), 
+            persistenceModule.getEquivalentScheduleStore(), equivalentsMerger());
     }
 
     @Bean
