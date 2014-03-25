@@ -5,6 +5,7 @@ import javax.annotation.PreDestroy;
 
 import org.atlasapi.AtlasPersistenceModule;
 import org.atlasapi.equivalence.EquivalenceGraphUpdateMessage;
+import org.atlasapi.schedule.ScheduleUpdateMessage;
 import org.atlasapi.system.bootstrap.workers.LegacyMessageSerializer;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -22,6 +23,7 @@ public class WorkersModule {
     private static final String INDEXER_CONSUMER = "Indexer";
     private String contentChanges = Configurer.get("messaging.destination.content.changes").get();
     private String topicChanges = Configurer.get("messaging.destination.topics.changes").get();
+    private String scheduleChanges = Configurer.get("messaging.destination.schedule.changes").get();
     private String contentEquivalenceGraphChanges = Configurer.get("messaging.destination.equivalence.content.graph.changes").get();
     
     private Integer defaultIndexingConsumers = Configurer.get("messaging.indexing.consumers.default").toInt();
@@ -109,6 +111,30 @@ public class WorkersModule {
     @Lazy(true)
     public DefaultMessageListenerContainer equivalentContentStoreContentUpdateReplayListener() {
         return messaging.consumerQueueFactory().makeQueueConsumer(equivalentContentStoreContentUpdateWorker(), "EquivalentContent.Content.Replay", 1, 1);
+    }
+    
+    @Bean
+    @Lazy(true)
+    public ReplayingWorker<EquivalenceGraphUpdateMessage> equivalentScheduletStoreGraphUpdateWorker() {
+        return new ReplayingWorker<>(new EquivalentScheduleStoreGraphUpdateWorker(persistence.getEquivalentScheduleStore()));
+    }
+    
+    @Bean
+    @Lazy(true)
+    public DefaultMessageListenerContainer equivalentScheduleStoreGraphUpdateListener() {
+        return messaging.consumerQueueFactory().makeVirtualTopicConsumer(equivalentScheduletStoreGraphUpdateWorker(), "EquivalentScheduleStoreGraphs", contentEquivalenceGraphChanges, defaultIndexingConsumers, maxIndexingConsumers);
+    }
+    
+    @Bean
+    @Lazy(true)
+    public ReplayingWorker<ScheduleUpdateMessage> equivalentScheduleStoreScheduleUpdateWorker() {
+        return new ReplayingWorker<>(new EquivalentScheduleStoreScheduleUpdateWorker(persistence.getEquivalentScheduleStore()));
+    }
+    
+    @Bean
+    @Lazy(true)
+    public DefaultMessageListenerContainer equivalentScheduleStoreScheduleUpdateListener() {
+        return messaging.consumerQueueFactory().makeVirtualTopicConsumer(equivalentScheduleStoreScheduleUpdateWorker(), "EquivalentScheduleStoreSchedule", scheduleChanges, defaultIndexingConsumers, maxIndexingConsumers);
     }
 
 
