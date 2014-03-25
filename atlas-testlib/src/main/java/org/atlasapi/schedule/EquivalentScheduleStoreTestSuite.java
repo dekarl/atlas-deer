@@ -89,7 +89,7 @@ public abstract class EquivalentScheduleStoreTestSuite {
         Broadcast broadcast1 = new Broadcast(channel, interval).withId("sid1");
         item1.addBroadcast(broadcast1);
 
-        Item item2 = new Item(Id.valueOf(1), Publisher.METABROADCAST);
+        Item item2 = new Item(Id.valueOf(2), Publisher.METABROADCAST);
         Broadcast broadcast2 = new Broadcast(channel, interval).withId("sid2");
         item2.addBroadcast(broadcast2);
         
@@ -103,7 +103,7 @@ public abstract class EquivalentScheduleStoreTestSuite {
         store.updateSchedule(new ScheduleUpdate(Publisher.METABROADCAST, scheduleRef, ImmutableSet.<BroadcastRef>of()));
 
         scheduleRef = ScheduleRef.forChannel(Id.valueOf(channel.getId()), interval)
-                .addEntry(item1.getId(), broadcast1.toRef())
+                .addEntry(item2.getId(), broadcast2.toRef())
                 .build();
         store.updateSchedule(new ScheduleUpdate(Publisher.METABROADCAST, scheduleRef, ImmutableSet.<BroadcastRef>of(
             broadcast1.toRef()
@@ -116,6 +116,7 @@ public abstract class EquivalentScheduleStoreTestSuite {
         
         Equivalent<Item> broadcastItems = Iterables.getOnlyElement(schedule.getEntries()).getItems();
         assertThat(Iterables.getOnlyElement(broadcastItems.getResources()), is(item2));
+        assertThat(Iterables.getOnlyElement(schedule.getEntries()).getBroadcast(), is(broadcast2));
     }
 
     @Test

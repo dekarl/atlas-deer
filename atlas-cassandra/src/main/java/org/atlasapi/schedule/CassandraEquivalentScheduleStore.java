@@ -254,12 +254,8 @@ public final class CassandraEquivalentScheduleStore extends AbstractEquivalentSc
     private Iterable<Statement> deleteStatements(Publisher src, ImmutableSet<BroadcastRef> staleBroadcasts) {
         ImmutableList.Builder<Statement> stmts = ImmutableList.builder();
         for (BroadcastRef ref : staleBroadcasts) {
-            Date startDay = ref.getTransmissionInterval().getStart().toDate();
-            stmts.add(delete(ref, src, startDay));
-            
-            Date endDay = ref.getTransmissionInterval().getEnd().toDate();
-            if (startDay.equals(endDay)) {
-                stmts.add(delete(ref, src, endDay));
+            for (Date day : daysIn(ref.getTransmissionInterval())) {
+                stmts.add(delete(ref, src, day));
             }
         }
         return stmts.build();
