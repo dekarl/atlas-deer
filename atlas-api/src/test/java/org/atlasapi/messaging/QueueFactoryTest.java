@@ -61,7 +61,6 @@ public class QueueFactoryTest {
             = cqf.makeVirtualTopicConsumer(w, "consumer", destinationName, 1, 1);
         container.initialize();
         container.start();
-        System.out.println(container.isRunning());
         
         BrandRef updated = new BrandRef(Id.valueOf(1), Publisher.BBC);
         ResourceUpdatedMessage msg = new ResourceUpdatedMessage("1", Timestamp.of(1L), updated);

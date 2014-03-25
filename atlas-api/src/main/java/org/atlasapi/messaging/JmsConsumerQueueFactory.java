@@ -22,7 +22,8 @@ public final class JmsConsumerQueueFactory {
     }
 
     private String virtualTopicConsumer(String consumer, String producerSystem, String producer) {
-        return String.format("Consumer.%s.VirtualTopic.%s.%s", consumer, producerSystem, producer);
+        String consumerSystem = system.replace(".", "/");
+        return String.format("Consumer.%s%s.VirtualTopic.%s.%s", consumerSystem, consumer, producerSystem, producer);
     }
     
     private String queueName(String name) {
