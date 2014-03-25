@@ -21,6 +21,7 @@ import com.metabroadcast.common.properties.Configurer;
 @Import({AtlasPersistenceModule.class, AtlasMessagingModule.class, LegacyPersistenceModule.class})
 public class BootstrapWorkersModule {
 
+    private String consumerSystem = Configurer.get("messaging.system").get();
     private String originSystem = Configurer.get("messaging.bootstrap.system").get();
     private Integer consumers = Configurer.get("messaging.bootstrap.consumers.default").toInt();
     private Integer maxConsumers = Configurer.get("messaging.bootstrap.consumers.max").toInt();
@@ -43,7 +44,11 @@ public class BootstrapWorkersModule {
         BootstrapContentPersistor persistor = new BootstrapContentPersistor(
             persistence.contentStore(), persistence.scheduleStore(), persistence.channelStore());
         ContentReadWriteWorker worker = new ContentReadWriteWorker(legacyResolver, persistor);
-        return bootstrapQueueFactory().makeVirtualTopicConsumer(worker, "Bootstrap", contentChanges, consumers, maxConsumers);
+        return bootstrapQueueFactory().makeVirtualTopicConsumer(worker, "Bootstrap", contentChanges)
+                .withConsumerSystem(consumerSystem)
+                .withDefaultConsumers(consumers)
+                .withMaxConsumers(maxConsumers)
+                .build();
     }
 
     @Bean
@@ -52,7 +57,11 @@ public class BootstrapWorkersModule {
         TopicResolver legacyResolver = legacy.legacyTopicResolver();
         TopicStore writer = persistence.topicStore();
         TopicReadWriteWorker worker = new TopicReadWriteWorker(legacyResolver, writer);
-        return bootstrapQueueFactory().makeVirtualTopicConsumer(worker, "Bootstrap", topicChanges, consumers, maxConsumers);
+        return bootstrapQueueFactory().makeVirtualTopicConsumer(worker, "Bootstrap", topicChanges)
+                .withConsumerSystem(consumerSystem)
+                .withDefaultConsumers(consumers)
+                .withMaxConsumers(maxConsumers)
+                .build();
     }
     
 }

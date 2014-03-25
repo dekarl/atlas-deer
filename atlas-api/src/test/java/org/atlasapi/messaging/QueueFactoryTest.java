@@ -58,7 +58,7 @@ public class QueueFactoryTest {
 
         Worker<ResourceUpdatedMessage> w = new TestWorker(latch, receiver);
         DefaultMessageListenerContainer container
-            = cqf.makeVirtualTopicConsumer(w, "consumer", destinationName, 1, 1);
+            = cqf.makeVirtualTopicConsumer(w, "consumer", destinationName).build();
         container.initialize();
         container.start();
         
@@ -85,7 +85,7 @@ public class QueueFactoryTest {
 
         Worker<ResourceUpdatedMessage> w = new TestWorker(latch, receiver);
         DefaultMessageListenerContainer container
-            = cqf.makeVirtualTopicConsumer(w, "consumer1", destinationName, 1, 1);
+            = cqf.makeVirtualTopicConsumer(w, "consumer1", destinationName).build();
         container.initialize();
         container.start();
 

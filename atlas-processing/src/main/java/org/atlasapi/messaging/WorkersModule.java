@@ -19,7 +19,7 @@ import com.metabroadcast.common.properties.Configurer;
 @Configuration
 @Import({AtlasPersistenceModule.class, AtlasMessagingModule.class})
 public class WorkersModule {
-
+    
     private static final String INDEXER_CONSUMER = "Indexer";
     private String contentChanges = Configurer.get("messaging.destination.content.changes").get();
     private String topicChanges = Configurer.get("messaging.destination.topics.changes").get();
@@ -50,7 +50,10 @@ public class WorkersModule {
     @Bean
     @Lazy(true)
     public DefaultMessageListenerContainer contentIndexerMessageListener() {
-        return messaging.consumerQueueFactory().makeVirtualTopicConsumer(contentIndexingWorker(), INDEXER_CONSUMER, contentChanges, defaultIndexingConsumers, maxIndexingConsumers);
+        return messaging.consumerQueueFactory().makeVirtualTopicConsumer(contentIndexingWorker(), INDEXER_CONSUMER, contentChanges)
+                .withDefaultConsumers(defaultIndexingConsumers)
+                .withMaxConsumers(maxIndexingConsumers)
+                .build();
     }
 
     @Bean
@@ -68,7 +71,10 @@ public class WorkersModule {
     @Bean
     @Lazy(true)
     public DefaultMessageListenerContainer topicIndexerMessageListener() {
-        return messaging.consumerQueueFactory().makeVirtualTopicConsumer(topicIndexingWorker(), INDEXER_CONSUMER, topicChanges, defaultIndexingConsumers, maxIndexingConsumers);
+        return messaging.consumerQueueFactory().makeVirtualTopicConsumer(topicIndexingWorker(), INDEXER_CONSUMER, topicChanges)
+                .withDefaultConsumers(defaultIndexingConsumers)
+                .withMaxConsumers(maxIndexingConsumers)
+                .build();
     }
     
     @Bean
@@ -86,7 +92,10 @@ public class WorkersModule {
     @Bean
     @Lazy(true)
     public DefaultMessageListenerContainer equivalentContentStoreGraphUpdateListener() {
-        return messaging.consumerQueueFactory().makeVirtualTopicConsumer(equivalentContentStoreGraphUpdateWorker(), "EquivalentContentStoreGraphs", contentEquivalenceGraphChanges, defaultIndexingConsumers, maxIndexingConsumers);
+        return messaging.consumerQueueFactory().makeVirtualTopicConsumer(equivalentContentStoreGraphUpdateWorker(), "EquivalentContentStoreGraphs", contentEquivalenceGraphChanges)
+                .withDefaultConsumers(defaultIndexingConsumers)
+                .withMaxConsumers(maxIndexingConsumers)
+                .build();
     }
     
     @Bean
@@ -104,7 +113,10 @@ public class WorkersModule {
     @Bean
     @Lazy(true)
     public DefaultMessageListenerContainer equivalentContentStoreContentUpdateListener() {
-        return messaging.consumerQueueFactory().makeVirtualTopicConsumer(equivalentContentStoreContentUpdateWorker(), "EquivalentContentStoreContent", contentChanges, defaultIndexingConsumers, maxIndexingConsumers);
+        return messaging.consumerQueueFactory().makeVirtualTopicConsumer(equivalentContentStoreContentUpdateWorker(), "EquivalentContentStoreContent", contentChanges)
+                .withDefaultConsumers(defaultIndexingConsumers)
+                .withMaxConsumers(maxIndexingConsumers)
+                .build();
     }
     
     @Bean
@@ -122,7 +134,10 @@ public class WorkersModule {
     @Bean
     @Lazy(true)
     public DefaultMessageListenerContainer equivalentScheduleStoreGraphUpdateListener() {
-        return messaging.consumerQueueFactory().makeVirtualTopicConsumer(equivalentScheduletStoreGraphUpdateWorker(), "EquivalentScheduleStoreGraphs", contentEquivalenceGraphChanges, defaultIndexingConsumers, maxIndexingConsumers);
+        return messaging.consumerQueueFactory().makeVirtualTopicConsumer(equivalentScheduletStoreGraphUpdateWorker(), "EquivalentScheduleStoreGraphs", contentEquivalenceGraphChanges)
+                .withDefaultConsumers(defaultIndexingConsumers)
+                .withMaxConsumers(maxIndexingConsumers)
+                .build();
     }
     
     @Bean
@@ -134,7 +149,10 @@ public class WorkersModule {
     @Bean
     @Lazy(true)
     public DefaultMessageListenerContainer equivalentScheduleStoreScheduleUpdateListener() {
-        return messaging.consumerQueueFactory().makeVirtualTopicConsumer(equivalentScheduleStoreScheduleUpdateWorker(), "EquivalentScheduleStoreSchedule", scheduleChanges, defaultIndexingConsumers, maxIndexingConsumers);
+        return messaging.consumerQueueFactory().makeVirtualTopicConsumer(equivalentScheduleStoreScheduleUpdateWorker(), "EquivalentScheduleStoreSchedule", scheduleChanges)
+                .withDefaultConsumers(defaultIndexingConsumers)
+                .withMaxConsumers(maxIndexingConsumers)
+                .build();
     }
 
 
@@ -159,9 +177,12 @@ public class WorkersModule {
     @Bean
     @Lazy(true)
     public DefaultMessageListenerContainer equivUpdateListener() {
-        return messaging.consumerQueueFactory().makeVirtualTopicConsumer(contentEquivalenceUpdater(), 
-                new LegacyMessageSerializer(),
-                "EquivGraphUpdate", equivSystem, equivTopic, equivDefltConsumers, equivMaxConsumers);
+        return messaging.consumerQueueFactory().makeVirtualTopicConsumer(contentEquivalenceUpdater(), "EquivGraphUpdate", equivTopic)
+                .withSerializer(new LegacyMessageSerializer())
+                .withProducerSystem(equivSystem)
+                .withDefaultConsumers(equivDefltConsumers)
+                .withMaxConsumers(equivMaxConsumers)
+                .build();
     }
 
     @PostConstruct
