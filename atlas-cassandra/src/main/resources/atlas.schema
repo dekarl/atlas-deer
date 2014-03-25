@@ -116,13 +116,15 @@ CREATE TABLE equivalent_schedule (
   source text,
   channel bigint,
   day timestamp,
-  bid text,
+  broadcast_id text,
   broadcast blob,
   graph blob,
   content_count bigint,
   content blob,
-  PRIMARY KEY ((source, channel, day), bid)
-) WITH COMPACT STORAGE AND
+  schedule_update timestamp,
+  equiv_update timestamp,
+  PRIMARY KEY ((source, channel, day), broadcast_id)
+) WITH
   bloom_filter_fp_chance=0.010000 AND
   caching='KEYS_ONLY' AND
   comment='' AND
@@ -133,7 +135,7 @@ CREATE TABLE equivalent_schedule (
   populate_io_cache_on_flush='false' AND
   compaction={'class': 'SizeTieredCompactionStrategy'} AND
   compression={'sstable_compression': 'SnappyCompressor'};
-
+  
 CREATE TABLE topics (
   key bigint,
   column1 text,
