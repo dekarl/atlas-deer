@@ -169,7 +169,7 @@ public abstract class AbstractEquivalentScheduleStore implements EquivalentSched
             for (Content elem : graphContent.getResources()) {
                 if (elem instanceof Item) {
                     Item item = (Item) elem;
-                    for (Broadcast bcast : item.getBroadcasts()) {
+                    for (Broadcast bcast : Iterables.filter(item.getBroadcasts(),Broadcast.ACTIVELY_PUBLISHED)) {
                         Publisher src = item.getPublisher();
                         updateEquivalentContent(src, bcast, graph, equivItems(item, bcast, 
                                 graphContent.getResources().filter(Item.class)));
@@ -222,7 +222,7 @@ public abstract class AbstractEquivalentScheduleStore implements EquivalentSched
     }
 
     private boolean broadcastMatch(Item item, Broadcast subjBcast) {
-        for (Broadcast broadcast : item.getBroadcasts()) {
+        for (Broadcast broadcast : Iterables.filter(item.getBroadcasts(),Broadcast.ACTIVELY_PUBLISHED)) {
             if (broadcastMatcher.matches(subjBcast, broadcast)) {
                 return true;
             }
