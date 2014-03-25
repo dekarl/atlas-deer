@@ -216,7 +216,7 @@ public class EsContentIndex extends AbstractIdleService implements ContentIndex 
     private EsBroadcast toEsBroadcast(Broadcast broadcast) {
         return new EsBroadcast()
             .id(broadcast.getSourceId())
-            .channel(broadcast.getBroadcastOn())
+            .channel(broadcast.getChannelId().longValue())
             .transmissionTime(toUtc(broadcast.getTransmissionTime()).toDate())
             .transmissionEndTime(toUtc(broadcast.getTransmissionEndTime()).toDate())
             .transmissionTimeInMillis(toUtc(broadcast.getTransmissionTime()).getMillis())

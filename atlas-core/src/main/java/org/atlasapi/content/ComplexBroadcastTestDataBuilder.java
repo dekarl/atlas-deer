@@ -1,10 +1,11 @@
 package org.atlasapi.content;
 
+import org.atlasapi.entity.Id;
 import org.joda.time.DateTime;
 import org.joda.time.Duration;
 
 public class ComplexBroadcastTestDataBuilder {
-    private String channel;
+    private Id channel;
     private DateTime startTime;
     private Duration duration;
     
@@ -13,7 +14,7 @@ public class ComplexBroadcastTestDataBuilder {
     }
     
     private ComplexBroadcastTestDataBuilder() {
-        channel = "bbcone";
+        channel = Id.valueOf(1);
         startTime = new DateTime();
         duration = Duration.standardMinutes(60);
     }
@@ -24,7 +25,7 @@ public class ComplexBroadcastTestDataBuilder {
         return broadcast;
     }
     
-    public ComplexBroadcastTestDataBuilder withChannel(String channel) {
+    public ComplexBroadcastTestDataBuilder withChannel(Id channel) {
         this.channel = channel;
         return this;
     }

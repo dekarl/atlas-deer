@@ -105,7 +105,7 @@ public class CassandraScheduleStoreIT {
                 .withClock(clock)
                 .build();
         store = CassandraScheduleStore
-                .builder(context, SCHEDULE_CF_NAME, contentStore)
+                .builder(context, SCHEDULE_CF_NAME, contentStore, sender)
                 .withReadConsistency(ConsistencyLevel.CL_ONE)
                 .withWriteConsistency(ConsistencyLevel.CL_ONE)
                 .withClock(clock)
@@ -408,7 +408,7 @@ public class CassandraScheduleStoreIT {
     }
 
     private Broadcast broadcast(String broadacstId, Channel channel, DateTime start, DateTime end) {
-        Broadcast b = new Broadcast(channel.getCanonicalUri(), start, end);
+        Broadcast b = new Broadcast(channel, start, end);
         b.withId(broadacstId);
         return b;
     }

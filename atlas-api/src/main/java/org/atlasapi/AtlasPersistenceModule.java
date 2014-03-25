@@ -9,14 +9,10 @@ import javax.annotation.PostConstruct;
 import org.atlasapi.content.Content;
 import org.atlasapi.content.ContentHasher;
 import org.atlasapi.content.ContentStore;
-import org.atlasapi.content.EquivalenceWritingContentStore;
 import org.atlasapi.content.EquivalentContentStore;
 import org.atlasapi.content.EsContentIndex;
 import org.atlasapi.content.EsContentTitleSearcher;
 import org.atlasapi.equivalence.EquivalenceGraphStore;
-import org.atlasapi.equivalence.EquivalenceRecordStore;
-import org.atlasapi.equivalence.EquivalentsResolver;
-import org.atlasapi.equivalence.IdResolverBackedEquivalentResolver;
 import org.atlasapi.media.channel.CachingChannelStore;
 import org.atlasapi.media.channel.ChannelGroupStore;
 import org.atlasapi.media.channel.ChannelStore;
@@ -24,6 +20,8 @@ import org.atlasapi.media.channel.MongoChannelGroupStore;
 import org.atlasapi.media.channel.MongoChannelStore;
 import org.atlasapi.messaging.AtlasMessagingModule;
 import org.atlasapi.persistence.ids.MongoSequentialIdGenerator;
+import org.atlasapi.schedule.EquivalentSchedule;
+import org.atlasapi.schedule.EquivalentScheduleStore;
 import org.atlasapi.schedule.ScheduleStore;
 import org.atlasapi.topic.EsPopularTopicIndex;
 import org.atlasapi.topic.EsTopicIndex;
@@ -105,9 +103,7 @@ public class AtlasPersistenceModule {
     
     @Bean
     public ContentStore contentStore() {
-        ContentStore store = persistenceModule().contentStore();
-        store = new EquivalenceWritingContentStore(store, equivalenceRecordStore());
-        return store;
+        return persistenceModule().contentStore();
     }
     
     @Bean
@@ -129,15 +125,10 @@ public class AtlasPersistenceModule {
     public EquivalentContentStore getEquivalentContentStore() {
         return persistenceModule().equivalentContentStore();
     }
-    
-    @Bean @Deprecated
-    public EquivalenceRecordStore equivalenceRecordStore() {
-        return persistenceModule().getEquivalenceRecordStore();
-    }
-    
-    @Bean @Deprecated
-    public EquivalentsResolver<Content> equivalentContentResolver() {
-        return new IdResolverBackedEquivalentResolver<Content>(equivalenceRecordStore(), contentStore());
+
+    @Bean
+    public EquivalentScheduleStore getEquivalentScheduleStore() {
+        return persistenceModule().equivalentScheduleStore();
     }
 
     @Bean

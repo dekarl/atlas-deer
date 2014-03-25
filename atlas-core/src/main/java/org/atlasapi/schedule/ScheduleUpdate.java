@@ -2,27 +2,65 @@ package org.atlasapi.schedule;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
-import java.util.List;
-import java.util.Set;
+import org.atlasapi.content.BroadcastRef;
+import org.atlasapi.media.entity.Publisher;
 
-import org.atlasapi.content.ItemAndBroadcast;
+import com.google.common.base.Objects;
+import com.google.common.collect.ImmutableSet;
 
-class ScheduleUpdate {
+public final class ScheduleUpdate {
+    
+    public static final class Builder {
 
-    private final List<ChannelSchedule> updatedBlocks;
-    private final Set<ItemAndBroadcast> staleEntries;
+        private final Publisher source;
+        private final ScheduleRef schedule;
+        private ImmutableSet<BroadcastRef> staleBroadcasts = ImmutableSet.of(); 
+        
+        public Builder(Publisher source, ScheduleRef schedule) {
+            this.source = checkNotNull(source);
+            this.schedule = checkNotNull(schedule);
+        }
+        
+        public Builder withStaleBroadcasts(Iterable<BroadcastRef> staleBroadcasts) {
+            this.staleBroadcasts = ImmutableSet.copyOf(staleBroadcasts);
+            return this;
+        }
+        
+        public ScheduleUpdate build(){
+            return new ScheduleUpdate(source, schedule, staleBroadcasts);
+        }
+            
+    }
 
-    public ScheduleUpdate(List<ChannelSchedule> updatedBlocks, Set<ItemAndBroadcast> staleEntries) {
-        this.updatedBlocks = checkNotNull(updatedBlocks);
-        this.staleEntries = checkNotNull(staleEntries);
+    private final Publisher source;
+    private final ScheduleRef schedule;
+    private final ImmutableSet<BroadcastRef> staleBroadcasts;
+    
+    public ScheduleUpdate(Publisher source, ScheduleRef schedule, Iterable<BroadcastRef> staleBroadcasts) {
+        this.source = checkNotNull(source);
+        this.schedule = checkNotNull(schedule);
+        this.staleBroadcasts = ImmutableSet.copyOf(staleBroadcasts);
+    }
+
+    public ScheduleRef getSchedule() {
+        return schedule;
+    }
+
+    public ImmutableSet<BroadcastRef> getStaleBroadcasts() {
+        return staleBroadcasts;
+    }
+
+    public Publisher getSource() {
+        return source;
     }
     
-    public List<ChannelSchedule> getUpdatedBlocks() {
-        return this.updatedBlocks;
-    }
-    
-    public Set<ItemAndBroadcast> getStaleEntries() {
-        return this.staleEntries;
+    @Override
+    public String toString() {
+        return Objects.toStringHelper(getClass())
+                .add("source", source)
+                .add("schedule", schedule)
+                .add("stale", staleBroadcasts)
+                .toString();
     }
     
 }

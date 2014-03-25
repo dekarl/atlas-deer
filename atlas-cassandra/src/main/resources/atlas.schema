@@ -1,0 +1,169 @@
+CREATE TABLE content (
+  key bigint,
+  column1 text,
+  value blob,
+  PRIMARY KEY (key, column1)
+) WITH COMPACT STORAGE AND
+  bloom_filter_fp_chance=0.010000 AND
+  caching='KEYS_ONLY' AND
+  comment='' AND
+  dclocal_read_repair_chance=0.000000 AND
+  gc_grace_seconds=864000 AND
+  read_repair_chance=0.100000 AND
+  replicate_on_write='true' AND
+  populate_io_cache_on_flush='false' AND
+  compaction={'class': 'SizeTieredCompactionStrategy'} AND
+  compression={'sstable_compression': 'SnappyCompressor'};
+
+CREATE TABLE content_aliases (
+  key text,
+  column1 text,
+  value bigint,
+  PRIMARY KEY (key, column1)
+) WITH COMPACT STORAGE AND
+  bloom_filter_fp_chance=0.010000 AND
+  caching='KEYS_ONLY' AND
+  comment='' AND
+  dclocal_read_repair_chance=0.000000 AND
+  gc_grace_seconds=864000 AND
+  read_repair_chance=0.100000 AND
+  replicate_on_write='true' AND
+  populate_io_cache_on_flush='false' AND
+  compaction={'class': 'SizeTieredCompactionStrategy'} AND
+  compression={'sstable_compression': 'SnappyCompressor'};
+
+CREATE TABLE equivalence_graph (
+  graph_id bigint PRIMARY KEY,
+  graph blob
+) WITH
+  bloom_filter_fp_chance=0.010000 AND
+  caching='KEYS_ONLY' AND
+  comment='' AND
+  dclocal_read_repair_chance=0.000000 AND
+  gc_grace_seconds=864000 AND
+  read_repair_chance=0.100000 AND
+  replicate_on_write='true' AND
+  populate_io_cache_on_flush='false' AND
+  compaction={'class': 'SizeTieredCompactionStrategy'} AND
+  compression={'sstable_compression': 'SnappyCompressor'};
+
+CREATE TABLE equivalence_graph_index (
+  resource_id bigint PRIMARY KEY,
+  graph_id bigint
+) WITH
+  bloom_filter_fp_chance=0.010000 AND
+  caching='KEYS_ONLY' AND
+  comment='' AND
+  dclocal_read_repair_chance=0.000000 AND
+  gc_grace_seconds=864000 AND
+  read_repair_chance=0.100000 AND
+  replicate_on_write='true' AND
+  populate_io_cache_on_flush='false' AND
+  compaction={'class': 'SizeTieredCompactionStrategy'} AND
+  compression={'sstable_compression': 'SnappyCompressor'};
+
+CREATE TABLE equivalent_content (
+  set_id bigint,
+  content_id bigint,
+  data blob,
+  graph blob,
+  PRIMARY KEY (set_id, content_id)
+) WITH
+  bloom_filter_fp_chance=0.010000 AND
+  caching='KEYS_ONLY' AND
+  comment='' AND
+  dclocal_read_repair_chance=0.000000 AND
+  gc_grace_seconds=864000 AND
+  read_repair_chance=0.100000 AND
+  replicate_on_write='true' AND
+  populate_io_cache_on_flush='false' AND
+  compaction={'class': 'SizeTieredCompactionStrategy'} AND
+  compression={'sstable_compression': 'SnappyCompressor'};
+
+CREATE TABLE equivalent_content_index (
+  key bigint PRIMARY KEY,
+  value bigint
+) WITH
+  bloom_filter_fp_chance=0.010000 AND
+  caching='KEYS_ONLY' AND
+  comment='' AND
+  dclocal_read_repair_chance=0.000000 AND
+  gc_grace_seconds=864000 AND
+  read_repair_chance=0.100000 AND
+  replicate_on_write='true' AND
+  populate_io_cache_on_flush='false' AND
+  compaction={'class': 'SizeTieredCompactionStrategy'} AND
+  compression={'sstable_compression': 'SnappyCompressor'};
+
+CREATE TABLE schedule (
+  key text,
+  column1 text,
+  value blob,
+  PRIMARY KEY (key, column1)
+) WITH COMPACT STORAGE AND
+  bloom_filter_fp_chance=0.010000 AND
+  caching='KEYS_ONLY' AND
+  comment='' AND
+  dclocal_read_repair_chance=0.000000 AND
+  gc_grace_seconds=864000 AND
+  read_repair_chance=0.100000 AND
+  replicate_on_write='true' AND
+  populate_io_cache_on_flush='false' AND
+  compaction={'class': 'SizeTieredCompactionStrategy'} AND
+  compression={'sstable_compression': 'SnappyCompressor'};
+  
+CREATE TABLE equivalent_schedule (
+  source text,
+  channel bigint,
+  day timestamp,
+  bid text,
+  broadcast blob,
+  graph blob,
+  content_count bigint,
+  content blob,
+  PRIMARY KEY ((source, channel, day), bid)
+) WITH COMPACT STORAGE AND
+  bloom_filter_fp_chance=0.010000 AND
+  caching='KEYS_ONLY' AND
+  comment='' AND
+  dclocal_read_repair_chance=0.000000 AND
+  gc_grace_seconds=864000 AND
+  read_repair_chance=0.100000 AND
+  replicate_on_write='true' AND
+  populate_io_cache_on_flush='false' AND
+  compaction={'class': 'SizeTieredCompactionStrategy'} AND
+  compression={'sstable_compression': 'SnappyCompressor'};
+
+CREATE TABLE topics (
+  key bigint,
+  column1 text,
+  value blob,
+  PRIMARY KEY (key, column1)
+) WITH COMPACT STORAGE AND
+  bloom_filter_fp_chance=0.010000 AND
+  caching='KEYS_ONLY' AND
+  comment='' AND
+  dclocal_read_repair_chance=0.000000 AND
+  gc_grace_seconds=864000 AND
+  read_repair_chance=0.100000 AND
+  replicate_on_write='true' AND
+  populate_io_cache_on_flush='false' AND
+  compaction={'class': 'SizeTieredCompactionStrategy'} AND
+  compression={'sstable_compression': 'SnappyCompressor'};
+
+CREATE TABLE topics_aliases (
+  key text,
+  column1 text,
+  value bigint,
+  PRIMARY KEY (key, column1)
+) WITH COMPACT STORAGE AND
+  bloom_filter_fp_chance=0.010000 AND
+  caching='KEYS_ONLY' AND
+  comment='' AND
+  dclocal_read_repair_chance=0.000000 AND
+  gc_grace_seconds=864000 AND
+  read_repair_chance=0.100000 AND
+  replicate_on_write='true' AND
+  populate_io_cache_on_flush='false' AND
+  compaction={'class': 'SizeTieredCompactionStrategy'} AND
+  compression={'sstable_compression': 'SnappyCompressor'};

@@ -159,7 +159,7 @@ public class ScheduleResolverBackedScheduleQueryExecutorTest {
         ChannelSchedule channelSchedule = new ChannelSchedule(channel, interval, ImmutableList.<ItemAndBroadcast>of(
             new ItemAndBroadcast(
                 new Item(itemId, METABROADCAST), 
-                new Broadcast(channel.getCanonicalUri(), interval)
+                new Broadcast(channel, interval)
             )
         ));
 

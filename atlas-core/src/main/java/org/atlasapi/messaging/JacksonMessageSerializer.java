@@ -3,6 +3,7 @@ package org.atlasapi.messaging;
 import java.io.IOException;
 
 import org.atlasapi.content.BrandRef;
+import org.atlasapi.content.BroadcastRef;
 import org.atlasapi.content.ClipRef;
 import org.atlasapi.content.EpisodeRef;
 import org.atlasapi.content.FilmRef;
@@ -13,6 +14,9 @@ import org.atlasapi.entity.Id;
 import org.atlasapi.equivalence.EquivalenceGraph;
 import org.atlasapi.equivalence.EquivalenceGraphUpdate;
 import org.atlasapi.equivalence.EquivalenceGraphUpdateMessage;
+import org.atlasapi.schedule.ScheduleRef;
+import org.atlasapi.schedule.ScheduleUpdate;
+import org.atlasapi.schedule.ScheduleUpdateMessage;
 import org.atlasapi.topic.TopicRef;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility;
@@ -52,6 +56,9 @@ public class JacksonMessageSerializer implements MessageSerializer {
             context.setMixInAnnotations(EquivalenceGraph.Adjacents.class, AdjacentsConfiguration.class);
             context.setMixInAnnotations(EquivalenceGraphUpdate.class, EquivalenceGraphUpdateConfiguration.class);
             context.setMixInAnnotations(EquivalenceGraphUpdate.Builder.class, EquivalenceGraphUpdateConfiguration.Builder.class);
+            context.setMixInAnnotations(ScheduleUpdateMessage.class, ScheduleUpdateMessageConfiguration.class);
+            context.setMixInAnnotations(ScheduleUpdate.class, ScheduleUpdateConfiguration.class);
+            context.setMixInAnnotations(ScheduleUpdate.Builder.class, ScheduleUpdateConfiguration.Builder.class);
         }
         
     }
@@ -74,6 +81,9 @@ public class JacksonMessageSerializer implements MessageSerializer {
             context.setMixInAnnotations(FilmRef.class, ItemRefConfiguration.class);
             context.setMixInAnnotations(ClipRef.class, ItemRefConfiguration.class);
             context.setMixInAnnotations(SeriesRef.class, SeriesRefConfiguration.class);
+            context.setMixInAnnotations(BroadcastRef.class, BroadcastRefConfiguration.class);
+            context.setMixInAnnotations(ScheduleRef.class, ScheduleRefConfiguration.class);
+            context.setMixInAnnotations(ScheduleRef.Entry.class, ScheduleRefConfiguration.Entry.class);
             context.setMixInAnnotations(Timestamp.class, TimestampConfiguration.class);
             SimpleDeserializers desers = new SimpleDeserializers();
             context.addDeserializers(desers);

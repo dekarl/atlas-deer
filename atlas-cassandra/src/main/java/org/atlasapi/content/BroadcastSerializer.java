@@ -3,7 +3,9 @@ package org.atlasapi.content;
 import static org.atlasapi.entity.ProtoBufUtils.deserializeDateTime;
 import static org.atlasapi.entity.ProtoBufUtils.serializeDateTime;
 
+import org.atlasapi.entity.Id;
 import org.atlasapi.entity.IdentifiedSerializer;
+import org.atlasapi.serialization.protobuf.CommonProtos;
 import org.atlasapi.serialization.protobuf.ContentProtos;
 import org.atlasapi.serialization.protobuf.ContentProtos.Broadcast.Builder;
 
@@ -16,7 +18,7 @@ public class BroadcastSerializer {
     public ContentProtos.Broadcast.Builder serialize(Broadcast broadcast) {
         Builder builder = ContentProtos.Broadcast.newBuilder();
         builder.setIdentification(identifiedSerializer.serialize(broadcast));
-        builder.setChannelUri(broadcast.getBroadcastOn());
+        builder.setChannel(CommonProtos.Reference.newBuilder().setId(broadcast.getChannelId().longValue()));
         builder.setTransmissionTime(serializeDateTime(broadcast.getTransmissionTime()));
         builder.setTransmissionEndTime(serializeDateTime(broadcast.getTransmissionEndTime()));
         if (broadcast.getScheduleDate() != null) {
@@ -69,7 +71,7 @@ public class BroadcastSerializer {
     
 
     public Broadcast deserialize(ContentProtos.Broadcast msg) {
-        Broadcast broadcast = new Broadcast(msg.getChannelUri(),
+        Broadcast broadcast = new Broadcast(Id.valueOf(msg.getChannel().getId()),
             deserializeDateTime(msg.getTransmissionTime()),
             deserializeDateTime(msg.getTransmissionEndTime()));
         identifiedSerializer.deserialize(msg.getIdentification(), broadcast);

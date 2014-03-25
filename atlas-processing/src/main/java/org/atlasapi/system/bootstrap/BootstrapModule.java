@@ -11,7 +11,6 @@ import javax.jms.ConnectionFactory;
 import org.atlasapi.AtlasPersistenceModule;
 import org.atlasapi.SchedulerModule;
 import org.atlasapi.content.Content;
-import org.atlasapi.equivalence.EquivalenceRecord;
 import org.atlasapi.media.entity.Publisher;
 import org.atlasapi.system.bootstrap.workers.BootstrapContentPersistor;
 import org.atlasapi.system.bootstrap.workers.BootstrapWorkersModule;
@@ -57,14 +56,6 @@ public class BootstrapModule {
                 @Override
                 public BootstrapListener<Topic> buildWithConcurrency(int concurrencyLevel) {
                     return new TopicWritingBootstrapListener(concurrencyLevel, persistence.topicStore());
-                }
-            }
-        );
-        bootstrapController.addBootstrapPair("legacy-equiv", new ResourceBootstrapper<EquivalenceRecord>(legacy.legacyEquivalenceLister()), 
-            new BootstrapListenerFactory<EquivalenceRecord>() {
-                @Override
-                public BootstrapListener<EquivalenceRecord> buildWithConcurrency(int concurrencyLevel) {
-                    return new EquivalenceBootstrapListener(concurrencyLevel, persistence.equivalenceRecordStore());
                 }
             }
         );

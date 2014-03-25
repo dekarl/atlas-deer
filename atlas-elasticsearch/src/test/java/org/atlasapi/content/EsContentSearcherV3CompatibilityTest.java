@@ -141,10 +141,10 @@ public class EsContentSearcherV3CompatibilityTest {
                 .withBroadcasts(broadcast().build()).build();
         
         Brand rugby = brand("/rugby", "Rugby");
-        Item rugbyItem = complexItem().withBrand(rugby).withBroadcasts(broadcast().withChannel("http://minor-channel").build()).build();
+        Item rugbyItem = complexItem().withBrand(rugby).withBroadcasts(broadcast().withChannel(Id.valueOf(1)).build()).build();
         
         Brand sixNationsRugby = brand("/sixnations", "Six Nations Rugby Union");
-        Item sixNationsRugbyItem = complexItem().withBrand(sixNationsRugby).withBroadcasts(broadcast().withChannel("http://www.bbc.co.uk/services/bbcone/east").build()).build();
+        Item sixNationsRugbyItem = complexItem().withBrand(sixNationsRugby).withBroadcasts(broadcast().withChannel(Id.valueOf(2)).build()).build();
 
         Brand hellsKitchen = brand("/hellskitchen", "Hell's Kitchen");
         Item hellsKitchenItem = complexItem().withBrand(hellsKitchen).withBroadcasts(broadcast().build()).build();

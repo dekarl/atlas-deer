@@ -46,8 +46,8 @@ public class EsContentTitleSearcherTest {
     
     @Test
     public void testSearch() throws Exception {
-        Broadcast broadcast1 = new Broadcast("MB", new DateTime(), new DateTime().plusHours(1));
-        Broadcast broadcast2 = new Broadcast("MB", new DateTime().plusHours(3), new DateTime().plusHours(4));
+        Broadcast broadcast1 = new Broadcast(Id.valueOf(1), new DateTime(), new DateTime().plusHours(1));
+        Broadcast broadcast2 = new Broadcast(Id.valueOf(1), new DateTime().plusHours(3), new DateTime().plusHours(4));
 
         Item item1 = new Item("uri1", "curie1", Publisher.METABROADCAST);
         item1.setTitle("title1");

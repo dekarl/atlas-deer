@@ -1,16 +1,21 @@
 package org.atlasapi.content;
 
 import static org.testng.AssertJUnit.assertEquals;
+
 import org.testng.annotations.Test;
+
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
+
 import java.util.Collections;
 import java.util.List;
 import java.util.Random;
 
+import org.atlasapi.entity.Id;
 import org.atlasapi.media.entity.Publisher;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
+
 import com.google.common.base.Function;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
@@ -48,8 +53,8 @@ public class SortKeyTest {
     @Test
     public void testBroadcastKey() {
         Item broadcast = new Item("broadcast", "broadcastCurie", Publisher.BBC);
-        broadcast.addBroadcast(new Broadcast("channel10", new DateTime(300, DateTimeZone.UTC), new DateTime(400, DateTimeZone.UTC)));
-        broadcast.addBroadcast(new Broadcast("channel9", new DateTime(100, DateTimeZone.UTC), new DateTime(200, DateTimeZone.UTC)));
+        broadcast.addBroadcast(new Broadcast(Id.valueOf(10), new DateTime(300, DateTimeZone.UTC), new DateTime(400, DateTimeZone.UTC)));
+        broadcast.addBroadcast(new Broadcast(Id.valueOf(9), new DateTime(100, DateTimeZone.UTC), new DateTime(200, DateTimeZone.UTC)));
         
         String key = SortKey.keyFrom(broadcast);
         assertThat(key, is("750000000000000000100"));
@@ -78,10 +83,10 @@ public class SortKeyTest {
         episode1.setEpisodeNumber(6);
         
         Item broadcast = new Item("broadcast", "broadcastCurie", Publisher.BBC);
-        broadcast.addBroadcast(new Broadcast("channel9", new DateTime(2011, 10, 10, 0, 0,0,0, DateTimeZone.UTC), new DateTime(2011, 10, 10, 1, 0,0,0, DateTimeZone.UTC)));
+        broadcast.addBroadcast(new Broadcast(Id.valueOf(9), new DateTime(2011, 10, 10, 0, 0,0,0, DateTimeZone.UTC), new DateTime(2011, 10, 10, 1, 0,0,0, DateTimeZone.UTC)));
 
         Item broadcast1 = new Item("broadcast", "broadcastCurie", Publisher.BBC);
-        broadcast1.addBroadcast(new Broadcast("channel10", new DateTime(2011, 10, 9, 0, 0,0,0, DateTimeZone.UTC), new DateTime(2011, 10, 9, 1, 0,0,0, DateTimeZone.UTC)));
+        broadcast1.addBroadcast(new Broadcast(Id.valueOf(10), new DateTime(2011, 10, 9, 0, 0,0,0, DateTimeZone.UTC), new DateTime(2011, 10, 9, 1, 0,0,0, DateTimeZone.UTC)));
         
         Item deflt = new Item("default", "defaultCurie", Publisher.BBC);
         

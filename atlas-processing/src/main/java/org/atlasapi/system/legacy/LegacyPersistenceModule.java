@@ -35,13 +35,13 @@ public class LegacyPersistenceModule {
             return NullContentResolver.get();
         }
         KnownTypeContentResolver contentResolver = new MongoContentResolver(mongoDb, legacyEquivalenceStore());
-        return new LegacyContentResolver(legacyEquivalenceStore(), contentResolver);
+        return new LegacyContentResolver(legacyEquivalenceStore(), contentResolver, persistence.channelStore());
     }
     
     @Bean @Qualifier("legacy")
     public ContentListerResourceListerAdapter legacyContentLister() {
         MongoContentLister contentLister = new MongoContentLister(persistence.databasedMongo());
-        return new ContentListerResourceListerAdapter(contentLister);
+        return new ContentListerResourceListerAdapter(contentLister, persistence.channelStore());
     }
     
     @Bean @Qualifier("legacy")
@@ -70,11 +70,7 @@ public class LegacyPersistenceModule {
         KnownTypeContentResolver contentResolver = new MongoContentResolver(db, legacyEquivalenceStore());
         LookupResolvingContentResolver resolver = new LookupResolvingContentResolver(contentResolver, legacyEquivalenceStore());
         EquivalentContentResolver equivalentContentResolver = new DefaultEquivalentContentResolver(contentResolver, legacyEquivalenceStore());
-        return new LegacyScheduleResolver(new MongoScheduleStore(db, persistence.channelStore(), resolver, equivalentContentResolver));
+        return new LegacyScheduleResolver(new MongoScheduleStore(db, persistence.channelStore(), resolver, equivalentContentResolver),persistence.channelStore());
     }
 
-    @Bean @Qualifier("legacy")
-    public LegacyEquivalenceLister legacyEquivalenceLister() {
-        return new LegacyEquivalenceLister(legacyEquivalenceStore());
-    }
 }

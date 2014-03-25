@@ -4,6 +4,7 @@ import java.util.Iterator;
 
 import org.atlasapi.entity.ResourceLister;
 import org.atlasapi.content.Content;
+import org.atlasapi.media.channel.ChannelResolver;
 import org.atlasapi.persistence.content.ContentCategory;
 import org.atlasapi.persistence.content.listing.ContentLister;
 import org.atlasapi.persistence.content.listing.ContentListingCriteria;
@@ -17,9 +18,9 @@ public class ContentListerResourceListerAdapter implements ResourceLister<Conten
     private final ContentLister contentLister;
 	private final LegacyContentTransformer transformer;
 
-    public ContentListerResourceListerAdapter(ContentLister contentLister) {
+    public ContentListerResourceListerAdapter(ContentLister contentLister, ChannelResolver channelResolver) {
         this.contentLister = contentLister;
-        this.transformer = new LegacyContentTransformer();
+        this.transformer = new LegacyContentTransformer(channelResolver);
     }
 
     @Override

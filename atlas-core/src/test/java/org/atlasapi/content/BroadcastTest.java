@@ -16,8 +16,11 @@ package org.atlasapi.content;
 
 import static org.testng.AssertJUnit.assertFalse;
 import static org.testng.AssertJUnit.assertEquals;
+
 import org.testng.annotations.Test;
+import org.atlasapi.entity.Id;
 import org.joda.time.Duration;
+
 import com.metabroadcast.common.time.Clock;
 import com.metabroadcast.common.time.TimeMachine;
 
@@ -28,22 +31,22 @@ public class BroadcastTest {
 	@Test
 	public void testEqualBroadcasts() throws Exception {
         
-        assertEquals(new Broadcast("on", clock.now(), clock.now().plusHours(1)), new Broadcast("on", clock.now(), clock.now().plusHours(1)));
+        assertEquals(new Broadcast(Id.valueOf(1), clock.now(), clock.now().plusHours(1)), new Broadcast(Id.valueOf(1), clock.now(), clock.now().plusHours(1)));
 
-        assertEquals(new Broadcast("on", clock.now(), Duration.standardHours(1)), new Broadcast("on", clock.now(), clock.now().plusHours(1)));
+        assertEquals(new Broadcast(Id.valueOf(1), clock.now(), Duration.standardHours(1)), new Broadcast(Id.valueOf(1), clock.now(), clock.now().plusHours(1)));
 
-        assertEquals(new Broadcast("on", clock.now(), Duration.standardHours(1)), new Broadcast("on", clock.now(), Duration.standardHours(1)));
+        assertEquals(new Broadcast(Id.valueOf(1), clock.now(), Duration.standardHours(1)), new Broadcast(Id.valueOf(1), clock.now(), Duration.standardHours(1)));
 
     }
     
 	@Test
     public void testUnequalBroadcasts() throws Exception {
     	
-        assertFalse(new Broadcast("on", clock.now(), Duration.standardHours(1)).equals(new Broadcast("on2", clock.now(), Duration.standardHours(1))));
+        assertFalse(new Broadcast(Id.valueOf(1), clock.now(), Duration.standardHours(1)).equals(new Broadcast(Id.valueOf(2), clock.now(), Duration.standardHours(1))));
 
-        assertFalse(new Broadcast("on", clock.now(), Duration.standardHours(2)).equals(new Broadcast("on", clock.now(), Duration.standardHours(1))));
+        assertFalse(new Broadcast(Id.valueOf(1), clock.now(), Duration.standardHours(2)).equals(new Broadcast(Id.valueOf(1), clock.now(), Duration.standardHours(1))));
 
-        assertFalse(new Broadcast("on", clock.now().plusSeconds(1), clock.now().plusHours(1)).equals(new Broadcast("on", clock.now(), clock.now().plusHours(1))));
+        assertFalse(new Broadcast(Id.valueOf(1), clock.now().plusSeconds(1), clock.now().plusHours(1)).equals(new Broadcast(Id.valueOf(1), clock.now(), clock.now().plusHours(1))));
 
     }
 }

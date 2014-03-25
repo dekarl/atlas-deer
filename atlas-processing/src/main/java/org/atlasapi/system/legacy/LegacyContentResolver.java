@@ -9,6 +9,7 @@ import org.atlasapi.content.ContentResolver;
 import org.atlasapi.entity.Alias;
 import org.atlasapi.entity.Id;
 import org.atlasapi.entity.util.Resolved;
+import org.atlasapi.media.channel.ChannelResolver;
 import org.atlasapi.media.entity.LookupRef;
 import org.atlasapi.media.entity.Publisher;
 import org.atlasapi.persistence.content.KnownTypeContentResolver;
@@ -39,10 +40,10 @@ public class LegacyContentResolver implements ContentResolver {
     private KnownTypeContentResolver contentResolver;
     private LegacyContentTransformer transformer;
 
-    public LegacyContentResolver(LookupEntryStore lookupStore, KnownTypeContentResolver contentResolver) {
+    public LegacyContentResolver(LookupEntryStore lookupStore, KnownTypeContentResolver contentResolver, ChannelResolver channelResolver) {
         this.lookupStore = lookupStore;
         this.contentResolver = contentResolver;
-        this.transformer = new LegacyContentTransformer();
+        this.transformer = new LegacyContentTransformer(channelResolver);
     }
     
     @Override

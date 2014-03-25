@@ -50,6 +50,7 @@ public class WritableScheduleHierarchyTest {
     
     @BeforeMethod
     public void setup() throws WriteException {
+        channel.setId(1L);
         when(store.writeContent(Mockito.argThat(any(Content.class))))
             .then(new Answer<WriteResult<Content>>() {
                 @Override
@@ -222,7 +223,7 @@ public class WritableScheduleHierarchyTest {
     private Broadcast broadcast(String broadacstId, Channel channel) {
         DateTime start = new DateTime(DateTimeZones.UTC);
         DateTime end = new DateTime(DateTimeZones.UTC);
-        Broadcast b = new Broadcast(channel.getCanonicalUri(), start, end);
+        Broadcast b = new Broadcast(channel, start, end);
         b.withId(broadacstId);
         return b;
     }

@@ -19,7 +19,7 @@ public class BroadcastSerializerTest {
     public void testDeSerializeBroadcast() {
         DateTime start = new DateTime(DateTimeZones.UTC);
         DateTime end = start.plusHours(1);
-        Broadcast broadcast = new Broadcast("channel", start, end);
+        Broadcast broadcast = new Broadcast(Id.valueOf(1), start, end);
         broadcast.setId(Id.valueOf(1234));
         broadcast.setCanonicalUri("uri");
         broadcast.setAliases(ImmutableSet.of(new Alias("a","alias1"),new Alias("b","alias2")));
@@ -53,7 +53,7 @@ public class BroadcastSerializerTest {
     public void testDeSerializeBroadcastWithScheduleDate() {
         DateTime start = new DateTime(DateTimeZones.UTC);
         DateTime end = start.plusHours(1);
-        Broadcast broadcast = new Broadcast("channel", start, end);
+        Broadcast broadcast = new Broadcast(Id.valueOf(1), start, end);
         broadcast.setScheduleDate(new LocalDate(DateTimeZones.UTC));
         
         ContentProtos.Broadcast serialized = serializer.serialize(broadcast).build();
@@ -65,7 +65,7 @@ public class BroadcastSerializerTest {
     }
 
     private void checkBroadcast(Broadcast actual, Broadcast expected) {
-        assertThat(actual.getBroadcastOn(), is(expected.getBroadcastOn()));
+        assertThat(actual.getChannelId(), is(expected.getChannelId()));
         assertThat(actual.getTransmissionTime(), is(expected.getTransmissionTime()));
         assertThat(actual.getTransmissionEndTime(), is(expected.getTransmissionEndTime()));
         

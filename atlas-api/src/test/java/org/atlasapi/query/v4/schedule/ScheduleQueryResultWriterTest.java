@@ -51,7 +51,7 @@ public class ScheduleQueryResultWriterTest {
         item.setId(4321l);
         item.setTitle("aTitle");
         
-        Broadcast broadcast = new Broadcast(channel.getCanonicalUri(), from, to);
+        Broadcast broadcast = new Broadcast(channel, from, to);
         ItemAndBroadcast itemAndBroadcast = new ItemAndBroadcast(item, broadcast );
         Iterable<ItemAndBroadcast> entries = ImmutableList.of(itemAndBroadcast);
         ChannelSchedule cs = new ChannelSchedule(channel, interval, entries);

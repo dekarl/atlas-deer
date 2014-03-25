@@ -60,8 +60,8 @@ public class EsPopularTopicsIndexTest {
 
     @Test
     public void testPopularTopics() throws Exception {
-        Broadcast broadcast1 = new Broadcast("MB", new DateTime(), new DateTime().plusHours(1));
-        Broadcast broadcast2 = new Broadcast("MB", new DateTime().plusHours(2), new DateTime().plusHours(3));
+        Broadcast broadcast1 = new Broadcast(Id.valueOf(1), new DateTime(), new DateTime().plusHours(1));
+        Broadcast broadcast2 = new Broadcast(Id.valueOf(1), new DateTime().plusHours(2), new DateTime().plusHours(3));
         
         TopicRef topic1 = new TopicRef(Id.valueOf(1), 1.0f, Boolean.TRUE, TopicRef.Relationship.ABOUT);
         TopicRef topic2 = new TopicRef(Id.valueOf(2), 1.0f, Boolean.TRUE, TopicRef.Relationship.ABOUT);

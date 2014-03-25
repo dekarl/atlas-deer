@@ -18,7 +18,7 @@ public class EsBroadcast extends EsObject {
         return this;
     }
     
-    public EsBroadcast channel(String channel) {
+    public EsBroadcast channel(Long channel) {
         properties.put(CHANNEL, channel);
         return this;
     }

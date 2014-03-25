@@ -15,6 +15,7 @@ import org.atlasapi.entity.util.ResolveException;
 import org.atlasapi.entity.util.WriteException;
 import org.atlasapi.media.channel.Channel;
 import org.atlasapi.media.entity.Publisher;
+import org.atlasapi.messaging.MessageSender;
 import org.atlasapi.schedule.AbstractScheduleStore;
 import org.atlasapi.schedule.ChannelSchedule;
 import org.atlasapi.schedule.Schedule;
@@ -72,8 +73,8 @@ public class CassandraScheduleStore extends AbstractScheduleStore {
     private static final String UPDATED_COL = "updated";
     private static final String IDS_COL = "ids";
 
-    public static final Builder builder(AstyanaxContext<Keyspace> context, String name, ContentStore contentStore) {
-        return new Builder(context, name, contentStore);
+    public static final Builder builder(AstyanaxContext<Keyspace> context, String name, ContentStore contentStore, MessageSender messageSender) {
+        return new Builder(context, name, contentStore, messageSender);
     }
     
     public static final class Builder {
@@ -81,15 +82,17 @@ public class CassandraScheduleStore extends AbstractScheduleStore {
         private final AstyanaxContext<Keyspace> context;
         private final String name;
         private final ContentStore contentStore;
+        private final MessageSender messageSender;
 
         private ConsistencyLevel readCl = ConsistencyLevel.CL_QUORUM;
         private ConsistencyLevel writeCl = ConsistencyLevel.CL_QUORUM;
         private Clock clock = new SystemClock();
         
-        public Builder(AstyanaxContext<Keyspace> context, String name, ContentStore contentStore) {
+        public Builder(AstyanaxContext<Keyspace> context, String name, ContentStore contentStore, MessageSender messageSender) {
             this.context = checkNotNull(context);
             this.name = checkNotNull(name);
             this.contentStore = checkNotNull(contentStore);
+            this.messageSender = checkNotNull(messageSender);
         }
         
         public Builder withReadConsistency(ConsistencyLevel readLevel) {
@@ -108,7 +111,7 @@ public class CassandraScheduleStore extends AbstractScheduleStore {
         }
         
         public CassandraScheduleStore build() {
-            return new CassandraScheduleStore(context, name, contentStore, clock, readCl, writeCl);
+            return new CassandraScheduleStore(context, name, contentStore, messageSender, clock, readCl, writeCl);
         }
         
     }
@@ -129,9 +132,9 @@ public class CassandraScheduleStore extends AbstractScheduleStore {
             }, ItemAndBroadcast.toBroadcast());
     
     private CassandraScheduleStore(AstyanaxContext<Keyspace> context, String name, 
-            ContentStore contentStore, Clock clock, 
+            ContentStore contentStore, MessageSender messageSender, Clock clock, 
             ConsistencyLevel readCl, ConsistencyLevel writeCl) {
-        super(contentStore);
+        super(contentStore, messageSender);
         this.keyspace = context.getClient();
         this.cf = ColumnFamily.newColumnFamily(name, StringSerializer.get(), StringSerializer.get());
         this.clock = clock;

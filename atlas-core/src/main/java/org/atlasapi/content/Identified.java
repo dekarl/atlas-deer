@@ -14,7 +14,7 @@ import org.atlasapi.entity.Identifiable;
 import org.atlasapi.entity.Identifiables;
 import org.atlasapi.entity.Sourced;
 import org.atlasapi.equivalence.EquivalenceRef;
-import org.atlasapi.equivalence.Equivalent;
+import org.atlasapi.equivalence.Equivalable;
 import org.atlasapi.content.Content;
 import org.joda.time.DateTime;
 
@@ -243,7 +243,7 @@ public class Identified implements Identifiable, Aliased {
      * equivalence (since content is persisted independently
      * there is often a window of inconsistency)
      */
-	public <T extends Identifiable & Sourced & Equivalent<T>> boolean isEquivalentTo(T content) {
+	public <T extends Identifiable & Sourced & Equivalable<T>> boolean isEquivalentTo(T content) {
 		return getEquivalentTo().contains(EquivalenceRef.valueOf(content))
 	        || Iterables.contains(Iterables.transform(content.getEquivalentTo(), Identifiables.toId()), id);
 	}
