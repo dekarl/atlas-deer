@@ -15,9 +15,11 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
+import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 
 import org.atlasapi.content.Broadcast;
@@ -51,7 +53,10 @@ import com.datastax.driver.core.Statement;
 import com.datastax.driver.core.querybuilder.QueryBuilder;
 import com.datastax.driver.core.querybuilder.Update.Assignments;
 import com.google.common.base.Function;
+import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableList.Builder;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
@@ -115,52 +120,72 @@ public final class CassandraEquivalentScheduleStore extends AbstractEquivalentSc
 
             private List<EquivalentChannelSchedule> toChannelSchedules(List<ResultSet> input,
                     Iterable<Channel> channels, final Interval interval) {
-                final Map<Long, Channel> channelIndex = Maps.uniqueIndex(channels, Identified.TO_ID);
-                return Lists.transform(input, new Function<ResultSet, EquivalentChannelSchedule>(){
-                    @Override
-                    public EquivalentChannelSchedule apply(ResultSet input) {
-                        Channel channel = null;
-                        ImmutableList.Builder<EquivalentScheduleEntry> entries
-                            = ImmutableList.builder();
-                        for (Row row : input) {
-                            if (channel == null) {
-                                channel = channelIndex.get(CHANNEL.valueFrom(row));
-                            }
-                            try {
-                                Broadcast broadcast = deserialize(BROADCAST.valueFrom(row));
-                                Equivalent<Item> equivItems = equivItems(row);
-                                entries.add(new EquivalentScheduleEntry(broadcast, equivItems));
-                            } catch (IOException e) {
-                                // has to be unchecked. is there a better type? 
-                                // does it matter since we're in a future?
-                                throw new RuntimeException("error reading "+row, e);
-                            }
-                        }
-                        return new EquivalentChannelSchedule(channel, interval, entries.build());
-                    }
+                ImmutableMap<Long, List<EquivalentScheduleEntry>> entriesByChannel = transformToEntries(input);
+                ImmutableList.Builder<EquivalentChannelSchedule> channelSchedules = ImmutableList.builder();
+                for (Channel channel : channels) {
+                    List<EquivalentScheduleEntry> entries = channelEntries(entriesByChannel, channel);
+                    channelSchedules.add(new EquivalentChannelSchedule(channel, interval, entries));
+                }
+                return channelSchedules.build();
+            }
 
-                    private Equivalent<Item> equivItems(Row row) throws IOException {
-                        EquivalenceGraph graph = graphSerializer.deserialize(GRAPH.valueFrom(row));
-                        Long itemCount = CONTENT_COUNT.valueFrom(row);
-                        ByteBuffer itemsBytes = CONTENT.valueFrom(row);
-                        ByteString sytes = ByteString.copyFrom(itemsBytes);
-                        InputStream itemsStream = sytes.newInput();
-                        ImmutableSet.Builder<Item> items = ImmutableSet.builder();
-                        for (int i = 0; i < itemCount; i++) {
-                            ContentProtos.Content msg =
-                                ContentProtos.Content.parseDelimitedFrom(itemsStream);
-                            Item item = (Item)contentSerializer.deserialize(msg);
-                            if (selectedSources.contains(item.getPublisher())) {
-                                items.add(item);
-                            }
-                        }
-                        return new Equivalent<Item>(graph, items.build());
-                    }
+            private List<EquivalentScheduleEntry> channelEntries(
+                    ImmutableMap<Long, List<EquivalentScheduleEntry>> channelEntryIndex,
+                    Channel channel) {
+                return Objects.firstNonNull(channelEntryIndex.get(channel.getId()), ImmutableList.<EquivalentScheduleEntry>of());
+            }
 
-                    private Broadcast deserialize(ByteBuffer bcastBytes) throws InvalidProtocolBufferException {
-                        return broadcastSerializer.deserialize(ContentProtos.Broadcast.parseFrom(ByteString.copyFrom(bcastBytes)));
+            private ImmutableMap<Long, List<EquivalentScheduleEntry>> transformToEntries(
+                    List<ResultSet> input) {
+                ImmutableMap.Builder<Long, List<EquivalentScheduleEntry>> channelEntries = ImmutableMap.builder();
+                for (ResultSet resultSet : input) {
+                    if (!resultSet.isExhausted()) {
+                        channelEntries.put(entriesFor(resultSet));
                     }
-                });
+                }
+                return channelEntries.build();
+            }
+
+            private Entry<Long, ? extends List<EquivalentScheduleEntry>> entriesFor(ResultSet input) {
+                Long channel = null;
+                ImmutableList.Builder<EquivalentScheduleEntry> entries = ImmutableList.builder();
+                for (Row row : input) {
+                    if (channel == null) {
+                        channel = CHANNEL.valueFrom(row);
+                    }
+                    try {
+                        Broadcast broadcast = deserialize(BROADCAST.valueFrom(row));
+                        Equivalent<Item> equivItems = equivItems(row);
+                        entries.add(new EquivalentScheduleEntry(broadcast, equivItems));
+                    } catch (IOException e) {
+                        // has to be unchecked. is there a better type? 
+                        // does it matter since we're in a future?
+                        throw new RuntimeException("error reading "+row, e);
+                    }
+                }
+                return Maps.immutableEntry(channel, entries.build());
+            }
+
+            private Equivalent<Item> equivItems(Row row) throws IOException {
+                EquivalenceGraph graph = graphSerializer.deserialize(GRAPH.valueFrom(row));
+                Long itemCount = CONTENT_COUNT.valueFrom(row);
+                ByteBuffer itemsBytes = CONTENT.valueFrom(row);
+                ByteString sytes = ByteString.copyFrom(itemsBytes);
+                InputStream itemsStream = sytes.newInput();
+                ImmutableSet.Builder<Item> items = ImmutableSet.builder();
+                for (int i = 0; i < itemCount; i++) {
+                    ContentProtos.Content msg =
+                        ContentProtos.Content.parseDelimitedFrom(itemsStream);
+                    Item item = (Item)contentSerializer.deserialize(msg);
+                    if (selectedSources.contains(item.getPublisher())) {
+                        items.add(item);
+                    }
+                }
+                return new Equivalent<Item>(graph, items.build());
+            }
+            
+            private Broadcast deserialize(ByteBuffer bcastBytes) throws InvalidProtocolBufferException {
+                return broadcastSerializer.deserialize(ContentProtos.Broadcast.parseFrom(ByteString.copyFrom(bcastBytes)));
             }
         });
     }

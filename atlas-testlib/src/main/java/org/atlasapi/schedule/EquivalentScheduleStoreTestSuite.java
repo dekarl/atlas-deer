@@ -320,6 +320,23 @@ public abstract class EquivalentScheduleStoreTestSuite {
         assertThat(broadcastItems.getResources(), hasItems(item, equiv));
     }
     
+    @Test
+    public void testResolvingAnEmptySchedule() throws Exception {
+        
+        Channel channel = Channel.builder().build();
+        channel.setId(1L);
+        Interval interval = new Interval(new DateTime(2014,03,21,16,00,00,000, DateTimeZones.UTC), 
+                new DateTime(2014,03,21,17,00,00,000, DateTimeZones.UTC));
+        
+        EquivalentSchedule resolved
+            = get(store.resolveSchedules(ImmutableList.of(channel), interval, Publisher.METABROADCAST, ImmutableSet.of(Publisher.METABROADCAST, Publisher.BBC)));
+    
+        EquivalentChannelSchedule schedule = Iterables.getOnlyElement(resolved.channelSchedules());
+        assertThat(schedule.getEntries().size(), is(0));
+        assertThat(schedule.getChannel(), is(channel));
+        
+    }
+    
     private <T> T get(ListenableFuture<T> future) throws Exception {
         return Futures.get(future, 10, TimeUnit.SECONDS, Exception.class);
     }
