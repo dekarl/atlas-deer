@@ -67,7 +67,7 @@ public class EquivalentScheduleResolverBackedScheduleQueryExecutor implements Sc
 
     private ImmutableSet<Publisher> selectedSources(ScheduleQuery query) {
         if (query.getContext().getApplicationSources().isPrecedenceEnabled()) {
-            query.getContext().getApplicationSources().getEnabledReadSources();
+            return query.getContext().getApplicationSources().getEnabledReadSources();
         }
         return ImmutableSet.of(query.getSource());
     }
@@ -110,7 +110,7 @@ public class EquivalentScheduleResolverBackedScheduleQueryExecutor implements Sc
     private Schedule mergeItemsInSchedule(EquivalentSchedule schedule, ApplicationSources applicationSources) {
         ImmutableList.Builder<ChannelSchedule> channelSchedules = ImmutableList.builder();
         for (EquivalentChannelSchedule ecs : schedule.channelSchedules()) {
-            new ChannelSchedule(ecs.getChannel(), ecs.getInterval(), mergeItems(ecs.getEntries(), applicationSources));
+            channelSchedules.add(new ChannelSchedule(ecs.getChannel(), ecs.getInterval(), mergeItems(ecs.getEntries(), applicationSources)));
         }
         return new Schedule(channelSchedules.build(), schedule.interval());
     }
@@ -129,7 +129,7 @@ public class EquivalentScheduleResolverBackedScheduleQueryExecutor implements Sc
     private Schedule selectBroadcastItems(EquivalentSchedule schedule) {
         ImmutableList.Builder<ChannelSchedule> channelSchedules = ImmutableList.builder();
         for (EquivalentChannelSchedule ecs : schedule.channelSchedules()) {
-            new ChannelSchedule(ecs.getChannel(), ecs.getInterval(), selectBroadcastItems(ecs.getEntries()));
+            channelSchedules.add(new ChannelSchedule(ecs.getChannel(), ecs.getInterval(), selectBroadcastItems(ecs.getEntries())));
         }
         return new Schedule(channelSchedules.build(), schedule.interval());
     }
