@@ -20,10 +20,14 @@ public interface EquivalentScheduleResolver {
 
     /**
      * <p>Resolve a schedule, according to a {@link Publisher}, of equivalent
-     * {@link org.atlasapi.content.Item Item}s broadcast on the provided {@link Channel}s over the given
-     * {@link Interval}.</p>
+     * {@link org.atlasapi.content.Item Item}s broadcast on the provided
+     * {@link Channel}s over the given {@link Interval}.</p>
      * 
      * <p>Only Items from the selected sources are returned in the schedule.</p>
+     * 
+     * <p>The returned {@link EquivalentSchedule} must contain a (possibly
+     * empty) {@link EquivalentChannelSchedule} for each requested
+     * {@link Channel}.</p>
      * 
      * @param channels
      *            - channels for which to return schedules.
