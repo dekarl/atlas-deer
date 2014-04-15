@@ -50,6 +50,7 @@ public abstract class AbstractEquivalentScheduleStore implements EquivalentSched
     private final EquivalenceGraphStore graphStore;
     private final ContentResolver contentStore;
     
+    //TODO make this more flexible.
     private final FlexibleBroadcastMatcher broadcastMatcher
         = new FlexibleBroadcastMatcher(Duration.standardMinutes(10));
 
@@ -94,6 +95,7 @@ public abstract class AbstractEquivalentScheduleStore implements EquivalentSched
             Broadcast broadcast = findBroadcast(item, entry);
             if (broadcast == null) {
                 log.warn("No broadcast for entry " + entry);
+                continue;
             }
             item.setBroadcasts(ImmutableSet.of(broadcast));
             Optional<EquivalenceGraph> possibleGraph = graphs.get(itemId);
