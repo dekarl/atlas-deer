@@ -18,9 +18,9 @@ import org.atlasapi.media.channel.ChannelGroupStore;
 import org.atlasapi.media.channel.ChannelStore;
 import org.atlasapi.media.channel.MongoChannelGroupStore;
 import org.atlasapi.media.channel.MongoChannelStore;
-import org.atlasapi.messaging.AtlasMessagingModule;
+import org.atlasapi.messaging.KafkaMessagingModule;
+import org.atlasapi.messaging.MessagingModule;
 import org.atlasapi.persistence.ids.MongoSequentialIdGenerator;
-import org.atlasapi.schedule.EquivalentSchedule;
 import org.atlasapi.schedule.EquivalentScheduleStore;
 import org.atlasapi.schedule.ScheduleStore;
 import org.atlasapi.topic.EsPopularTopicIndex;
@@ -52,7 +52,7 @@ import com.netflix.astyanax.AstyanaxContext;
 import com.netflix.astyanax.Keyspace;
 
 @Configuration
-@Import({AtlasMessagingModule.class})
+@Import({KafkaMessagingModule.class})
 public class AtlasPersistenceModule {
 
     private final String mongoHost = Configurer.get("mongo.host").get();
@@ -71,7 +71,7 @@ public class AtlasPersistenceModule {
     private final String esRequestTimeout = Configurer.get("elasticsearch.requestTimeout").get();
     private final Parameter processingConfig = Configurer.get("processing.config");
 
-    @Autowired AtlasMessagingModule messaging;
+    @Autowired MessagingModule messaging;
 
     @PostConstruct
     public void init() {
@@ -89,7 +89,7 @@ public class AtlasPersistenceModule {
         DatastaxCassandraService cassandraService = new DatastaxCassandraService(seeds);
         cassandraService.startAsync().awaitRunning();
         
-        return new CassandraPersistenceModule(messaging.producerQueueFactory(),
+        return new CassandraPersistenceModule(messaging.messageSenderFactory(),
                 context,
                 cassandraService,
                 cassandraKeyspace,

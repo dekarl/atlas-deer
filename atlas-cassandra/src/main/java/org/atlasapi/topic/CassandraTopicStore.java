@@ -14,7 +14,7 @@ import org.atlasapi.entity.AliasIndex;
 import org.atlasapi.entity.Id;
 import org.atlasapi.entity.util.Resolved;
 import org.atlasapi.media.entity.Publisher;
-import org.atlasapi.messaging.MessageSender;
+import org.atlasapi.messaging.ResourceUpdatedMessage;
 import org.atlasapi.util.CassandraUtil;
 
 import com.google.common.base.Equivalence;
@@ -32,6 +32,7 @@ import com.google.common.util.concurrent.ListenableFuture;
 import com.metabroadcast.common.collect.ImmutableOptionalMap;
 import com.metabroadcast.common.collect.OptionalMap;
 import com.metabroadcast.common.ids.IdGenerator;
+import com.metabroadcast.common.queue.MessageSender;
 import com.metabroadcast.common.time.Clock;
 import com.metabroadcast.common.time.SystemClock;
 import com.netflix.astyanax.AstyanaxContext;
@@ -53,7 +54,7 @@ import com.netflix.astyanax.serializers.StringSerializer;
 public class CassandraTopicStore extends AbstractTopicStore {
 
     public static final Builder builder(AstyanaxContext<Keyspace> context, 
-            String name, Equivalence<? super Topic> equivalence, MessageSender sender, IdGenerator idGenerator) {
+            String name, Equivalence<? super Topic> equivalence, MessageSender<ResourceUpdatedMessage> sender, IdGenerator idGenerator) {
         return new Builder(context, name, equivalence, sender, idGenerator);
     }
     
@@ -63,14 +64,14 @@ public class CassandraTopicStore extends AbstractTopicStore {
         private final String name;
         private final Equivalence<? super Topic> equivalence;
         private final IdGenerator idGenerator;
-        private final MessageSender sender;
+        private final MessageSender<ResourceUpdatedMessage> sender;
         
         private ConsistencyLevel readCl = ConsistencyLevel.CL_QUORUM;
         private ConsistencyLevel writeCl = ConsistencyLevel.CL_QUORUM;
         private Clock clock = new SystemClock();
 
         public Builder(AstyanaxContext<Keyspace> context, String name,
-            Equivalence<? super Topic> equivalence, MessageSender sender, IdGenerator idGenerator) {
+            Equivalence<? super Topic> equivalence, MessageSender<ResourceUpdatedMessage> sender, IdGenerator idGenerator) {
                 this.context = context;
                 this.name = name;
                 this.equivalence = equivalence;
@@ -130,7 +131,7 @@ public class CassandraTopicStore extends AbstractTopicStore {
 
     public CassandraTopicStore(AstyanaxContext<Keyspace> context, String cfName,
         ConsistencyLevel readCl, ConsistencyLevel writeCl, Equivalence<? super Topic> equivalence,
-        IdGenerator idGenerator, MessageSender sender, Clock clock) {
+        IdGenerator idGenerator, MessageSender<ResourceUpdatedMessage> sender, Clock clock) {
         super(idGenerator, equivalence, sender, clock);
         this.keyspace = checkNotNull(context.getClient());
         this.readConsistency = checkNotNull(readCl);

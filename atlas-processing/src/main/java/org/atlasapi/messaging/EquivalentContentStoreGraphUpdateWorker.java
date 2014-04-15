@@ -8,7 +8,9 @@ import org.atlasapi.equivalence.EquivalenceGraphUpdateMessage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class EquivalentContentStoreGraphUpdateWorker extends BaseWorker<EquivalenceGraphUpdateMessage> {
+import com.metabroadcast.common.queue.Worker;
+
+public class EquivalentContentStoreGraphUpdateWorker implements Worker<EquivalenceGraphUpdateMessage> {
 
     private final Logger log = LoggerFactory.getLogger(this.getClass());
     

@@ -3,7 +3,6 @@ package org.atlasapi.schedule;
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 
-import java.io.IOException;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
@@ -22,7 +21,6 @@ import org.atlasapi.entity.util.WriteException;
 import org.atlasapi.entity.util.WriteResult;
 import org.atlasapi.media.channel.Channel;
 import org.atlasapi.media.entity.Publisher;
-import org.atlasapi.messaging.MessageSender;
 import org.atlasapi.schedule.ScheduleRef.Builder;
 import org.joda.time.DateTime;
 import org.joda.time.Interval;
@@ -34,6 +32,8 @@ import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
+import com.metabroadcast.common.queue.MessageSender;
+import com.metabroadcast.common.queue.MessagingException;
 import com.metabroadcast.common.time.DateTimeZones;
 import com.metabroadcast.common.time.Timestamp;
 
@@ -57,11 +57,11 @@ import com.metabroadcast.common.time.Timestamp;
 public abstract class AbstractScheduleStore implements ScheduleStore {
     
     private final ContentStore contentStore;
-    private final MessageSender messageSender;
+    private final MessageSender<ScheduleUpdateMessage> messageSender;
     private final BroadcastContiguityCheck contiguityCheck;
     private final ScheduleBlockUpdater blockUpdater;
 
-    public AbstractScheduleStore(ContentStore contentStore, MessageSender sender) {
+    public AbstractScheduleStore(ContentStore contentStore, MessageSender<ScheduleUpdateMessage> sender) {
         this.contentStore = checkNotNull(contentStore);
         this.messageSender = checkNotNull(sender);
         this.contiguityCheck = new BroadcastContiguityCheck();
@@ -102,7 +102,7 @@ public abstract class AbstractScheduleStore implements ScheduleStore {
                 Timestamp.of(DateTime.now(DateTimeZones.UTC)), 
                 new ScheduleUpdate(source, scheduleRef(content, channel, interval), broadcastRefs(update.getStaleEntries()))
             ));
-        } catch (IOException e) {
+        } catch (MessagingException e) {
             throw new WriteException(e);
         }
     }

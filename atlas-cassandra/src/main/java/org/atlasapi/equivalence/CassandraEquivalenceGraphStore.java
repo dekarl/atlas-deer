@@ -11,7 +11,6 @@ import java.util.Map.Entry;
 
 import org.atlasapi.entity.Id;
 import org.atlasapi.equivalence.EquivalenceGraph.Adjacents;
-import org.atlasapi.messaging.MessageSender;
 import org.atlasapi.util.GroupLock;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -37,6 +36,7 @@ import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.metabroadcast.common.collect.ImmutableOptionalMap;
 import com.metabroadcast.common.collect.OptionalMap;
+import com.metabroadcast.common.queue.MessageSender;
 
 public final class CassandraEquivalenceGraphStore extends AbstractEquivalenceGraphStore {
 
@@ -56,7 +56,7 @@ public final class CassandraEquivalenceGraphStore extends AbstractEquivalenceGra
     private final ConsistencyLevel read;
     private final ConsistencyLevel write;
 
-    public CassandraEquivalenceGraphStore(MessageSender messageSender, Session session, ConsistencyLevel read, ConsistencyLevel write) {
+    public CassandraEquivalenceGraphStore(MessageSender<EquivalenceGraphUpdateMessage> messageSender, Session session, ConsistencyLevel read, ConsistencyLevel write) {
         super(messageSender);
         this.session = session;
         this.read = read;

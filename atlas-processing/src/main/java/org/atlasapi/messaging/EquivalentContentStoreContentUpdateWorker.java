@@ -7,7 +7,9 @@ import org.atlasapi.entity.util.WriteException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class EquivalentContentStoreContentUpdateWorker extends BaseWorker<ResourceUpdatedMessage> {
+import com.metabroadcast.common.queue.Worker;
+
+public class EquivalentContentStoreContentUpdateWorker implements Worker<ResourceUpdatedMessage> {
 
     private final Logger log = LoggerFactory.getLogger(this.getClass());
     

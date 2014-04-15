@@ -4,7 +4,6 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Predicates.in;
 import static com.google.common.base.Predicates.not;
 
-import java.io.IOException;
 import java.util.Map;
 import java.util.Queue;
 import java.util.Set;
@@ -20,7 +19,6 @@ import org.atlasapi.entity.util.StoreException;
 import org.atlasapi.entity.util.WriteException;
 import org.atlasapi.equivalence.EquivalenceGraph.Adjacents;
 import org.atlasapi.media.entity.Publisher;
-import org.atlasapi.messaging.MessageSender;
 import org.atlasapi.util.GroupLock;
 import org.joda.time.DateTime;
 import org.slf4j.Logger;
@@ -42,6 +40,8 @@ import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.metabroadcast.common.collect.MoreSets;
 import com.metabroadcast.common.collect.OptionalMap;
+import com.metabroadcast.common.queue.MessageSender;
+import com.metabroadcast.common.queue.MessagingException;
 import com.metabroadcast.common.time.DateTimeZones;
 import com.metabroadcast.common.time.Timestamp;
 
@@ -52,9 +52,9 @@ public abstract class AbstractEquivalenceGraphStore implements EquivalenceGraphS
     
     private static final int maxSetSize = 150;
     
-    private final MessageSender messageSender;
+    private final MessageSender<EquivalenceGraphUpdateMessage> messageSender;
     
-    public AbstractEquivalenceGraphStore(MessageSender messageSender) {
+    public AbstractEquivalenceGraphStore(MessageSender<EquivalenceGraphUpdateMessage> messageSender) {
         this.messageSender = checkNotNull(messageSender);
     }
     
@@ -110,7 +110,7 @@ public abstract class AbstractEquivalenceGraphStore implements EquivalenceGraphS
                 Timestamp.of(DateTime.now(DateTimeZones.UTC)), 
                 updated.get()
             ));
-        } catch (IOException e) {
+        } catch (MessagingException e) {
             log().warn("messaging failed for equivalence update of " + subject, e);
         }
     }

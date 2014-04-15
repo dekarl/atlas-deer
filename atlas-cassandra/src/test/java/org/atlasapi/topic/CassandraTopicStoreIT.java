@@ -21,7 +21,7 @@ import org.atlasapi.entity.Id;
 import org.atlasapi.entity.util.Resolved;
 import org.atlasapi.entity.util.WriteResult;
 import org.atlasapi.media.entity.Publisher;
-import org.atlasapi.messaging.MessageSender;
+import org.atlasapi.messaging.ResourceUpdatedMessage;
 import org.joda.time.DateTime;
 import org.mockito.Mock;
 import org.mockito.testng.MockitoTestNGListener;
@@ -36,6 +36,7 @@ import com.google.common.base.Equivalence;
 import com.google.common.collect.ImmutableList;
 import com.metabroadcast.common.collect.OptionalMap;
 import com.metabroadcast.common.ids.IdGenerator;
+import com.metabroadcast.common.queue.MessageSender;
 import com.metabroadcast.common.time.Clock;
 import com.metabroadcast.common.time.DateTimeZones;
 import com.netflix.astyanax.AstyanaxContext;
@@ -67,7 +68,7 @@ public class CassandraTopicStoreIT {
 
     @Mock private StubbableEquivalence<Topic> equiv;
     @Mock private IdGenerator idGenerator;
-    @Mock private MessageSender sender;
+    @Mock private MessageSender<ResourceUpdatedMessage> sender;
     @Mock private Clock clock;
 
     private CassandraTopicStore topicStore;

@@ -5,31 +5,30 @@ import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 
 import org.atlasapi.entity.ResourceType;
+import org.atlasapi.messaging.ResourceUpdatedMessage;
 import org.atlasapi.messaging.v3.EntityUpdatedMessage;
-import org.atlasapi.messaging.v3.Message;
 import org.atlasapi.serialization.json.JsonFactory;
-import org.joda.time.DateTime;
 import org.testng.annotations.Test;
 
-import com.google.common.io.ByteSource;
+import com.metabroadcast.common.queue.MessageSerializer;
+import com.metabroadcast.common.time.Timestamp;
 
 
-public class LegacyMessageSerializerTest {
+public class EntityUpdatedLegacyMessageSerializerTest {
 
-    LegacyMessageSerializer serializer = new LegacyMessageSerializer();
+    MessageSerializer<ResourceUpdatedMessage> serializer = new EntityUpdatedLegacyMessageSerializer();
     
     @Test
     public void testDeSerializesLegacyMessage() throws Exception {
-        Message msg = new EntityUpdatedMessage("1", new DateTime().getMillis(), "1", "item", "bbc.co.uk");
+        EntityUpdatedMessage msg = new EntityUpdatedMessage("1", Timestamp.of(1L), "1", "item", "bbc.co.uk");
         
-        ByteSource serialized = ByteSource.wrap(JsonFactory.makeJsonMapper().writeValueAsBytes(msg));
+        byte[] serialized = JsonFactory.makeJsonMapper().writeValueAsBytes(msg);
         
         org.atlasapi.messaging.ResourceUpdatedMessage deserialized
-            = (org.atlasapi.messaging.ResourceUpdatedMessage) serializer.<org.atlasapi.messaging.ResourceUpdatedMessage>deserialize(serialized);
+            = serializer.deserialize(serialized);
         
-        assertTrue(deserialized instanceof org.atlasapi.messaging.ResourceUpdatedMessage);
         assertThat(deserialized.getMessageId(), is(msg.getMessageId()));
-        assertThat(deserialized.getTimestamp().millis(), is(msg.getTimestamp()));
+        assertThat(deserialized.getTimestamp(), is(msg.getTimestamp()));
         assertThat(deserialized.getUpdatedResource().getId().toString(), is(msg.getEntityId()));
         assertThat(deserialized.getUpdatedResource().getPublisher().toString(), is(msg.getEntitySource()));
         assertThat(deserialized.getUpdatedResource().getResourceType(), is(ResourceType.CONTENT));

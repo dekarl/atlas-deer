@@ -8,8 +8,10 @@ import org.atlasapi.schedule.ScheduleUpdateMessage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.metabroadcast.common.queue.Worker;
 
-public class EquivalentScheduleStoreScheduleUpdateWorker extends BaseWorker<ScheduleUpdateMessage>{
+
+public class EquivalentScheduleStoreScheduleUpdateWorker implements Worker<ScheduleUpdateMessage>{
 
     private final Logger log = LoggerFactory.getLogger(this.getClass());
     

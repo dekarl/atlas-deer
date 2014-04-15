@@ -1,6 +1,6 @@
 package org.atlasapi;
 
-import org.atlasapi.messaging.AtlasMessagingModule;
+import org.atlasapi.messaging.KafkaMessagingModule;
 import org.atlasapi.messaging.WorkersModule;
 import org.atlasapi.system.HealthModule;
 import org.atlasapi.system.bootstrap.BootstrapModule;
@@ -13,7 +13,7 @@ import com.metabroadcast.common.webapp.properties.ContextConfigurer;
 
 @Configuration
 @Import({
-    AtlasMessagingModule.class,
+    KafkaMessagingModule.class,
     AtlasPersistenceModule.class, 
     WorkersModule.class,
     HealthModule.class,

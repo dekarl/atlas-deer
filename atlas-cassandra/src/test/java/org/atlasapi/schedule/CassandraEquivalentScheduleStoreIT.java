@@ -2,7 +2,6 @@ package org.atlasapi.schedule;
 
 import static org.junit.Assert.assertTrue;
 
-import java.io.IOException;
 import java.util.UUID;
 
 import org.atlasapi.CassandraPersistenceModule;
@@ -12,9 +11,6 @@ import org.atlasapi.PersistenceModule;
 import org.atlasapi.content.Content;
 import org.atlasapi.content.ContentHasher;
 import org.atlasapi.entity.CassandraHelper;
-import org.atlasapi.messaging.Message;
-import org.atlasapi.messaging.MessageSender;
-import org.atlasapi.messaging.ProducerQueueFactory;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.Test;
@@ -24,6 +20,11 @@ import com.google.common.collect.ImmutableSet;
 import com.metabroadcast.common.ids.IdGenerator;
 import com.metabroadcast.common.ids.IdGeneratorBuilder;
 import com.metabroadcast.common.ids.SequenceGenerator;
+import com.metabroadcast.common.queue.Message;
+import com.metabroadcast.common.queue.MessageSender;
+import com.metabroadcast.common.queue.MessageSenderFactory;
+import com.metabroadcast.common.queue.MessageSerializer;
+import com.metabroadcast.common.queue.MessagingException;
 import com.netflix.astyanax.AstyanaxContext;
 import com.netflix.astyanax.Keyspace;
 import com.netflix.astyanax.connectionpool.exceptions.ConnectionException;
@@ -54,16 +55,23 @@ public class CassandraEquivalentScheduleStoreIT extends EquivalentScheduleStoreT
         = new ConfiguredAstyanaxContext("Build", keyspace, seeds, 9160, 5, 60).get();
     private final DatastaxCassandraService cassandraService = new DatastaxCassandraService(seeds);
 
-    private ProducerQueueFactory messageSenderFactory = new ProducerQueueFactory() {
+    private MessageSenderFactory messageSenderFactory = new MessageSenderFactory() {
+
         @Override
-        public MessageSender makeMessageSender(String destinationName) {
-            return new MessageSender() {
+        public <M extends Message> MessageSender<M> makeMessageSender(
+                String destination, MessageSerializer<? super M> serializer) {
+            return new MessageSender<M>() {
+
                 @Override
-                public void sendMessage(Message message) throws IOException {
-                    //no-op
+                public void close() throws Exception {
+                }
+
+                @Override
+                public void sendMessage(M message) throws MessagingException {
                 }
             };
         }
+        
     };
     private final CassandraPersistenceModule persistenceModule
         = new CassandraPersistenceModule(messageSenderFactory , context, cassandraService,

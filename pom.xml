@@ -98,7 +98,7 @@
       </extension>
     </extensions>
   </build>
-  
+
   <dependencies>
     <dependency>
       <groupId>com.google.guava</groupId>
@@ -195,6 +195,11 @@
       <dependency>
         <groupId>com.metabroadcast.common.social</groupId>
         <artifactId>common-social</artifactId>
+        <version>${common.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>com.metabroadcast.common.queue</groupId>
+        <artifactId>common-queue</artifactId>
         <version>${common.version}</version>
       </dependency>
       <dependency>

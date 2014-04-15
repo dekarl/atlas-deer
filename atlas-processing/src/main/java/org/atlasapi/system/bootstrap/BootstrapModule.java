@@ -6,7 +6,6 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
 import javax.annotation.PostConstruct;
-import javax.jms.ConnectionFactory;
 
 import org.atlasapi.AtlasPersistenceModule;
 import org.atlasapi.SchedulerModule;
@@ -36,7 +35,6 @@ public class BootstrapModule {
 
     @Autowired private AtlasPersistenceModule persistence;
     @Autowired private LegacyPersistenceModule legacy;
-    @Autowired private ConnectionFactory connectionFactory;
     @Autowired private SchedulerModule scheduler;
     
     @Bean

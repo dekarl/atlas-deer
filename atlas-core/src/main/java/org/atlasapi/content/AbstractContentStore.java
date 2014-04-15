@@ -16,7 +16,6 @@ import org.atlasapi.entity.util.RuntimeWriteException;
 import org.atlasapi.entity.util.WriteException;
 import org.atlasapi.entity.util.WriteResult;
 import org.atlasapi.media.entity.Publisher;
-import org.atlasapi.messaging.MessageSender;
 import org.atlasapi.messaging.ResourceUpdatedMessage;
 import org.joda.time.DateTime;
 import org.slf4j.Logger;
@@ -24,6 +23,7 @@ import org.slf4j.LoggerFactory;
 
 import com.google.common.collect.ImmutableSet;
 import com.metabroadcast.common.ids.IdGenerator;
+import com.metabroadcast.common.queue.MessageSender;
 import com.metabroadcast.common.time.Clock;
 import com.metabroadcast.common.time.Timestamp;
 
@@ -264,12 +264,12 @@ public abstract class AbstractContentStore implements ContentStore {
     
     private final ContentHasher hasher;
     private final IdGenerator idGenerator;
-    private final MessageSender sender;
+    private final MessageSender<ResourceUpdatedMessage> sender;
     private final Clock clock;
 
     private final ContentWritingVisitor writingVisitor;
     
-    public AbstractContentStore(ContentHasher hasher, IdGenerator idGenerator, MessageSender sender, Clock clock) {
+    public AbstractContentStore(ContentHasher hasher, IdGenerator idGenerator, MessageSender<ResourceUpdatedMessage> sender, Clock clock) {
         this.hasher = checkNotNull(hasher);
         this.idGenerator = checkNotNull(idGenerator);
         this.clock = checkNotNull(clock);

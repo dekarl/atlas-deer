@@ -2,6 +2,7 @@ package org.atlasapi.messaging;
 
 import org.atlasapi.entity.ResourceRef;
 
+import com.metabroadcast.common.queue.AbstractMessage;
 import com.metabroadcast.common.time.Timestamp;
 
 

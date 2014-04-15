@@ -1,29 +1,24 @@
 package org.atlasapi.messaging;
 
-import static org.junit.Assert.assertThat;
-import static org.testng.AssertJUnit.assertTrue;
-
-import org.testng.annotations.Test;
-
 import static org.hamcrest.Matchers.is;
+import static org.junit.Assert.assertThat;
 
 import org.atlasapi.content.Brand;
 import org.atlasapi.content.Episode;
 import org.atlasapi.content.Item;
-import org.atlasapi.content.Series;
 import org.atlasapi.entity.Id;
 import org.atlasapi.entity.ResourceRef;
 import org.atlasapi.media.entity.Publisher;
 import org.atlasapi.topic.Topic;
 import org.joda.time.DateTime;
+import org.testng.annotations.Test;
 
-import com.google.common.io.ByteSource;
+import com.google.common.collect.ImmutableSet;
 import com.metabroadcast.common.time.DateTimeZones;
 import com.metabroadcast.common.time.Timestamp;
 
 public class JacksonMessageSerializerTest {
 
-    private final JacksonMessageSerializer serializer = new JacksonMessageSerializer();
     
     @Test
     public void testDeSerializationOfItemUpdateMessage() throws Exception {
@@ -31,12 +26,13 @@ public class JacksonMessageSerializerTest {
         item.setThisOrChildLastUpdated(new DateTime(DateTimeZones.UTC));
         
         ResourceUpdatedMessage msg = new ResourceUpdatedMessage("1", Timestamp.of(1234), item.toRef());
-        
-        ByteSource serialized = serializer.serialize(msg);
+        JacksonMessageSerializer<ResourceUpdatedMessage> serializer
+            = JacksonMessageSerializer.forType(ResourceUpdatedMessage.class);
+
+        byte[] serialized = serializer.serialize(msg);
         
         ResourceUpdatedMessage deserialized = serializer.deserialize(serialized);
         
-        assertTrue(deserialized instanceof ResourceUpdatedMessage);
         assertThat(deserialized.getMessageId(), is(msg.getMessageId()));
         assertThat(deserialized.getTimestamp(), is(msg.getTimestamp()));
         assertThat(deserialized.getUpdatedResource(), is(msg.getUpdatedResource()));
@@ -49,12 +45,13 @@ public class JacksonMessageSerializerTest {
         episode.setThisOrChildLastUpdated(new DateTime(DateTimeZones.UTC));
         
         ResourceUpdatedMessage msg = new ResourceUpdatedMessage("1", Timestamp.of(1234), episode.toRef());
+        JacksonMessageSerializer<ResourceUpdatedMessage> serializer
+            = JacksonMessageSerializer.forType(ResourceUpdatedMessage.class);
         
-        ByteSource serialized = serializer.serialize(msg);
+        byte[] serialized = serializer.serialize(msg);
         
         ResourceUpdatedMessage deserialized = serializer.deserialize(serialized);
         
-        assertTrue(deserialized instanceof ResourceUpdatedMessage);
         assertThat(deserialized.getMessageId(), is(msg.getMessageId()));
         assertThat(deserialized.getTimestamp(), is(msg.getTimestamp()));
         assertThat(deserialized.getUpdatedResource(), is(msg.getUpdatedResource()));
@@ -67,12 +64,13 @@ public class JacksonMessageSerializerTest {
         brand.setThisOrChildLastUpdated(new DateTime(DateTimeZones.UTC));
         
         ResourceUpdatedMessage msg = new ResourceUpdatedMessage("1", Timestamp.of(1234), brand.toRef());
+        JacksonMessageSerializer<ResourceUpdatedMessage> serializer
+            = JacksonMessageSerializer.forType(ResourceUpdatedMessage.class);
         
-        ByteSource serialized = serializer.serialize(msg);
+        byte[] serialized = serializer.serialize(msg);
         
         ResourceUpdatedMessage deserialized = serializer.deserialize(serialized);
         
-        assertTrue(deserialized instanceof ResourceUpdatedMessage);
         assertThat(deserialized.getMessageId(), is(msg.getMessageId()));
         assertThat(deserialized.getTimestamp(), is(msg.getTimestamp()));
         assertThat(deserialized.getUpdatedResource(), is(msg.getUpdatedResource()));
@@ -86,12 +84,13 @@ public class JacksonMessageSerializerTest {
         topic.setThisOrChildLastUpdated(new DateTime(DateTimeZones.UTC));
         
         ResourceUpdatedMessage msg = new ResourceUpdatedMessage("1", Timestamp.of(1234), topic.toRef());
+        JacksonMessageSerializer<ResourceUpdatedMessage> serializer
+            = JacksonMessageSerializer.forType(ResourceUpdatedMessage.class);
         
-        ByteSource serialized = serializer.serialize(msg);
+        byte[] serialized = serializer.serialize(msg);
         
         ResourceUpdatedMessage deserialized = serializer.deserialize(serialized);
         
-        assertTrue(deserialized instanceof ResourceUpdatedMessage);
         assertThat(deserialized.getMessageId(), is(msg.getMessageId()));
         assertThat(deserialized.getTimestamp(), is(msg.getTimestamp()));
         assertThat(deserialized.getUpdatedResource(), is(msg.getUpdatedResource()));
@@ -99,53 +98,26 @@ public class JacksonMessageSerializerTest {
     }
 
     @Test
-    public void testDeSerializationOfBeginReplayMessage() throws Exception {
+    public void testDeSerializationOfEquivalenceAssertionMessage() throws Exception {
+        Topic topic = new Topic(Id.valueOf(1));
+        topic.setPublisher(Publisher.BBC);
+        topic.setThisOrChildLastUpdated(new DateTime(DateTimeZones.UTC));
         
-        BeginReplayMessage msg = new BeginReplayMessage("1", Timestamp.of(1234));
+        EquivalenceAssertionMessage msg = new EquivalenceAssertionMessage("1", Timestamp.of(1234),
+            topic.toRef(), ImmutableSet.<ResourceRef>of(topic.toRef()), Publisher.all()
+        );
+        JacksonMessageSerializer<EquivalenceAssertionMessage> serializer
+            = JacksonMessageSerializer.forType(EquivalenceAssertionMessage.class);
         
-        ByteSource serialized = serializer.serialize(msg);
+        byte[] serialized = serializer.serialize(msg);
         
-        BeginReplayMessage deserialized = serializer.deserialize(serialized);
+        EquivalenceAssertionMessage deserialized = serializer.deserialize(serialized);
         
-        assertTrue(deserialized instanceof BeginReplayMessage);
         assertThat(deserialized.getMessageId(), is(msg.getMessageId()));
         assertThat(deserialized.getTimestamp(), is(msg.getTimestamp()));
-        
-    }
-
-    @Test
-    public void testDeSerializationOfEndReplayMessage() throws Exception {
-        
-        EndReplayMessage msg = new EndReplayMessage("1", Timestamp.of(1234));
-        
-        ByteSource serialized = serializer.serialize(msg);
-        
-        EndReplayMessage deserialized = serializer.deserialize(serialized);
-        
-        assertTrue(deserialized instanceof EndReplayMessage);
-        assertThat(deserialized.getMessageId(), is(msg.getMessageId()));
-        assertThat(deserialized.getTimestamp(), is(msg.getTimestamp()));
-        
-    }
-
-    @Test
-    public void testDeSerializationOfReplayMessage() throws Exception {
-        
-        Series series = new Series(Id.valueOf(1), Publisher.BBC).withSeriesNumber(1);
-        series.setTitle("Series");
-        series.setThisOrChildLastUpdated(new DateTime(DateTimeZones.UTC));
-        ResourceRef updated = series.toRef();
-        
-        ResourceUpdatedMessage original = new ResourceUpdatedMessage("0", Timestamp.of(123), updated );
-        ReplayMessage<ResourceUpdatedMessage> msg = new ReplayMessage<>("1", Timestamp.of(1234), original);
-        
-        ByteSource serialized = serializer.serialize(msg);
-        
-        ReplayMessage<ResourceUpdatedMessage> deserialized = serializer.deserialize(serialized);
-        
-        assertTrue(deserialized instanceof ReplayMessage);
-        assertThat(deserialized.getMessageId(), is(msg.getMessageId()));
-        assertThat(deserialized.getTimestamp(), is(msg.getTimestamp()));
+        assertThat(deserialized.getSubject(), is(msg.getSubject()));
+        assertThat(deserialized.getAssertedAdjacents(), is(msg.getAssertedAdjacents()));
+        assertThat(deserialized.getPublishers(), is(msg.getPublishers()));
         
     }
 
