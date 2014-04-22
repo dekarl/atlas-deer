@@ -13,11 +13,11 @@ import java.util.zip.GZIPOutputStream;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Charsets;
 import com.google.common.base.Strings;
 import com.google.common.net.HttpHeaders;
+import com.google.common.primitives.Primitives;
 import com.metabroadcast.common.media.MimeType;
 
 /**
@@ -111,10 +111,14 @@ public final class JsonResponseWriter implements ResponseWriter {
     @Override
     public void writeField(String field, Object obj) throws IOException {
         startField(field);
-        if (obj != null) {
-            writeString(obj.toString());
-        } else {
+        if (obj == null) {
             writeNullValue();
+        } else if (obj instanceof Long) {
+            writeString(obj.toString());
+        } else if (Primitives.isWrapperType(obj.getClass())) {
+            writeRaw(obj);
+        } else {
+            writeString(obj.toString());
         }
         printMemberSeparator = true;
     }
@@ -126,6 +130,17 @@ public final class JsonResponseWriter implements ResponseWriter {
     @Override
     public <T> void writeObject(EntityWriter<? super T> objWriter, T obj, OutputContext ctxt) throws IOException {
         startField(objWriter.fieldName(obj));
+        if (obj != null) {
+            writeObj(objWriter, obj, ctxt);
+        } else {
+            writeNullValue();
+        }
+        printMemberSeparator = true;
+    }
+
+    @Override
+    public <T> void writeObject(EntityWriter<? super T> objWriter, String fieldName, T obj, OutputContext ctxt) throws IOException {
+        startField(fieldName);
         if (obj != null) {
             writeObj(objWriter, obj, ctxt);
         } else {
@@ -176,6 +191,10 @@ public final class JsonResponseWriter implements ResponseWriter {
         printMemberSeparator = true;
     }
 
+    private void writeRaw(Object obj) throws IOException {
+        writer.write(obj.toString());
+    }
+    
     private void writeString(String string) throws IOException {
         //writer.write(STRING_DELIMITER);
         writer.write(escape(string));

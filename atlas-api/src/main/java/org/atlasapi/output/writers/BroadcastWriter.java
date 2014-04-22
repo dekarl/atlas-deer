@@ -9,6 +9,7 @@ import org.atlasapi.output.EntityListWriter;
 import org.atlasapi.output.FieldWriter;
 import org.atlasapi.output.OutputContext;
 
+import com.google.common.primitives.Ints;
 import com.metabroadcast.common.ids.NumberToShortStringCodec;
 
 public final class BroadcastWriter implements EntityListWriter<Broadcast> {
@@ -27,7 +28,7 @@ public final class BroadcastWriter implements EntityListWriter<Broadcast> {
         writer.writeField("id", entity.getSourceId());
         writer.writeField("transmission_time", entity.getTransmissionTime());
         writer.writeField("transmission_end_time", entity.getTransmissionEndTime());
-        writer.writeField("broadcast_duration", entity.getBroadcastDuration());
+        writer.writeField("broadcast_duration", Ints.saturatedCast(entity.getBroadcastDuration().getStandardSeconds()));
         writer.writeField("broadcast_on", codec.encode(entity.getChannelId().toBigInteger()));
         writer.writeField("schedule_date", entity.getScheduleDate());
         writer.writeField("repeat", entity.getRepeat());

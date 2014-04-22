@@ -2,6 +2,7 @@ package org.atlasapi.output;
 
 import java.io.IOException;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 
@@ -11,6 +12,9 @@ public interface FieldWriter {
 
     <T> void writeObject(EntityWriter<? super T> writer, @Nullable T obj, OutputContext ctxt)
         throws IOException;
+
+    <T> void writeObject(EntityWriter<? super T> writer, @Nonnull String fieldName, @Nullable T obj, OutputContext ctxt)
+            throws IOException;
 
     void writeList(String field, String elem, Iterable<?> list, OutputContext ctxt)
         throws IOException;

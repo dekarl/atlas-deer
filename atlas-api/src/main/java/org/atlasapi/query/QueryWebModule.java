@@ -31,6 +31,7 @@ import org.atlasapi.application.auth.ApplicationSourcesFetcher;
 import org.atlasapi.application.auth.UserFetcher;
 import org.atlasapi.content.Content;
 import org.atlasapi.content.ContentType;
+import org.atlasapi.content.ItemAndBroadcast;
 import org.atlasapi.criteria.attribute.Attributes;
 import org.atlasapi.media.channel.Channel;
 import org.atlasapi.media.channel.ChannelResolver;
@@ -61,6 +62,7 @@ import org.atlasapi.output.annotation.SeriesReferenceAnnotation;
 import org.atlasapi.output.annotation.SeriesSummaryAnnotation;
 import org.atlasapi.output.annotation.SubItemAnnotation;
 import org.atlasapi.output.annotation.TopicsAnnotation;
+import org.atlasapi.output.writers.BroadcastWriter;
 import org.atlasapi.persistence.output.MongoContainerSummaryResolver;
 import org.atlasapi.persistence.output.MongoRecentlyBroadcastChildrenResolver;
 import org.atlasapi.persistence.output.MongoUpcomingItemsResolver;
@@ -81,6 +83,7 @@ import org.atlasapi.query.v4.content.ContentController;
 import org.atlasapi.query.v4.schedule.ChannelListWriter;
 import org.atlasapi.query.v4.schedule.ContentListWriter;
 import org.atlasapi.query.v4.schedule.ScheduleController;
+import org.atlasapi.query.v4.schedule.ScheduleEntryListWriter;
 import org.atlasapi.query.v4.schedule.ScheduleListWriter;
 import org.atlasapi.query.v4.schedule.ScheduleQueryResultWriter;
 import org.atlasapi.query.v4.search.ContentQueryResultWriter;
@@ -137,7 +140,9 @@ public class QueryWebModule {
 
     @Bean
     ScheduleController v4ScheduleController() {
-        ScheduleListWriter scheduleWriter = new ScheduleListWriter(channelListWriter(), contentListWriter());
+        EntityListWriter<ItemAndBroadcast> entryListWriter = 
+            new ScheduleEntryListWriter(contentListWriter(), new BroadcastWriter("broadcasts", idCodec())); 
+        ScheduleListWriter scheduleWriter = new ScheduleListWriter(channelListWriter(), entryListWriter);
         return new ScheduleController(queryModule.equivalentScheduleStoreScheduleQueryExecutor(),
             configFetcher, new ScheduleQueryResultWriter(scheduleWriter),
             new IndexContextualAnnotationsExtractor(ResourceAnnotationIndex.combination()
