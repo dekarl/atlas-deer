@@ -1,5 +1,7 @@
 package org.atlasapi.output.writers;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import java.io.IOException;
 
 import org.atlasapi.content.Broadcast;
@@ -7,13 +9,17 @@ import org.atlasapi.output.EntityListWriter;
 import org.atlasapi.output.FieldWriter;
 import org.atlasapi.output.OutputContext;
 
+import com.metabroadcast.common.ids.NumberToShortStringCodec;
+
 public final class BroadcastWriter implements EntityListWriter<Broadcast> {
 
     private static final String ELEMENT_NAME = "broadcast";
     private final String listName;
+    private NumberToShortStringCodec codec;
 
-    public BroadcastWriter(String listName) {
-        this.listName = listName;
+    public BroadcastWriter(String listName, NumberToShortStringCodec codec) {
+        this.listName = checkNotNull(listName);
+        this.codec = checkNotNull(codec);
     }
 
     @Override
@@ -22,7 +28,7 @@ public final class BroadcastWriter implements EntityListWriter<Broadcast> {
         writer.writeField("transmission_time", entity.getTransmissionTime());
         writer.writeField("transmission_end_time", entity.getTransmissionEndTime());
         writer.writeField("broadcast_duration", entity.getBroadcastDuration());
-        writer.writeField("broadcast_on", entity.getChannelId());
+        writer.writeField("broadcast_on", codec.encode(entity.getChannelId().toBigInteger()));
         writer.writeField("schedule_date", entity.getScheduleDate());
         writer.writeField("repeat", entity.getRepeat());
         writer.writeField("subtitled", entity.getSubtitled());

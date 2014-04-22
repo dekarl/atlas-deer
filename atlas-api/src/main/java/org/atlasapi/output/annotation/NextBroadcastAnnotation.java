@@ -13,6 +13,7 @@ import org.joda.time.DateTime;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSet.Builder;
 import com.google.common.collect.Iterables;
+import com.metabroadcast.common.ids.NumberToShortStringCodec;
 import com.metabroadcast.common.time.Clock;
 
 public class NextBroadcastAnnotation extends OutputAnnotation<Content> {
@@ -20,10 +21,10 @@ public class NextBroadcastAnnotation extends OutputAnnotation<Content> {
     private final BroadcastWriter broadcastWriter;
     private final Clock clock;
 
-    public NextBroadcastAnnotation(Clock clock) {
+    public NextBroadcastAnnotation(Clock clock, NumberToShortStringCodec codec) {
         super();
         this.clock = clock;
-        this.broadcastWriter = new BroadcastWriter("next_broadcasts");
+        this.broadcastWriter = new BroadcastWriter("next_broadcasts", codec);
     }
 
     @Override
