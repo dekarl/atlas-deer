@@ -34,7 +34,6 @@ public class FlexibleBroadcastMatcher {
     public static final FlexibleBroadcastMatcher exactStartEnd() {
         return EXACT_START_END;
     }
-
     
     private Duration startFlexibility;
     private Optional<Duration> endFlexibility;
@@ -68,7 +67,7 @@ public class FlexibleBroadcastMatcher {
     }
     
     private boolean withInFlexibility(DateTime subj, Duration flex, DateTime obj) {
-        return subj.minus(flex).isBefore(obj) || subj.plus(flex).isAfter(obj);
+        return !(subj.minus(flex).isAfter(obj) || subj.plus(flex).isBefore(obj));
     }
     
 }
