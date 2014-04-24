@@ -1,5 +1,7 @@
 package org.atlasapi.query.v4.schedule;
 
+import static org.hamcrest.Matchers.containsString;
+import static org.junit.Assert.assertThat;
 import static org.mockito.Mockito.mock;
 
 import java.io.IOException;
@@ -79,8 +81,12 @@ public class ScheduleQueryResultWriterTest {
         response.getWriter().flush();
         ObjectMapper mapper = new ObjectMapper();
         //TODO match the expected values
-        System.out.println(
-                mapper.writerWithDefaultPrettyPrinter().writeValueAsString(mapper.readValue(response.getResponseAsString(),Object.class)));
+        String responseAsString = response.getResponseAsString();
+        
+        assertThat(responseAsString, containsString("\"broadcast_on\":\"cyz\""));
+        
+//        System.out.println(
+//                mapper.writerWithDefaultPrettyPrinter().writeValueAsString(mapper.readValue(responseAsString,Object.class)));
     }
 
 }
