@@ -14,6 +14,7 @@ public class EntityUpdatedLegacyMessageSerializer extends LegacyMessageSerialize
         return new ResourceUpdatedMessage(
                 leg.getMessageId(),
                 leg.getTimestamp(),
-                resourceRef((EntityUpdatedMessage) leg));
+                resourceRef(leg));
     }
+    
 }

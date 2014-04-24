@@ -1,7 +1,5 @@
 package org.atlasapi.system.bootstrap.workers;
 
-import java.util.Set;
-
 import org.atlasapi.content.BrandRef;
 import org.atlasapi.content.ClipRef;
 import org.atlasapi.content.ContentType;
@@ -13,16 +11,14 @@ import org.atlasapi.content.SongRef;
 import org.atlasapi.entity.Id;
 import org.atlasapi.entity.ResourceRef;
 import org.atlasapi.media.entity.Publisher;
-import org.atlasapi.messaging.v3.ContentEquivalenceAssertionMessage;
-import org.atlasapi.messaging.v3.ContentEquivalenceAssertionMessage.AdjacentRef;
-import org.atlasapi.messaging.v3.EntityUpdatedMessage;
+import org.atlasapi.messaging.v3.AbstractMessage;
 import org.atlasapi.serialization.json.JsonFactory;
 import org.atlasapi.topic.TopicRef;
 import org.joda.time.DateTime;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Optional;
-import com.google.common.collect.ImmutableSet;
+import com.metabroadcast.common.ids.SubstitutionTableNumberCodec;
 import com.metabroadcast.common.queue.Message;
 import com.metabroadcast.common.queue.MessageDeserializationException;
 import com.metabroadcast.common.queue.MessageSerializer;
@@ -32,6 +28,8 @@ public abstract class LegacyMessageSerializer<LM extends Message, M extends Mess
 
     private final ObjectMapper mapper = JsonFactory.makeJsonMapper()
             .registerModule(new org.atlasapi.messaging.v3.JacksonMessageSerializer.MessagingModule());
+
+    protected final SubstitutionTableNumberCodec idCodec = SubstitutionTableNumberCodec.lowerCaseOnly();
     
     private Class<LM> legacyType;
     
@@ -56,8 +54,8 @@ public abstract class LegacyMessageSerializer<LM extends Message, M extends Mess
 
     protected abstract M transform(LM leg);
 
-    protected ResourceRef resourceRef(EntityUpdatedMessage leg) {
-        final Long lid = Long.valueOf(leg.getEntityId());
+    protected ResourceRef resourceRef(AbstractMessage leg) {
+        final Long lid = idCodec.decode(leg.getEntityId()).longValue();
         final Publisher src = Publisher.fromKey(leg.getEntitySource()).requireValue();
         final DateTime updated = new DateTime(leg.getTimestamp().millis(), DateTimeZones.UTC);
         String type = leg.getEntityType();
@@ -69,27 +67,7 @@ public abstract class LegacyMessageSerializer<LM extends Message, M extends Mess
             return new TopicRef(Id.valueOf(lid), source);
         }
     }
-
-    protected Set<ResourceRef> toResourceRef(ContentEquivalenceAssertionMessage leg) {
-        if (leg.getAdjacent() == null || leg.getAdjacent().isEmpty()) {
-            return ImmutableSet.of();
-        }
-        DateTime madeUpUpdatedTime = new DateTime(leg.getTimestamp().millis(), DateTimeZones.UTC);
-        ImmutableSet.Builder<ResourceRef> resourceRefs = ImmutableSet.builder();
-        for (AdjacentRef adjacentRef : leg.getAdjacent()) {
-            resourceRefs.add(toResourceRef(adjacentRef.getId(), adjacentRef.getSource(), 
-                    adjacentRef.getType(), madeUpUpdatedTime));
-        }
-        return resourceRefs.build();
-    }
     
-    protected ResourceRef getSubject(ContentEquivalenceAssertionMessage leg) {
-        DateTime madeUpUpdatedTime = new DateTime(leg.getTimestamp().millis(), DateTimeZones.UTC);
-        Long lid = Long.valueOf(leg.getEntityId());
-        final Publisher src = Publisher.fromKey(leg.getEntitySource()).requireValue();
-        return toResourceRef(lid, src, leg.getEntityType(), madeUpUpdatedTime);
-    }
-
     protected ResourceRef toResourceRef(final Long lid, final Publisher src,
             String type, final DateTime updated) {
         final Id rid = Id.valueOf(lid);

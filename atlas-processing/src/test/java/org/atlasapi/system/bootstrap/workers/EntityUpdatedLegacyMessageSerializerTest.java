@@ -2,7 +2,6 @@ package org.atlasapi.system.bootstrap.workers;
 
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
 
 import org.atlasapi.entity.ResourceType;
 import org.atlasapi.messaging.ResourceUpdatedMessage;
@@ -20,7 +19,7 @@ public class EntityUpdatedLegacyMessageSerializerTest {
     
     @Test
     public void testDeSerializesLegacyMessage() throws Exception {
-        EntityUpdatedMessage msg = new EntityUpdatedMessage("1", Timestamp.of(1L), "1", "item", "bbc.co.uk");
+        EntityUpdatedMessage msg = new EntityUpdatedMessage("1", Timestamp.of(1L), "cyp", "item", "bbc.co.uk");
         
         byte[] serialized = JsonFactory.makeJsonMapper().writeValueAsBytes(msg);
         
@@ -29,7 +28,7 @@ public class EntityUpdatedLegacyMessageSerializerTest {
         
         assertThat(deserialized.getMessageId(), is(msg.getMessageId()));
         assertThat(deserialized.getTimestamp(), is(msg.getTimestamp()));
-        assertThat(deserialized.getUpdatedResource().getId().toString(), is(msg.getEntityId()));
+        assertThat(deserialized.getUpdatedResource().getId().longValue(), is(1225L));
         assertThat(deserialized.getUpdatedResource().getPublisher().toString(), is(msg.getEntitySource()));
         assertThat(deserialized.getUpdatedResource().getResourceType(), is(ResourceType.CONTENT));
         
