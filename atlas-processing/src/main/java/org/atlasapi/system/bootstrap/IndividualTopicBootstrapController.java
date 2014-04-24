@@ -36,7 +36,7 @@ public class IndividualTopicBootstrapController {
         this.writer = checkNotNull(write);
     }
     
-    @RequestMapping(value="/system/bootstrap/content/{id}", method=RequestMethod.POST)
+    @RequestMapping(value="/system/bootstrap/topic/{id}", method=RequestMethod.POST)
     public void bootstrapTopic(@PathVariable("id") String encodedId,
             HttpServletResponse resp) throws IOException {
         Id id = Id.valueOf(idCodec.decode(encodedId).longValue());

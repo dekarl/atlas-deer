@@ -64,7 +64,7 @@ public class LegacyScheduleResolver implements ScheduleResolver {
             public ItemAndBroadcast apply(org.atlasapi.media.entity.Item input) {
                 Item item = (Item) transformer.apply(input);
                 Broadcast broadcast = onlyBroadcastFrom(item);
-                checkState(channel.getUri().equals(broadcast.getChannelId()),
+                checkState(channel.getId().equals(broadcast.getChannelId().longValue()),
                     "%s not on expected channel %s", broadcast, channel);
                 return new ItemAndBroadcast(item, broadcast);
             }

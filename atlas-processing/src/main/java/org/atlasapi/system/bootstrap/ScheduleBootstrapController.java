@@ -40,7 +40,7 @@ public class ScheduleBootstrapController {
         this.channelResvoler = checkNotNull(channelResvoler);
     }
     
-    @RequestMapping(value="/system/schedule/bootstrap",method=RequestMethod.POST)
+    @RequestMapping(value="/system/bootstrap/schedule",method=RequestMethod.POST)
     public Void bootstrapSchedule(HttpServletResponse resp, @RequestParam("source") String src,
             @RequestParam("day") String day, @RequestParam("channel") String channelId)
         throws IOException {
