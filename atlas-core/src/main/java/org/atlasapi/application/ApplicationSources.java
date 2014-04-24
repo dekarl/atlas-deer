@@ -149,12 +149,24 @@ public class ApplicationSources {
         return ordering.onResultOf(Sourceds.toPublisher());
     }
     
+    private static final ApplicationSources dflts = createDefaults();
+    
+    private static final ApplicationSources createDefaults() {
+        ApplicationSources dflts = ApplicationSources.builder()
+                .build()
+                .copyWithMissingSourcesPopulated();
+       for (Publisher source : Publisher.all()) {
+           if (source.enabledWithNoApiKey()) {
+               dflts = dflts.copyWithChangedReadableSourceStatus(source, SourceStatus.AVAILABLE_ENABLED);
+           }
+       }
+       return dflts;
+    }
+    
     // Build a default configuration, this will get popualated with publishers 
     // with default source status
     public static ApplicationSources defaults() {
-        return ApplicationSources.builder()
-                  .build()
-                  .copyWithMissingSourcesPopulated();
+        return dflts;
     }
     
 
@@ -199,7 +211,8 @@ public class ApplicationSources {
         }            
         for (Publisher source : Publisher.values()) {
             if (!publishersSeen.contains(source)) {
-                readsAll.add(new SourceReadEntry(source, SourceStatus.fromV3SourceStatus(source.getDefaultSourceStatus())));
+                SourceStatus status = SourceStatus.fromV3SourceStatus(source.getDefaultSourceStatus());
+                readsAll.add(new SourceReadEntry(source, status));
             }
         }
         return this.copy().withReadableSources(readsAll).build();
