@@ -13,8 +13,9 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
+import com.metabroadcast.common.queue.Worker;
 
-public class TopicIndexingWorker extends BaseWorker<ResourceUpdatedMessage> {
+public class TopicIndexingWorker implements Worker<ResourceUpdatedMessage> {
 
     private final Logger log = LoggerFactory.getLogger(this.getClass());
 

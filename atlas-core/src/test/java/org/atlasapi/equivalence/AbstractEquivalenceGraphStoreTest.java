@@ -1,14 +1,5 @@
 package org.atlasapi.equivalence;
 
-import static org.testng.AssertJUnit.assertFalse;
-import static org.junit.Assert.assertThat;
-import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.assertTrue;
-
-import org.testng.annotations.AfterMethod;
-import org.testng.annotations.Test;
-import org.testng.annotations.BeforeMethod;
-
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasEntry;
 import static org.hamcrest.Matchers.hasItem;
@@ -16,8 +7,11 @@ import static org.hamcrest.Matchers.hasItems;
 import static org.hamcrest.Matchers.hasKey;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;
+import static org.junit.Assert.assertThat;
+import static org.testng.AssertJUnit.assertEquals;
+import static org.testng.AssertJUnit.assertFalse;
+import static org.testng.AssertJUnit.assertTrue;
 
-import java.io.IOException;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Callable;
@@ -37,14 +31,15 @@ import org.atlasapi.entity.Sourceds;
 import org.atlasapi.entity.util.WriteException;
 import org.atlasapi.equivalence.EquivalenceGraph.Adjacents;
 import org.atlasapi.media.entity.Publisher;
-import org.atlasapi.messaging.Message;
-import org.atlasapi.messaging.MessageSender;
 import org.atlasapi.util.GroupLock;
 import org.hamcrest.FeatureMatcher;
 import org.hamcrest.Matcher;
 import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.testng.annotations.AfterMethod;
+import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.Test;
 
 import com.google.common.base.Function;
 import com.google.common.base.Functions;
@@ -63,6 +58,7 @@ import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.metabroadcast.common.collect.ImmutableOptionalMap;
 import com.metabroadcast.common.collect.OptionalMap;
+import com.metabroadcast.common.queue.MessageSender;
 import com.metabroadcast.common.time.DateTimeZones;
 
 public class AbstractEquivalenceGraphStoreTest {
@@ -81,10 +77,15 @@ public class AbstractEquivalenceGraphStoreTest {
         private final GroupLock<Id> lock = GroupLock.natural();
         
         public InMemoryEquivalenceGraphStore() {
-            super(new MessageSender() {
+            super(new MessageSender<EquivalenceGraphUpdateMessage>() {
                 @Override
-                public void sendMessage(Message message) throws IOException {
+                public void sendMessage(EquivalenceGraphUpdateMessage message)  {
                     //no-op
+                }
+
+                @Override
+                public void close() throws Exception {
+                    
                 }
             });
         }

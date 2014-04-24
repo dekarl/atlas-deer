@@ -1,5 +1,7 @@
 package org.atlasapi.messaging;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import java.io.IOException;
 
 import org.atlasapi.content.BrandRef;
@@ -30,15 +32,17 @@ import com.fasterxml.jackson.databind.module.SimpleDeserializers;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.fasterxml.jackson.datatype.guava.GuavaModule;
 import com.fasterxml.jackson.datatype.joda.JodaModule;
-import com.google.common.io.ByteSource;
+import com.google.common.base.Objects;
+import com.metabroadcast.common.queue.Message;
+import com.metabroadcast.common.queue.MessageDeserializationException;
+import com.metabroadcast.common.queue.MessageSerializationException;
+import com.metabroadcast.common.queue.MessageSerializer;
 import com.metabroadcast.common.time.Timestamp;
 
 //TODO should be able to register additional modules at creation time so as to decentralize configuration classes.
-public class JacksonMessageSerializer implements MessageSerializer {
+public class JacksonMessageSerializer<M extends Message> implements MessageSerializer<M> {
     
-    private ObjectMapper mapper;
-
-    public class MessagingModule extends SimpleModule {
+    public static class MessagingModule extends SimpleModule {
 
         public MessagingModule() {
             super("Messaging Module", new com.fasterxml.jackson.core.Version(0, 0, 1, null, null, null));
@@ -48,9 +52,6 @@ public class JacksonMessageSerializer implements MessageSerializer {
         public void setupModule(Module.SetupContext context) {
             super.setupModule(context);
             context.setMixInAnnotations(ResourceUpdatedMessage.class, ResourceUpdatedMessageConfiguration.class);
-            context.setMixInAnnotations(BeginReplayMessage.class, BasicMessageConfiguration.class);
-            context.setMixInAnnotations(EndReplayMessage.class, BasicMessageConfiguration.class);
-            context.setMixInAnnotations(ReplayMessage.class, ReplayMessageConfiguration.class);
             context.setMixInAnnotations(EquivalenceGraphUpdateMessage.class, EquivalenceGraphUpdateMessageConfiguration.class);
             context.setMixInAnnotations(EquivalenceGraph.class, EquivalenceGraphConfiguration.class);
             context.setMixInAnnotations(EquivalenceGraph.Adjacents.class, AdjacentsConfiguration.class);
@@ -59,11 +60,13 @@ public class JacksonMessageSerializer implements MessageSerializer {
             context.setMixInAnnotations(ScheduleUpdateMessage.class, ScheduleUpdateMessageConfiguration.class);
             context.setMixInAnnotations(ScheduleUpdate.class, ScheduleUpdateConfiguration.class);
             context.setMixInAnnotations(ScheduleUpdate.Builder.class, ScheduleUpdateConfiguration.Builder.class);
+            context.setMixInAnnotations(EquivalenceAssertionMessage.class, EquivalenceAssertionMessageConfiguration.class);
+            context.setMixInAnnotations(EquivalenceAssertionMessage.Builder.class, EquivalenceAssertionMessageConfiguration.Builder.class);
         }
         
     }
     
-    public class AtlasModelModule extends SimpleModule {
+    public static class AtlasModelModule extends SimpleModule {
         
         public AtlasModelModule() {
             super("Model Module", new com.fasterxml.jackson.core.Version(0, 0, 1, null, null, null));
@@ -106,8 +109,8 @@ public class JacksonMessageSerializer implements MessageSerializer {
     @JsonTypeInfo(use = JsonTypeInfo.Id.CLASS, include = JsonTypeInfo.As.PROPERTY, property = "@class")
     private static interface ObjectConfiguration {
     }
-
-    public JacksonMessageSerializer() {
+    
+    private static ObjectMapper mapper() {
         ObjectMapper mapper = new ObjectMapper();
         mapper.disable(SerializationFeature.WRITE_EMPTY_JSON_ARRAYS, SerializationFeature.WRITE_NULL_MAP_VALUES);
         mapper.registerModule(new GenericModule());
@@ -121,26 +124,43 @@ public class JacksonMessageSerializer implements MessageSerializer {
         mapper.setVisibility(PropertyAccessor.GETTER, Visibility.NONE);
         mapper.setVisibility(PropertyAccessor.IS_GETTER, Visibility.NONE);
         mapper.setVisibility(PropertyAccessor.SETTER, Visibility.NONE);
-        this.mapper = mapper;
+        return mapper;
+    }
+
+    private static ObjectMapper mapper = mapper();
+    private Class<? extends M> cls;
+    
+    public static final <M extends Message> JacksonMessageSerializer<M> forType(Class<? extends M> cls) {
+        return new JacksonMessageSerializer<M>(cls);
     }
     
+    public JacksonMessageSerializer(Class<? extends M> cls) {
+        this.cls = checkNotNull(cls, "null class");
+    }
+
     @Override
-    public ByteSource serialize(Message msg) throws MessageException {
+    public byte[] serialize(M msg) throws MessageSerializationException {
         try {
-            return ByteSource.wrap(mapper.writeValueAsBytes(msg));
+            return mapper.writeValueAsBytes(msg);
         } catch (IOException e) {
-            throw new MessageException(e);
+            throw new MessageSerializationException(e);
         }
     }
 
     @Override
-    @SuppressWarnings("unchecked")
-    public <M extends Message> M deserialize(ByteSource bytes) throws MessageException {
+    public M deserialize(byte[] bytes) throws MessageDeserializationException {
         try {
-            return (M) mapper.readValue(bytes.openStream(), Message.class);
+            return mapper.readValue(bytes, cls);
         } catch (IOException e) {
-            throw new MessageException(e);
+            throw new MessageDeserializationException(e);
         }
+    }
+    
+    @Override
+    public String toString() {
+        return Objects.toStringHelper(getClass())
+            .addValue(cls.getSimpleName())
+            .toString();
     }
     
 }

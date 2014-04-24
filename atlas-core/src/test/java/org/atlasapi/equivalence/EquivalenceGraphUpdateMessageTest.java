@@ -7,17 +7,16 @@ import org.atlasapi.content.BrandRef;
 import org.atlasapi.entity.Id;
 import org.atlasapi.media.entity.Publisher;
 import org.atlasapi.messaging.JacksonMessageSerializer;
-import org.atlasapi.messaging.MessageException;
-import org.atlasapi.messaging.MessageSerializer;
 import org.testng.annotations.Test;
 
 import com.google.common.collect.ImmutableSet;
-import com.google.common.io.ByteSource;
+import com.metabroadcast.common.queue.MessagingException;
 import com.metabroadcast.common.time.Timestamp;
 
 public class EquivalenceGraphUpdateMessageTest {
 
-    MessageSerializer serializer = new JacksonMessageSerializer();
+    JacksonMessageSerializer<EquivalenceGraphUpdateMessage> serializer
+        = JacksonMessageSerializer.forType(EquivalenceGraphUpdateMessage.class);
 
     @Test
     public void testDeSerializationWithoutCreatedDeleted() throws Exception {
@@ -55,11 +54,11 @@ public class EquivalenceGraphUpdateMessageTest {
         ));
     }
 
-    private void testSerializingMessageWith(EquivalenceGraphUpdate update) throws MessageException {
+    private void testSerializingMessageWith(EquivalenceGraphUpdate update) throws MessagingException {
         EquivalenceGraphUpdateMessage egum =
             new EquivalenceGraphUpdateMessage("message", Timestamp.of(0), update);
 
-        ByteSource serialized = serializer.serialize(egum);
+        byte[] serialized = serializer.serialize(egum);
 
         EquivalenceGraphUpdateMessage deserialized = serializer.deserialize(serialized);
 

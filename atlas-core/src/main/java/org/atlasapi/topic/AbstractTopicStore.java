@@ -11,7 +11,6 @@ import org.atlasapi.entity.Alias;
 import org.atlasapi.entity.Id;
 import org.atlasapi.entity.util.WriteResult;
 import org.atlasapi.media.entity.Publisher;
-import org.atlasapi.messaging.MessageSender;
 import org.atlasapi.messaging.ResourceUpdatedMessage;
 import org.joda.time.DateTime;
 import org.slf4j.Logger;
@@ -19,6 +18,7 @@ import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Equivalence;
 import com.metabroadcast.common.ids.IdGenerator;
+import com.metabroadcast.common.queue.MessageSender;
 import com.metabroadcast.common.time.Clock;
 import com.metabroadcast.common.time.Timestamp;
 
@@ -27,12 +27,12 @@ public abstract class AbstractTopicStore implements TopicStore {
 
     private final IdGenerator idGenerator;
     private final Equivalence<? super Topic> equivalence;
-    private final MessageSender sender;
+    private final MessageSender<ResourceUpdatedMessage> sender;
     private final Clock clock;
 
     protected final Logger log = LoggerFactory.getLogger(getClass());
 
-    public AbstractTopicStore(IdGenerator idGenerator, Equivalence<? super Topic> equivalence, MessageSender sender, Clock clock) {
+    public AbstractTopicStore(IdGenerator idGenerator, Equivalence<? super Topic> equivalence, MessageSender<ResourceUpdatedMessage> sender, Clock clock) {
         this.idGenerator = checkNotNull(idGenerator);
         this.equivalence = checkNotNull(equivalence);
         this.sender = checkNotNull(sender);

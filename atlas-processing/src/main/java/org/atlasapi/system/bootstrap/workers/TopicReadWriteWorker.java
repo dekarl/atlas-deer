@@ -4,7 +4,6 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 import org.atlasapi.entity.Id;
 import org.atlasapi.entity.util.Resolved;
-import org.atlasapi.messaging.BaseWorker;
 import org.atlasapi.messaging.ResourceUpdatedMessage;
 import org.atlasapi.topic.Topic;
 import org.atlasapi.topic.TopicResolver;
@@ -15,9 +14,10 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
+import com.metabroadcast.common.queue.Worker;
 
 
-public class TopicReadWriteWorker extends BaseWorker<ResourceUpdatedMessage> {
+public class TopicReadWriteWorker implements Worker<ResourceUpdatedMessage> {
 
     private final TopicResolver resolver;
     private final TopicWriter writer;

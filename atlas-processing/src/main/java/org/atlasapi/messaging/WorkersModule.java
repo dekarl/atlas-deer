@@ -1,23 +1,31 @@
 package org.atlasapi.messaging;
 
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
+
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 
 import org.atlasapi.AtlasPersistenceModule;
 import org.atlasapi.equivalence.EquivalenceGraphUpdateMessage;
 import org.atlasapi.schedule.ScheduleUpdateMessage;
-import org.atlasapi.system.bootstrap.workers.LegacyMessageSerializer;
+import org.atlasapi.system.bootstrap.workers.ContentEquivalenceAssertionLegacyMessageSerializer;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.Lazy;
-import org.springframework.jms.listener.DefaultMessageListenerContainer;
 
+import com.google.common.collect.ImmutableList;
+import com.google.common.util.concurrent.ServiceManager;
 import com.metabroadcast.common.properties.Configurer;
+import com.metabroadcast.common.queue.Message;
+import com.metabroadcast.common.queue.MessageSerializer;
+import com.metabroadcast.common.queue.Worker;
+import com.metabroadcast.common.queue.kafka.KafkaConsumer;
 
 @Configuration
-@Import({AtlasPersistenceModule.class, AtlasMessagingModule.class})
+@Import({AtlasPersistenceModule.class, KafkaMessagingModule.class})
 public class WorkersModule {
     
     private static final String INDEXER_CONSUMER = "Indexer";
@@ -38,19 +46,41 @@ public class WorkersModule {
 //    private int loggerConsumers = Integer.parseInt(Configurer.get("messaging.consumers.logger").get());
 //    private long replayInterruptThreshold = Long.parseLong(Configurer.get("messaging.replay.interrupt.threshold").get());
 
-    @Autowired private AtlasMessagingModule messaging;
+    @Autowired private KafkaMessagingModule messaging;
     @Autowired private AtlasPersistenceModule persistence;
+    private ServiceManager consumerManager;
 
     @Bean
     @Lazy(true)
-    public ReplayingWorker<ResourceUpdatedMessage> contentIndexingWorker() {
-        return new ReplayingWorker<>(new ContentIndexingWorker(persistence.contentStore(), persistence.contentIndex()));
+    public Worker<ResourceUpdatedMessage> contentIndexingWorker() {
+        return new ContentIndexingWorker(persistence.contentStore(), persistence.contentIndex());
     }
 
     @Bean
     @Lazy(true)
-    public DefaultMessageListenerContainer contentIndexerMessageListener() {
-        return messaging.consumerQueueFactory().makeVirtualTopicConsumer(contentIndexingWorker(), INDEXER_CONSUMER, contentChanges)
+    public KafkaConsumer contentIndexerMessageListener() {
+        return messaging.messageConsumerFactory().createConsumer(contentIndexingWorker(), 
+                serializer(ResourceUpdatedMessage.class), contentChanges, INDEXER_CONSUMER)
+                .withDefaultConsumers(defaultIndexingConsumers)
+                .withMaxConsumers(maxIndexingConsumers)
+                .build();
+    }
+
+    private <M extends Message> MessageSerializer<M> serializer(Class<M> cls) {
+        return JacksonMessageSerializer.forType(cls);
+    }
+
+    @Bean
+    @Lazy(true)
+    public Worker<ResourceUpdatedMessage> topicIndexingWorker() {
+        return new TopicIndexingWorker(persistence.topicStore(), persistence.topicIndex());
+    }
+    
+    @Bean
+    @Lazy(true)
+    public KafkaConsumer topicIndexerMessageListener() {
+        return messaging.messageConsumerFactory().createConsumer(topicIndexingWorker(), 
+                serializer(ResourceUpdatedMessage.class), topicChanges, INDEXER_CONSUMER)
                 .withDefaultConsumers(defaultIndexingConsumers)
                 .withMaxConsumers(maxIndexingConsumers)
                 .build();
@@ -58,41 +88,50 @@ public class WorkersModule {
 
     @Bean
     @Lazy(true)
-    public DefaultMessageListenerContainer contentIndexerReplayListener() {
-        return messaging.consumerQueueFactory().makeQueueConsumer(contentIndexingWorker(), "Content.Indexer.Replay", 1, 1);
+    public Worker<EquivalenceGraphUpdateMessage> equivalentContentStoreGraphUpdateWorker() {
+        return new EquivalentContentStoreGraphUpdateWorker(persistence.getEquivalentContentStore());
+    }
+    
+    @Bean
+    @Lazy(true)
+    public KafkaConsumer equivalentContentStoreGraphUpdateListener() {
+        return messaging.messageConsumerFactory().createConsumer(equivalentContentStoreGraphUpdateWorker(),
+                serializer(EquivalenceGraphUpdateMessage.class), 
+                contentEquivalenceGraphChanges, "EquivalentContentStoreGraphs")
+                .withDefaultConsumers(defaultIndexingConsumers)
+                .withMaxConsumers(maxIndexingConsumers)
+                .build();
     }
 
     @Bean
     @Lazy(true)
-    public ReplayingWorker<ResourceUpdatedMessage> topicIndexingWorker() {
-        return new ReplayingWorker<>(new TopicIndexingWorker(persistence.topicStore(), persistence.topicIndex()));
+    public Worker<ResourceUpdatedMessage> equivalentContentStoreContentUpdateWorker() {
+        return new EquivalentContentStoreContentUpdateWorker(persistence.getEquivalentContentStore());
     }
     
     @Bean
     @Lazy(true)
-    public DefaultMessageListenerContainer topicIndexerMessageListener() {
-        return messaging.consumerQueueFactory().makeVirtualTopicConsumer(topicIndexingWorker(), INDEXER_CONSUMER, topicChanges)
+    public KafkaConsumer equivalentContentStoreContentUpdateListener() {
+        return messaging.messageConsumerFactory().createConsumer(equivalentContentStoreContentUpdateWorker(),
+                serializer(ResourceUpdatedMessage.class), 
+                contentChanges, "EquivalentContentStoreContent")
                 .withDefaultConsumers(defaultIndexingConsumers)
                 .withMaxConsumers(maxIndexingConsumers)
                 .build();
-    }
-    
-    @Bean
-    @Lazy(true)
-    public DefaultMessageListenerContainer topicIndexerReplayListener() {
-        return messaging.consumerQueueFactory().makeQueueConsumer(topicIndexingWorker(), "Topics.Indexer.Replay", 1, 1);
     }
 
     @Bean
     @Lazy(true)
-    public ReplayingWorker<EquivalenceGraphUpdateMessage> equivalentContentStoreGraphUpdateWorker() {
-        return new ReplayingWorker<>(new EquivalentContentStoreGraphUpdateWorker(persistence.getEquivalentContentStore()));
+    public Worker<EquivalenceGraphUpdateMessage> equivalentScheduletStoreGraphUpdateWorker() {
+        return new EquivalentScheduleStoreGraphUpdateWorker(persistence.getEquivalentScheduleStore());
     }
     
     @Bean
     @Lazy(true)
-    public DefaultMessageListenerContainer equivalentContentStoreGraphUpdateListener() {
-        return messaging.consumerQueueFactory().makeVirtualTopicConsumer(equivalentContentStoreGraphUpdateWorker(), "EquivalentContentStoreGraphs", contentEquivalenceGraphChanges)
+    public KafkaConsumer equivalentScheduleStoreGraphUpdateListener() {
+        return messaging.messageConsumerFactory().createConsumer(equivalentScheduletStoreGraphUpdateWorker(),
+                serializer(EquivalenceGraphUpdateMessage.class), 
+                contentEquivalenceGraphChanges, "EquivalentScheduleStoreGraphs")
                 .withDefaultConsumers(defaultIndexingConsumers)
                 .withMaxConsumers(maxIndexingConsumers)
                 .build();
@@ -100,56 +139,15 @@ public class WorkersModule {
     
     @Bean
     @Lazy(true)
-    public DefaultMessageListenerContainer equivalentContentStoreGraphUpdateReplayListener() {
-        return messaging.consumerQueueFactory().makeQueueConsumer(equivalentContentStoreGraphUpdateWorker(), "EquivalentContent.EquivalenceGraphs.Replay", 1, 1);
-    }
-
-    @Bean
-    @Lazy(true)
-    public ReplayingWorker<ResourceUpdatedMessage> equivalentContentStoreContentUpdateWorker() {
-        return new ReplayingWorker<>(new EquivalentContentStoreContentUpdateWorker(persistence.getEquivalentContentStore()));
+    public Worker<ScheduleUpdateMessage> equivalentScheduleStoreScheduleUpdateWorker() {
+        return new EquivalentScheduleStoreScheduleUpdateWorker(persistence.getEquivalentScheduleStore());
     }
     
     @Bean
     @Lazy(true)
-    public DefaultMessageListenerContainer equivalentContentStoreContentUpdateListener() {
-        return messaging.consumerQueueFactory().makeVirtualTopicConsumer(equivalentContentStoreContentUpdateWorker(), "EquivalentContentStoreContent", contentChanges)
-                .withDefaultConsumers(defaultIndexingConsumers)
-                .withMaxConsumers(maxIndexingConsumers)
-                .build();
-    }
-    
-    @Bean
-    @Lazy(true)
-    public DefaultMessageListenerContainer equivalentContentStoreContentUpdateReplayListener() {
-        return messaging.consumerQueueFactory().makeQueueConsumer(equivalentContentStoreContentUpdateWorker(), "EquivalentContent.Content.Replay", 1, 1);
-    }
-    
-    @Bean
-    @Lazy(true)
-    public ReplayingWorker<EquivalenceGraphUpdateMessage> equivalentScheduletStoreGraphUpdateWorker() {
-        return new ReplayingWorker<>(new EquivalentScheduleStoreGraphUpdateWorker(persistence.getEquivalentScheduleStore()));
-    }
-    
-    @Bean
-    @Lazy(true)
-    public DefaultMessageListenerContainer equivalentScheduleStoreGraphUpdateListener() {
-        return messaging.consumerQueueFactory().makeVirtualTopicConsumer(equivalentScheduletStoreGraphUpdateWorker(), "EquivalentScheduleStoreGraphs", contentEquivalenceGraphChanges)
-                .withDefaultConsumers(defaultIndexingConsumers)
-                .withMaxConsumers(maxIndexingConsumers)
-                .build();
-    }
-    
-    @Bean
-    @Lazy(true)
-    public ReplayingWorker<ScheduleUpdateMessage> equivalentScheduleStoreScheduleUpdateWorker() {
-        return new ReplayingWorker<>(new EquivalentScheduleStoreScheduleUpdateWorker(persistence.getEquivalentScheduleStore()));
-    }
-    
-    @Bean
-    @Lazy(true)
-    public DefaultMessageListenerContainer equivalentScheduleStoreScheduleUpdateListener() {
-        return messaging.consumerQueueFactory().makeVirtualTopicConsumer(equivalentScheduleStoreScheduleUpdateWorker(), "EquivalentScheduleStoreSchedule", scheduleChanges)
+    public KafkaConsumer equivalentScheduleStoreScheduleUpdateListener() {
+        return messaging.messageConsumerFactory().createConsumer(equivalentScheduleStoreScheduleUpdateWorker(), 
+                serializer(ScheduleUpdateMessage.class), scheduleChanges, "EquivalentScheduleStoreSchedule")
                 .withDefaultConsumers(defaultIndexingConsumers)
                 .withMaxConsumers(maxIndexingConsumers)
                 .build();
@@ -170,15 +168,15 @@ public class WorkersModule {
 
     @Bean
     @Lazy(true)
-    public ReplayingWorker<EquivalenceAssertionMessage> contentEquivalenceUpdater() {
-        return new ReplayingWorker<>(new ContentEquivalenceUpdatingWorker(persistence.getContentEquivalenceGraphStore()));
+    public Worker<EquivalenceAssertionMessage> contentEquivalenceUpdater() {
+        return new ContentEquivalenceUpdatingWorker(persistence.getContentEquivalenceGraphStore());
     }
     
     @Bean
     @Lazy(true)
-    public DefaultMessageListenerContainer equivUpdateListener() {
-        return messaging.consumerQueueFactory().makeVirtualTopicConsumer(contentEquivalenceUpdater(), "EquivGraphUpdate", equivTopic)
-                .withSerializer(new LegacyMessageSerializer())
+    public KafkaConsumer equivUpdateListener() {
+        return messaging.messageConsumerFactory().createConsumer(contentEquivalenceUpdater(), 
+                new ContentEquivalenceAssertionLegacyMessageSerializer(), equivTopic, "EquivGraphUpdate")
                 .withProducerSystem(equivSystem)
                 .withDefaultConsumers(equivDefltConsumers)
                 .withMaxConsumers(equivMaxConsumers)
@@ -186,15 +184,22 @@ public class WorkersModule {
     }
 
     @PostConstruct
-    public void start() {
-        contentIndexingWorker().start();
-        topicIndexingWorker().start();
+    public void start() throws TimeoutException {
+        consumerManager = new ServiceManager(ImmutableList.of(
+            equivUpdateListener(), 
+            equivalentScheduleStoreScheduleUpdateListener(),
+            equivalentScheduleStoreGraphUpdateListener(),
+            equivalentContentStoreGraphUpdateListener(),
+            equivalentContentStoreContentUpdateListener(),
+            topicIndexerMessageListener(),
+            contentIndexerMessageListener()
+        ));
+        consumerManager.startAsync().awaitHealthy(1, TimeUnit.MINUTES);
     }
 
     @PreDestroy
-    public void stop() {
-        contentIndexingWorker().stop();
-        topicIndexingWorker().start();
+    public void stop() throws TimeoutException {
+       consumerManager.stopAsync().awaitStopped(1, TimeUnit.MINUTES);
     }
 
 }

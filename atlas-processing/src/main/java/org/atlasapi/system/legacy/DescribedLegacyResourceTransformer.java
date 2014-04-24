@@ -1,6 +1,5 @@
 package org.atlasapi.system.legacy;
 
-import java.lang.reflect.InvocationTargetException;
 import java.util.Set;
 
 import org.atlasapi.content.Image;

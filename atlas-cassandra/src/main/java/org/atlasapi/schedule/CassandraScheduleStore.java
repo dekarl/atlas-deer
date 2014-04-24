@@ -15,10 +15,6 @@ import org.atlasapi.entity.util.ResolveException;
 import org.atlasapi.entity.util.WriteException;
 import org.atlasapi.media.channel.Channel;
 import org.atlasapi.media.entity.Publisher;
-import org.atlasapi.messaging.MessageSender;
-import org.atlasapi.schedule.AbstractScheduleStore;
-import org.atlasapi.schedule.ChannelSchedule;
-import org.atlasapi.schedule.Schedule;
 import org.atlasapi.util.CassandraUtil;
 import org.joda.time.DateTime;
 import org.joda.time.Interval;
@@ -38,6 +34,7 @@ import com.google.common.collect.Multimap;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.metabroadcast.common.base.MorePredicates;
+import com.metabroadcast.common.queue.MessageSender;
 import com.metabroadcast.common.time.Clock;
 import com.metabroadcast.common.time.DateTimeZones;
 import com.metabroadcast.common.time.SystemClock;
@@ -73,7 +70,7 @@ public class CassandraScheduleStore extends AbstractScheduleStore {
     private static final String UPDATED_COL = "updated";
     private static final String IDS_COL = "ids";
 
-    public static final Builder builder(AstyanaxContext<Keyspace> context, String name, ContentStore contentStore, MessageSender messageSender) {
+    public static final Builder builder(AstyanaxContext<Keyspace> context, String name, ContentStore contentStore, MessageSender<ScheduleUpdateMessage> messageSender) {
         return new Builder(context, name, contentStore, messageSender);
     }
     
@@ -82,13 +79,13 @@ public class CassandraScheduleStore extends AbstractScheduleStore {
         private final AstyanaxContext<Keyspace> context;
         private final String name;
         private final ContentStore contentStore;
-        private final MessageSender messageSender;
+        private final MessageSender<ScheduleUpdateMessage> messageSender;
 
         private ConsistencyLevel readCl = ConsistencyLevel.CL_QUORUM;
         private ConsistencyLevel writeCl = ConsistencyLevel.CL_QUORUM;
         private Clock clock = new SystemClock();
         
-        public Builder(AstyanaxContext<Keyspace> context, String name, ContentStore contentStore, MessageSender messageSender) {
+        public Builder(AstyanaxContext<Keyspace> context, String name, ContentStore contentStore, MessageSender<ScheduleUpdateMessage> messageSender) {
             this.context = checkNotNull(context);
             this.name = checkNotNull(name);
             this.contentStore = checkNotNull(contentStore);
@@ -132,7 +129,7 @@ public class CassandraScheduleStore extends AbstractScheduleStore {
             }, ItemAndBroadcast.toBroadcast());
     
     private CassandraScheduleStore(AstyanaxContext<Keyspace> context, String name, 
-            ContentStore contentStore, MessageSender messageSender, Clock clock, 
+            ContentStore contentStore, MessageSender<ScheduleUpdateMessage> messageSender, Clock clock, 
             ConsistencyLevel readCl, ConsistencyLevel writeCl) {
         super(contentStore, messageSender);
         this.keyspace = context.getClient();

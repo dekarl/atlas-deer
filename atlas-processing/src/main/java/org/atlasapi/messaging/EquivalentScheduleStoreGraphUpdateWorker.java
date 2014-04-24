@@ -8,8 +8,9 @@ import org.atlasapi.schedule.EquivalentScheduleWriter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class EquivalentScheduleStoreGraphUpdateWorker extends
-        BaseWorker<EquivalenceGraphUpdateMessage> {
+import com.metabroadcast.common.queue.Worker;
+
+public class EquivalentScheduleStoreGraphUpdateWorker implements Worker<EquivalenceGraphUpdateMessage> {
 
     private final Logger log = LoggerFactory.getLogger(this.getClass());
 

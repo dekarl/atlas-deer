@@ -27,7 +27,7 @@ import org.atlasapi.entity.util.Resolved;
 import org.atlasapi.entity.util.WriteResult;
 import org.atlasapi.media.channel.Channel;
 import org.atlasapi.media.entity.Publisher;
-import org.atlasapi.messaging.MessageSender;
+import org.atlasapi.messaging.ResourceUpdatedMessage;
 import org.joda.time.DateTime;
 import org.joda.time.Interval;
 import org.mockito.Mock;
@@ -45,6 +45,7 @@ import com.google.common.collect.Iterables;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.metabroadcast.common.ids.SequenceGenerator;
+import com.metabroadcast.common.queue.MessageSender;
 import com.metabroadcast.common.time.Clock;
 import com.metabroadcast.common.time.DateTimeZones;
 import com.metabroadcast.common.time.TimeMachine;
@@ -67,7 +68,8 @@ public class CassandraScheduleStoreIT {
 
     //hasher is mock till we have a non-Mongo based one.
     @Mock private ContentHasher hasher;
-    @Mock private MessageSender sender; 
+    @Mock private MessageSender<ResourceUpdatedMessage> contentUpdateSender; 
+    @Mock private MessageSender<ScheduleUpdateMessage> scheduleUpdateSender; 
     
     private final Clock clock = new TimeMachine();
     
@@ -99,13 +101,13 @@ public class CassandraScheduleStoreIT {
         channel.setCanonicalUri("channel");
         channel.setId(1234L);
         contentStore = CassandraContentStore
-                .builder(context, CONTENT_CF_NAME, hasher, sender, new SequenceGenerator())
+                .builder(context, CONTENT_CF_NAME, hasher, contentUpdateSender, new SequenceGenerator())
                 .withReadConsistency(ConsistencyLevel.CL_ONE)
                 .withWriteConsistency(ConsistencyLevel.CL_ONE)
                 .withClock(clock)
                 .build();
         store = CassandraScheduleStore
-                .builder(context, SCHEDULE_CF_NAME, contentStore, sender)
+                .builder(context, SCHEDULE_CF_NAME, contentStore, scheduleUpdateSender)
                 .withReadConsistency(ConsistencyLevel.CL_ONE)
                 .withWriteConsistency(ConsistencyLevel.CL_ONE)
                 .withClock(clock)

@@ -1,7 +1,6 @@
 package org.atlasapi.equivalence;
 
-import org.atlasapi.messaging.AbstractMessage;
-
+import com.metabroadcast.common.queue.AbstractMessage;
 import com.metabroadcast.common.time.Timestamp;
 
 public class EquivalenceGraphUpdateMessage extends AbstractMessage {

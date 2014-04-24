@@ -15,8 +15,6 @@ import org.atlasapi.entity.Id;
 import org.atlasapi.entity.ResourceRef;
 import org.atlasapi.entity.util.ResolveException;
 import org.atlasapi.media.entity.Publisher;
-import org.atlasapi.messaging.Message;
-import org.atlasapi.messaging.MessageSender;
 import org.joda.time.DateTime;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.AfterMethod;
@@ -31,6 +29,8 @@ import com.google.common.collect.Iterables;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.metabroadcast.common.collect.OptionalMap;
+import com.metabroadcast.common.queue.Message;
+import com.metabroadcast.common.queue.MessageSender;
 import com.metabroadcast.common.time.DateTimeZones;
 
 public class CassandraEquivalenceGraphStoreIT {
@@ -40,10 +40,15 @@ public class CassandraEquivalenceGraphStoreIT {
     private CassandraEquivalenceGraphStore store;
     private Session session;
     
-    private MessageSender messageSender = new MessageSender() {
+    private MessageSender<EquivalenceGraphUpdateMessage> messageSender = new MessageSender<EquivalenceGraphUpdateMessage>() {
         @Override
-        public void sendMessage(Message message) throws IOException {
+        public void sendMessage(EquivalenceGraphUpdateMessage message) {
             //no-op;
+        }
+
+        @Override
+        public void close() throws Exception {
+            
         }
     };
 

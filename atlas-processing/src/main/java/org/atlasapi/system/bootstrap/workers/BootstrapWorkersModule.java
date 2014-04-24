@@ -1,9 +1,15 @@
 package org.atlasapi.system.bootstrap.workers;
 
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
+
+import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
+
 import org.atlasapi.AtlasPersistenceModule;
 import org.atlasapi.content.ContentResolver;
-import org.atlasapi.messaging.AtlasMessagingModule;
-import org.atlasapi.messaging.JmsConsumerQueueFactory;
+import org.atlasapi.messaging.KafkaMessagingModule;
+import org.atlasapi.messaging.ResourceUpdatedMessage;
 import org.atlasapi.system.legacy.LegacyPersistenceModule;
 import org.atlasapi.topic.TopicResolver;
 import org.atlasapi.topic.TopicStore;
@@ -13,15 +19,20 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.Lazy;
-import org.springframework.jms.listener.DefaultMessageListenerContainer;
 
 import com.metabroadcast.common.properties.Configurer;
+import com.metabroadcast.common.queue.MessageSerializer;
+import com.metabroadcast.common.queue.kafka.KafkaConsumer;
+import com.metabroadcast.common.queue.kafka.KafkaMessageConsumerFactory;
 
 @Configuration
-@Import({AtlasPersistenceModule.class, AtlasMessagingModule.class, LegacyPersistenceModule.class})
+@Import({AtlasPersistenceModule.class, KafkaMessagingModule.class, LegacyPersistenceModule.class})
 public class BootstrapWorkersModule {
 
+    private static final String BOOTSTRAP_WORKER_NAME = "Bootstrap";
+    
     private String consumerSystem = Configurer.get("messaging.system").get();
+    private String zookeeper = Configurer.get("messaging.zookeeper").get();
     private String originSystem = Configurer.get("messaging.bootstrap.system").get();
     private Integer consumers = Configurer.get("messaging.bootstrap.consumers.default").toInt();
     private Integer maxConsumers = Configurer.get("messaging.bootstrap.consumers.max").toInt();
@@ -30,21 +41,23 @@ public class BootstrapWorkersModule {
 
     @Autowired private AtlasPersistenceModule persistence;
     @Autowired private LegacyPersistenceModule legacy;
-    @Autowired private AtlasMessagingModule messaging;
+    @Autowired private KafkaMessagingModule messaging;
     
     @Bean @Qualifier("bootstrap")
-    JmsConsumerQueueFactory bootstrapQueueFactory() {
-        return new JmsConsumerQueueFactory(messaging.cachingConnectionFactory(), originSystem, new LegacyMessageSerializer());
+    KafkaMessageConsumerFactory bootstrapQueueFactory() {
+        return new KafkaMessageConsumerFactory(zookeeper, originSystem);
     }
     
     @Bean
     @Lazy(true)
-    DefaultMessageListenerContainer contentReadWriter() {
+    KafkaConsumer contentReadWriter() {
         ContentResolver legacyResolver = legacy.legacyContentResolver();
         BootstrapContentPersistor persistor = new BootstrapContentPersistor(
             persistence.contentStore(), persistence.scheduleStore(), persistence.channelStore());
         ContentReadWriteWorker worker = new ContentReadWriteWorker(legacyResolver, persistor);
-        return bootstrapQueueFactory().makeVirtualTopicConsumer(worker, "Bootstrap", contentChanges)
+        MessageSerializer<ResourceUpdatedMessage> serializer = 
+            new EntityUpdatedLegacyMessageSerializer();
+        return bootstrapQueueFactory().createConsumer(worker, serializer, contentChanges, BOOTSTRAP_WORKER_NAME)
                 .withConsumerSystem(consumerSystem)
                 .withDefaultConsumers(consumers)
                 .withMaxConsumers(maxConsumers)
@@ -53,15 +66,30 @@ public class BootstrapWorkersModule {
 
     @Bean
     @Lazy(true)
-    DefaultMessageListenerContainer topicReadWriter() {
+    KafkaConsumer topicReadWriter() {
         TopicResolver legacyResolver = legacy.legacyTopicResolver();
         TopicStore writer = persistence.topicStore();
         TopicReadWriteWorker worker = new TopicReadWriteWorker(legacyResolver, writer);
-        return bootstrapQueueFactory().makeVirtualTopicConsumer(worker, "Bootstrap", topicChanges)
+        MessageSerializer<ResourceUpdatedMessage> serializer = 
+                new EntityUpdatedLegacyMessageSerializer();
+        return bootstrapQueueFactory().createConsumer(worker, serializer, topicChanges, BOOTSTRAP_WORKER_NAME)
                 .withConsumerSystem(consumerSystem)
                 .withDefaultConsumers(consumers)
                 .withMaxConsumers(maxConsumers)
                 .build();
     }
+    
+    @PostConstruct
+    public void start() throws TimeoutException {
+        contentReadWriter().startAsync().awaitRunning(1, TimeUnit.MINUTES);
+        topicReadWriter().startAsync().awaitRunning(1, TimeUnit.MINUTES);
+    }
+
+    @PreDestroy
+    public void stop() throws TimeoutException {
+       contentReadWriter().stopAsync().awaitTerminated(1, TimeUnit.MINUTES);
+       topicReadWriter().stopAsync().awaitTerminated(1, TimeUnit.MINUTES);
+    }
+
     
 }

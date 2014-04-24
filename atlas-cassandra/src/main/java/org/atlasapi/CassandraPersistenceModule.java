@@ -6,10 +6,13 @@ import org.atlasapi.content.ContentHasher;
 import org.atlasapi.content.EquivalentContentStore;
 import org.atlasapi.equivalence.CassandraEquivalenceGraphStore;
 import org.atlasapi.equivalence.EquivalenceGraphStore;
-import org.atlasapi.messaging.ProducerQueueFactory;
+import org.atlasapi.equivalence.EquivalenceGraphUpdateMessage;
+import org.atlasapi.messaging.JacksonMessageSerializer;
+import org.atlasapi.messaging.ResourceUpdatedMessage;
 import org.atlasapi.schedule.CassandraEquivalentScheduleStore;
 import org.atlasapi.schedule.CassandraScheduleStore;
 import org.atlasapi.schedule.EquivalentScheduleStore;
+import org.atlasapi.schedule.ScheduleUpdateMessage;
 import org.atlasapi.topic.CassandraTopicStore;
 import org.atlasapi.topic.Topic;
 
@@ -18,6 +21,9 @@ import com.google.common.base.Equivalence;
 import com.google.common.util.concurrent.AbstractIdleService;
 import com.metabroadcast.common.ids.IdGeneratorBuilder;
 import com.metabroadcast.common.properties.Configurer;
+import com.metabroadcast.common.queue.Message;
+import com.metabroadcast.common.queue.MessageSender;
+import com.metabroadcast.common.queue.MessageSenderFactory;
 import com.metabroadcast.common.time.SystemClock;
 import com.netflix.astyanax.AstyanaxContext;
 import com.netflix.astyanax.Keyspace;
@@ -42,25 +48,25 @@ public class CassandraPersistenceModule extends AbstractIdleService implements P
     private CassandraEquivalentContentStore equivalentContentStore;
     private CassandraEquivalentScheduleStore equivalentScheduleStore;
 
-    private ProducerQueueFactory messageSenderFactory;
+    private MessageSenderFactory messageSenderFactory;
     
-    public CassandraPersistenceModule(ProducerQueueFactory messageSenderFactory, 
+    public CassandraPersistenceModule(MessageSenderFactory messageSenderFactory, 
             AstyanaxContext<Keyspace> context, DatastaxCassandraService datastaxCassandraService, 
             String keyspace, IdGeneratorBuilder idGeneratorBuilder, ContentHasher hasher) {
         this.messageSenderFactory = messageSenderFactory;
         this.keyspace = keyspace;
         this.context = context;
         this.contentStore = CassandraContentStore.builder(context, "content", 
-            hasher, messageSenderFactory.makeMessageSender(contentChanges), idGeneratorBuilder.generator("content"))
+            hasher, sender(contentChanges, ResourceUpdatedMessage.class), idGeneratorBuilder.generator("content"))
             .withReadConsistency(ConsistencyLevel.CL_ONE)
             .withWriteConsistency(ConsistencyLevel.CL_QUORUM)
             .build();
         this.topicStore = CassandraTopicStore.builder(context, "topics", 
-            topicEquivalence(), messageSenderFactory.makeMessageSender(topicChanges), idGeneratorBuilder.generator("topic"))
+            topicEquivalence(), sender(topicChanges, ResourceUpdatedMessage.class), idGeneratorBuilder.generator("topic"))
             .withReadConsistency(ConsistencyLevel.CL_ONE)
             .withWriteConsistency(ConsistencyLevel.CL_QUORUM)
             .build();
-        this.scheduleStore = CassandraScheduleStore.builder(context, "schedule", contentStore, messageSenderFactory.makeMessageSender(scheduleChanges))
+        this.scheduleStore = CassandraScheduleStore.builder(context, "schedule", contentStore, sender(scheduleChanges, ScheduleUpdateMessage.class))
                 .withReadConsistency(ConsistencyLevel.CL_ONE)
                 .withWriteConsistency(ConsistencyLevel.CL_QUORUM)
                 .build();
@@ -73,9 +79,13 @@ public class CassandraPersistenceModule extends AbstractIdleService implements P
         Session session = dataStaxService.getSession(keyspace);
         com.datastax.driver.core.ConsistencyLevel read = com.datastax.driver.core.ConsistencyLevel.ONE;
         com.datastax.driver.core.ConsistencyLevel write = com.datastax.driver.core.ConsistencyLevel.QUORUM;
-        this.contentEquivalenceGraphStore = new CassandraEquivalenceGraphStore(messageSenderFactory.makeMessageSender(contentEquivalenceGraphChanges), session, read, write);
+        this.contentEquivalenceGraphStore = new CassandraEquivalenceGraphStore(sender(contentEquivalenceGraphChanges, EquivalenceGraphUpdateMessage.class), session, read, write);
         this.equivalentContentStore = new CassandraEquivalentContentStore(contentStore, contentEquivalenceGraphStore, session, read, write);
         this.equivalentScheduleStore = new CassandraEquivalentScheduleStore(contentEquivalenceGraphStore, contentStore, session, read, write, new SystemClock());
+    }
+
+    private <M extends Message> MessageSender<M> sender(String dest, Class<M> type) {
+        return messageSenderFactory.makeMessageSender(dest, JacksonMessageSerializer.forType(type));
     }
 
     @Override

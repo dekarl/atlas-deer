@@ -4,11 +4,11 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 import org.atlasapi.entity.util.WriteException;
 import org.atlasapi.equivalence.EquivalenceGraphStore;
-import org.atlasapi.messaging.BaseWorker;
-import org.atlasapi.messaging.EquivalenceAssertionMessage;
+
+import com.metabroadcast.common.queue.Worker;
 
 
-public class ContentEquivalenceUpdatingWorker extends BaseWorker<EquivalenceAssertionMessage> {
+public class ContentEquivalenceUpdatingWorker implements Worker<EquivalenceAssertionMessage> {
 
     private final EquivalenceGraphStore graphStore;
 
