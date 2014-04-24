@@ -177,8 +177,9 @@ class ScheduleRequestParser {
     }
 
     private Interval extractInterval(HttpServletRequest request) {
-        DateTime from = dateTimeParser.parse(getParameter(request, "from"));
-        DateTime to = dateTimeParser.parse(getParameter(request, "to"));
+        DateTime now = clock.now();
+        DateTime from = dateTimeParser.parse(getParameter(request, "from"), now);
+        DateTime to = dateTimeParser.parse(getParameter(request, "to"), now);
         
         Interval queryInterval = new Interval(from, to);
         checkArgument(!queryInterval.toDuration().isLongerThan(maxQueryDuration), "Query interval cannot be longer than %s", maxQueryDuration);
