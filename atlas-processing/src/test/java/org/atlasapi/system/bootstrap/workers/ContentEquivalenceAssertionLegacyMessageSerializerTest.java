@@ -41,7 +41,7 @@ public class ContentEquivalenceAssertionLegacyMessageSerializerTest {
         
         assertThat(deserialized.getMessageId(), is(msg.getMessageId()));
         assertThat(deserialized.getTimestamp(), is(msg.getTimestamp()));
-        assertThat(deserialized.getSubject().getId().toString(), is(msg.getEntityId()));
+        assertThat(deserialized.getSubject().getId().longValue(), is(SubstitutionTableNumberCodec.lowerCaseOnly().decode(msg.getEntityId()).longValue()));
         assertThat(deserialized.getSubject().getPublisher().toString(), is(msg.getEntitySource()));
         assertThat(deserialized.getSubject().getResourceType(), is(ResourceType.CONTENT));
         assertThat(toKeys(deserialized.getPublishers()), is(msg.getSources()));
