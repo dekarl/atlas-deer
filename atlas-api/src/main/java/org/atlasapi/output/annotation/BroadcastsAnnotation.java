@@ -11,14 +11,14 @@ import org.atlasapi.output.OutputContext;
 import org.atlasapi.output.writers.BroadcastWriter;
 
 import com.google.common.collect.Iterables;
+import com.metabroadcast.common.ids.NumberToShortStringCodec;
 
 public class BroadcastsAnnotation extends OutputAnnotation<Content> {
     
     private final BroadcastWriter broadcastWriter;
     
-    public BroadcastsAnnotation() {
-        super();
-        broadcastWriter = new BroadcastWriter("broadcasts");
+    public BroadcastsAnnotation(NumberToShortStringCodec codec) {
+        broadcastWriter = new BroadcastWriter("broadcasts", codec);
     }
 
     @Override

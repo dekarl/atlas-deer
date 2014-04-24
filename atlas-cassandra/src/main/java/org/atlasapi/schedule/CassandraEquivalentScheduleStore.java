@@ -15,11 +15,9 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
-import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Set;
 
 import org.atlasapi.content.Broadcast;
@@ -36,7 +34,6 @@ import org.atlasapi.equivalence.EquivalenceGraphSerializer;
 import org.atlasapi.equivalence.EquivalenceGraphStore;
 import org.atlasapi.equivalence.Equivalent;
 import org.atlasapi.media.channel.Channel;
-import org.atlasapi.media.entity.Identified;
 import org.atlasapi.media.entity.Publisher;
 import org.atlasapi.serialization.protobuf.ContentProtos;
 import org.atlasapi.util.Column;
@@ -53,14 +50,12 @@ import com.datastax.driver.core.Statement;
 import com.datastax.driver.core.querybuilder.QueryBuilder;
 import com.datastax.driver.core.querybuilder.Update.Assignments;
 import com.google.common.base.Function;
-import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableList.Builder;
-import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableListMultimap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
+import com.google.common.collect.ListMultimap;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.protobuf.ByteString;
@@ -68,6 +63,85 @@ import com.google.protobuf.InvalidProtocolBufferException;
 import com.metabroadcast.common.time.Clock;
 
 public final class CassandraEquivalentScheduleStore extends AbstractEquivalentScheduleStore {
+
+    private final class ToEquivalentSchedule implements Function<List<ResultSet>, EquivalentSchedule> {
+
+        private final Interval interval;
+        private final Set<Publisher> selectedSources;
+        private final Set<Channel> chans;
+
+        private ToEquivalentSchedule(Set<Channel> chans, Interval interval,
+                Set<Publisher> selectedSources) {
+            this.interval = interval;
+            this.selectedSources = selectedSources;
+            this.chans = chans;
+        }
+
+        @Override
+        public EquivalentSchedule apply(List<ResultSet> input) {
+            return new EquivalentSchedule(toChannelSchedules(input, chans, interval), interval);
+        }
+
+        private List<EquivalentChannelSchedule> toChannelSchedules(List<ResultSet> input,
+                Iterable<Channel> channels, final Interval interval) {
+            ListMultimap<Long, EquivalentScheduleEntry> entriesByChannel = transformToEntries(input, interval);
+            ImmutableList.Builder<EquivalentChannelSchedule> channelSchedules = ImmutableList.builder();
+            for (Channel channel : channels) {
+                List<EquivalentScheduleEntry> entries = entriesByChannel.get(channel.getId());
+                channelSchedules.add(new EquivalentChannelSchedule(channel, interval, entries));
+            }
+            return channelSchedules.build();
+        }
+
+        private ListMultimap<Long, EquivalentScheduleEntry> transformToEntries(
+                List<ResultSet> input, Interval interval) {
+            ScheduleBroadcastFilter broadcastFilter = ScheduleBroadcastFilter.valueOf(interval);
+            ImmutableListMultimap.Builder<Long, EquivalentScheduleEntry> channelEntries = ImmutableListMultimap.builder();
+            for (Row row : Iterables.concat(input)) {
+                deserializeRow(channelEntries, row, broadcastFilter);
+            }
+            return channelEntries.build();
+        }
+
+        private void deserializeRow(
+                ImmutableListMultimap.Builder<Long, EquivalentScheduleEntry> channelEntries,
+                Row row, ScheduleBroadcastFilter broadcastFilter) {
+            try {
+                Broadcast broadcast = deserialize(BROADCAST.valueFrom(row));
+                if (broadcastFilter.apply(broadcast.getTransmissionInterval())) {
+                    Equivalent<Item> equivItems = deserialize(row);
+                    channelEntries.put(CHANNEL.valueFrom(row), 
+                            new EquivalentScheduleEntry(broadcast, equivItems));
+                }
+            } catch (IOException e) {
+                // has to be unchecked. is there a better type? 
+                // does it matter since we're in a future?
+                throw new RuntimeException("error reading "+row, e);
+            }
+        }
+
+        private Equivalent<Item> deserialize(Row row) throws IOException {
+            EquivalenceGraph graph = graphSerializer.deserialize(GRAPH.valueFrom(row));
+            Long itemCount = CONTENT_COUNT.valueFrom(row);
+            ByteBuffer itemsBytes = CONTENT.valueFrom(row);
+            ByteString sytes = ByteString.copyFrom(itemsBytes);
+            InputStream itemsStream = sytes.newInput();
+            ImmutableSet.Builder<Item> items = ImmutableSet.builder();
+            for (int i = 0; i < itemCount; i++) {
+                ContentProtos.Content msg =
+                    ContentProtos.Content.parseDelimitedFrom(itemsStream);
+                Item item = (Item)contentSerializer.deserialize(msg);
+                if (selectedSources.contains(item.getPublisher())) {
+                    items.add(item);
+                }
+            }
+            return new Equivalent<Item>(graph, items.build());
+        }
+
+        private Broadcast deserialize(ByteBuffer bcastBytes) throws InvalidProtocolBufferException {
+            return broadcastSerializer.deserialize(ContentProtos.Broadcast.parseFrom(ByteString.copyFrom(bcastBytes)));
+        }
+    }
 
     private static final String EQUIVALENT_SCHEDULE_TABLE = "equivalent_schedule";
     
@@ -106,88 +180,15 @@ public final class CassandraEquivalentScheduleStore extends AbstractEquivalentSc
             final Interval interval, Publisher source, final Set<Publisher> selectedSources) {
         final Set<Channel> chans = ImmutableSet.copyOf(channels);
         List<Query> selects = selectStatements(source, channels, interval);
-        ListenableFuture<List<ResultSet>> results = Futures.allAsList(Lists.transform(selects, new Function<Query, ListenableFuture<ResultSet>>(){
-            @Override
-            public ListenableFuture<ResultSet> apply(Query input) {
-                return session.executeAsync(input.setConsistencyLevel(read));
-            }
-        }));
-        return Futures.transform(results, new Function<List<ResultSet>, EquivalentSchedule>(){
-            @Override
-            public EquivalentSchedule apply(List<ResultSet> input) {
-                return new EquivalentSchedule(toChannelSchedules(input, chans, interval), interval);
-            }
-
-            private List<EquivalentChannelSchedule> toChannelSchedules(List<ResultSet> input,
-                    Iterable<Channel> channels, final Interval interval) {
-                ImmutableMap<Long, List<EquivalentScheduleEntry>> entriesByChannel = transformToEntries(input);
-                ImmutableList.Builder<EquivalentChannelSchedule> channelSchedules = ImmutableList.builder();
-                for (Channel channel : channels) {
-                    List<EquivalentScheduleEntry> entries = channelEntries(entriesByChannel, channel);
-                    channelSchedules.add(new EquivalentChannelSchedule(channel, interval, entries));
+        ListenableFuture<List<ResultSet>> results = Futures.allAsList(Lists.transform(selects, 
+            new Function<Query, ListenableFuture<ResultSet>>(){
+                @Override
+                public ListenableFuture<ResultSet> apply(Query input) {
+                    return session.executeAsync(input.setConsistencyLevel(read));
                 }
-                return channelSchedules.build();
             }
-
-            private List<EquivalentScheduleEntry> channelEntries(
-                    ImmutableMap<Long, List<EquivalentScheduleEntry>> channelEntryIndex,
-                    Channel channel) {
-                return Objects.firstNonNull(channelEntryIndex.get(channel.getId()), ImmutableList.<EquivalentScheduleEntry>of());
-            }
-
-            private ImmutableMap<Long, List<EquivalentScheduleEntry>> transformToEntries(
-                    List<ResultSet> input) {
-                ImmutableMap.Builder<Long, List<EquivalentScheduleEntry>> channelEntries = ImmutableMap.builder();
-                for (ResultSet resultSet : input) {
-                    if (!resultSet.isExhausted()) {
-                        channelEntries.put(entriesFor(resultSet));
-                    }
-                }
-                return channelEntries.build();
-            }
-
-            private Entry<Long, ? extends List<EquivalentScheduleEntry>> entriesFor(ResultSet input) {
-                Long channel = null;
-                ImmutableList.Builder<EquivalentScheduleEntry> entries = ImmutableList.builder();
-                for (Row row : input) {
-                    if (channel == null) {
-                        channel = CHANNEL.valueFrom(row);
-                    }
-                    try {
-                        Broadcast broadcast = deserialize(BROADCAST.valueFrom(row));
-                        Equivalent<Item> equivItems = equivItems(row);
-                        entries.add(new EquivalentScheduleEntry(broadcast, equivItems));
-                    } catch (IOException e) {
-                        // has to be unchecked. is there a better type? 
-                        // does it matter since we're in a future?
-                        throw new RuntimeException("error reading "+row, e);
-                    }
-                }
-                return Maps.immutableEntry(channel, entries.build());
-            }
-
-            private Equivalent<Item> equivItems(Row row) throws IOException {
-                EquivalenceGraph graph = graphSerializer.deserialize(GRAPH.valueFrom(row));
-                Long itemCount = CONTENT_COUNT.valueFrom(row);
-                ByteBuffer itemsBytes = CONTENT.valueFrom(row);
-                ByteString sytes = ByteString.copyFrom(itemsBytes);
-                InputStream itemsStream = sytes.newInput();
-                ImmutableSet.Builder<Item> items = ImmutableSet.builder();
-                for (int i = 0; i < itemCount; i++) {
-                    ContentProtos.Content msg =
-                        ContentProtos.Content.parseDelimitedFrom(itemsStream);
-                    Item item = (Item)contentSerializer.deserialize(msg);
-                    if (selectedSources.contains(item.getPublisher())) {
-                        items.add(item);
-                    }
-                }
-                return new Equivalent<Item>(graph, items.build());
-            }
-            
-            private Broadcast deserialize(ByteBuffer bcastBytes) throws InvalidProtocolBufferException {
-                return broadcastSerializer.deserialize(ContentProtos.Broadcast.parseFrom(ByteString.copyFrom(bcastBytes)));
-            }
-        });
+        ));
+        return Futures.transform(results, new ToEquivalentSchedule(chans, interval, selectedSources));
     }
 
     private List<Query> selectStatements(Publisher src, Iterable<Channel> channels, Interval interval) {

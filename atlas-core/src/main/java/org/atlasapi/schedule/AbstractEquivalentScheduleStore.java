@@ -193,22 +193,31 @@ public abstract class AbstractEquivalentScheduleStore implements EquivalentSched
             }
             Item bestMatch = bestMatch(sourceContent.getValue(), subjBcast);
             if (bestMatch == null) {
-                selected.addAll(removeBroadcasts(sourceContent.getValue()));
+                selected.addAll(matchingOrEmptyBroadcasts(subjBcast, sourceContent.getValue()));
             } else {
                 bestMatch = bestMatch.copy();
-                bestMatch.setBroadcasts(ImmutableSet.<Broadcast>of());
+                bestMatch.setBroadcasts(matchingOrEmpty(subjBcast, bestMatch.getBroadcasts()));
                 selected.add(bestMatch);
             }
         }
         return selected.build();
     }
 
-    private Iterable<? extends Item> removeBroadcasts(Collection<Item> value) {
+    private Set<Broadcast> matchingOrEmpty(Broadcast subjBcast, Set<Broadcast> broadcasts) {
+        for (Broadcast broadcast : Iterables.filter(broadcasts, Broadcast.ACTIVELY_PUBLISHED)) {
+            if (broadcastMatcher.matches(subjBcast, broadcast)) {
+                return ImmutableSet.of(broadcast);
+            }
+        }
+        return ImmutableSet.of();
+    }
+
+    private Iterable<? extends Item> matchingOrEmptyBroadcasts(final Broadcast subjBroadcast, Collection<Item> value) {
         return Iterables.transform(value, new Function<Item, Item>(){
             @Override
             public Item apply(Item input) {
                 Item copy = input.copy();
-                copy.setBroadcasts(ImmutableSet.<Broadcast>of());
+                copy.setBroadcasts(matchingOrEmpty(subjBroadcast, copy.getBroadcasts()));
                 return copy;
             }
         });

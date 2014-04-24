@@ -14,14 +14,14 @@ import org.joda.time.DateTime;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSet.Builder;
 import com.google.common.collect.Iterables;
+import com.metabroadcast.common.ids.NumberToShortStringCodec;
 
 public class FirstBroadcastAnnotation extends OutputAnnotation<Content> {
 
     private final BroadcastWriter broadcastWriter;
 
-    public FirstBroadcastAnnotation() {
-        super();
-        broadcastWriter = new BroadcastWriter("first_broadcasts");
+    public FirstBroadcastAnnotation(NumberToShortStringCodec codec) {
+        broadcastWriter = new BroadcastWriter("first_broadcasts", codec);
     }
 
     @Override
