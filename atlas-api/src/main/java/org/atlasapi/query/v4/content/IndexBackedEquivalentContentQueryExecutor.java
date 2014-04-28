@@ -28,6 +28,7 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.util.concurrent.AsyncFunction;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
+import com.google.common.util.concurrent.UncheckedExecutionException;
 import com.metabroadcast.common.query.Selection;
 
 public class IndexBackedEquivalentContentQueryExecutor implements QueryExecutor<Content> {
@@ -43,17 +44,17 @@ public class IndexBackedEquivalentContentQueryExecutor implements QueryExecutor<
 
     @Override
     public QueryResult<Content> execute(Query<Content> query) throws QueryExecutionException {
-        return Futures.get(executeQuery(query), 1, TimeUnit.MINUTES, QueryExecutionException.class);
+        try {
+            return Futures.get(executeQuery(query), 1, TimeUnit.MINUTES, QueryExecutionException.class);
+        } catch (UncheckedExecutionException | UncheckedQueryExecutionException ee) {
+            Throwables.propagateIfInstanceOf(Throwables.getRootCause(ee), QueryExecutionException.class);
+            throw Throwables.propagate(ee);
+        }
     }
 
     private ListenableFuture<QueryResult<Content>> executeQuery(Query<Content> query)
             throws QueryExecutionException {
-        try {
             return query.isListQuery() ? executeListQuery(query) : executeSingleQuery(query);
-        } catch (UncheckedQueryExecutionException uqee) {
-            Throwables.propagateIfInstanceOf(uqee.getCause(), QueryExecutionException.class);
-            throw Throwables.propagate(uqee);
-        }
     }
 
     private ListenableFuture<QueryResult<Content>> executeSingleQuery(final Query<Content> query) {
