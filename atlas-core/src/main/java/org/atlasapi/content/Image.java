@@ -9,10 +9,80 @@ import com.metabroadcast.common.media.MimeType;
 
 public class Image {
     
+    public enum AspectRatio {
+        SIXTEEN_BY_NINE("16x9"),
+        FOUR_BY_THREE("4x3");
+        
+        private final String name;
+        
+        private AspectRatio(String name) {
+            this.name = name;
+        }
+        
+        public String getName() {
+            return name;
+        }
+    }
+    
+    public enum Color {
+        
+        COLOR("color"),
+        BLACK_AND_WHITE("black_and_white"),
+        SINGLE_COLOR("single_color");
+        
+        private final String name;
+        
+        private Color(String name) {
+            this.name = name;
+        }
+        
+        public String getName() {
+            return name;
+        }
+    }
+    
+    public enum Theme {
+        
+        DARK_OPAQUE("dark_opaque"), 
+        LIGHT_OPAQUE("light_opaque"), 
+        DARK_TRANSPARENT("dark_transparent"),
+        LIGHT_TRANSPARENT("light_transparent");
+        
+        private final String name;
+        
+        private Theme(String name) {
+            this.name = name;
+        }
+        
+        public String getName() {
+            return name;
+        }
+    }
+    
+    public enum Type {
+
+        PRIMARY("primary"),
+        ADDITIONAL("additional"),
+        BOX_ART("box_art"),
+        POSTER("poster"),
+        LOGO("logo");
+        
+        private final String name;
+        
+        private Type(String name) {
+            this.name = name;
+        }
+        
+        public String getName() {
+            return name;
+        }
+    }
+
+    
     public static final Predicate<Image> IS_PRIMARY = new Predicate<Image>() {
         @Override
         public boolean apply(Image input) {
-            return input.getType() != null && input.getType().equals(ImageType.PRIMARY);
+            return input.getType() != null && input.getType().equals(Type.PRIMARY);
         }
     };
     
@@ -39,10 +109,10 @@ public class Image {
         private String uri;
         private Integer height;
         private Integer width;
-        private ImageType type;
-        private ImageColor color;
-        private ImageTheme theme;
-        private ImageAspectRatio aspectRatio;
+        private Type type;
+        private Color color;
+        private Theme theme;
+        private AspectRatio aspectRatio;
         private MimeType mimeType;
         private DateTime availabilityStart;
         private DateTime availabilityEnd;
@@ -66,22 +136,22 @@ public class Image {
             return this;
         }
         
-        public Builder withType(ImageType type) {
+        public Builder withType(Type type) {
             this.type = type;
             return this;
         }
         
-        public Builder withColor(ImageColor color) {
+        public Builder withColor(Color color) {
             this.color = color;
             return this;
         }
         
-        public Builder withTheme(ImageTheme theme) {
+        public Builder withTheme(Theme theme) {
             this.theme = theme;
             return this;
         }
         
-        public Builder withAspectRatio(ImageAspectRatio aspectRatio) {
+        public Builder withAspectRatio(AspectRatio aspectRatio) {
             this.aspectRatio = aspectRatio;
             return this;
         }
@@ -117,12 +187,12 @@ public class Image {
     }
 
     private String uri;
-    private ImageType type;
-    private ImageColor color;
-    private ImageTheme theme;
+    private Type type;
+    private Color color;
+    private Theme theme;
     private Integer height;
     private Integer width;
-    private ImageAspectRatio aspectRatio;
+    private AspectRatio aspectRatio;
     private MimeType mimeType;
     private DateTime availabilityStart;
     private DateTime availabilityEnd;
@@ -155,35 +225,35 @@ public class Image {
         this.width = width;
     }
     
-    public ImageType getType() {
+    public Type getType() {
         return type;
     }
     
-    public void setType(ImageType type) {
+    public void setType(Type type) {
         this.type = type;
     }
 
-    public ImageColor getColor() {
+    public Color getColor() {
         return color;
     }
 
-    public void setColor(ImageColor color) {
+    public void setColor(Color color) {
         this.color = color;
     }
 
-    public ImageTheme getTheme() {
+    public Theme getTheme() {
         return theme;
     }
 
-    public void setTheme(ImageTheme theme) {
+    public void setTheme(Theme theme) {
         this.theme = theme;
     }
 
-    public ImageAspectRatio getAspectRatio() {
+    public AspectRatio getAspectRatio() {
         return aspectRatio;
     }
 
-    public void setAspectRatio(ImageAspectRatio aspectRatio) {
+    public void setAspectRatio(AspectRatio aspectRatio) {
         this.aspectRatio = aspectRatio;
     }
 

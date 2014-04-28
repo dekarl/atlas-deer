@@ -16,6 +16,7 @@ import static org.atlasapi.annotation.Annotation.EXTENDED_ID;
 import static org.atlasapi.annotation.Annotation.FIRST_BROADCASTS;
 import static org.atlasapi.annotation.Annotation.ID;
 import static org.atlasapi.annotation.Annotation.ID_SUMMARY;
+import static org.atlasapi.annotation.Annotation.IMAGES;
 import static org.atlasapi.annotation.Annotation.KEY_PHRASES;
 import static org.atlasapi.annotation.Annotation.LOCATIONS;
 import static org.atlasapi.annotation.Annotation.NEXT_BROADCASTS;
@@ -68,6 +69,7 @@ import org.atlasapi.persistence.output.MongoRecentlyBroadcastChildrenResolver;
 import org.atlasapi.persistence.output.MongoUpcomingItemsResolver;
 import org.atlasapi.persistence.output.RecentlyBroadcastChildrenResolver;
 import org.atlasapi.persistence.output.UpcomingItemsResolver;
+import org.atlasapi.query.annotation.ImagesAnnotation;
 import org.atlasapi.query.annotation.ResourceAnnotationIndex;
 import org.atlasapi.query.common.AttributeCoercers;
 import org.atlasapi.query.common.ContextualQueryContextParser;
@@ -278,6 +280,7 @@ public class QueryWebModule {
             .register(FIRST_BROADCASTS, new FirstBroadcastAnnotation(idCodec()), commonImplied)
             .register(NEXT_BROADCASTS, new NextBroadcastAnnotation(new SystemClock(), idCodec()), commonImplied)
             .register(AVAILABLE_LOCATIONS, new AvailableLocationsAnnotation(), commonImplied)
+            .register(IMAGES, new ImagesAnnotation(), commonImplied)
             //.register(UPCOMING, new UpcomingAnnotation(idCodec(), upcomingChildrenResolver), commonImplied)
             //.register(PRODUCTS, new ProductsAnnotation(productResolver), commonImplied)
             //.register(RECENTLY_BROADCAST, new RecentlyBroadcastAnnotation(idCodec(), recentlyBroadcastResolver), commonImplied)

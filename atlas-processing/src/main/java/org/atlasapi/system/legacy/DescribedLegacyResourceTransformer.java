@@ -3,10 +3,6 @@ package org.atlasapi.system.legacy;
 import java.util.Set;
 
 import org.atlasapi.content.Image;
-import org.atlasapi.content.ImageAspectRatio;
-import org.atlasapi.content.ImageColor;
-import org.atlasapi.content.ImageTheme;
-import org.atlasapi.content.ImageType;
 import org.atlasapi.content.MediaType;
 import org.atlasapi.content.RelatedLink;
 import org.atlasapi.content.Specialization;
@@ -119,12 +115,12 @@ public abstract class DescribedLegacyResourceTransformer<F extends Described, T 
             @Override
             public Image apply(org.atlasapi.media.entity.Image input) {
                 Image image = new Image(input.getCanonicalUri());
-                image.setType(transformEnum(input.getType(), ImageType.class));
-                image.setColor(transformEnum(input.getColor(), ImageColor.class));
-                image.setTheme(transformEnum(input.getTheme(), ImageTheme.class));
+                image.setType(transformEnum(input.getType(), Image.Type.class));
+                image.setColor(transformEnum(input.getColor(), Image.Color.class));
+                image.setTheme(transformEnum(input.getTheme(), Image.Theme.class));
                 image.setHeight(input.getHeight());
                 image.setWidth(input.getWidth());
-                image.setAspectRatio(transformEnum(input.getAspectRatio(), ImageAspectRatio.class));
+                image.setAspectRatio(transformEnum(input.getAspectRatio(), Image.AspectRatio.class));
                 image.setMimeType(input.getMimeType());
                 image.setAvailabilityStart(input.getAvailabilityStart());
                 image.setAvailabilityEnd(input.getAvailabilityEnd());
