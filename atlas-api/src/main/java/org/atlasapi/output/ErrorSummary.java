@@ -1,14 +1,15 @@
 package org.atlasapi.output;
 
+import java.math.BigInteger;
 import java.util.Map;
 import java.util.UUID;
 
 import org.atlasapi.application.auth.InvalidApiKeyException;
 import org.atlasapi.query.common.InvalidAnnotationException;
 
-
 import com.google.common.collect.ImmutableMap;
 import com.metabroadcast.common.http.HttpStatusCode;
+import com.metabroadcast.common.ids.SubstitutionTableNumberCodec;
 import com.metabroadcast.common.webapp.query.DateTimeInQueryParser.MalformedDateTimeException;
 
 public class ErrorSummary {
@@ -35,6 +36,18 @@ public class ErrorSummary {
         }
         
     }
+    
+    public static final class NotFoundErrorSummaryFactory implements ErrorSummaryFactory<NotFoundException> {
+
+        @Override
+        public ErrorSummary build(NotFoundException exception) {
+            BigInteger missingId = exception.getMissingResource().toBigInteger();
+            return new ErrorSummary(exception, "RESOURCE_NOT_FOUND", HttpStatusCode.NOT_FOUND,
+                String.format("resource %s not found", SubstitutionTableNumberCodec.lowerCaseOnly().encode(missingId))
+            );
+        }
+        
+    }
 	
 	private static Map<Class<? extends Exception>, ErrorSummaryFactory<?>> factories = factoryMap();
 	
@@ -53,7 +66,7 @@ public class ErrorSummary {
 		return ImmutableMap.<Class<? extends Exception>, ErrorSummaryFactory<?>>builder()
 		    .put(IllegalArgumentException.class, new DefaultErrorSummaryFactory("BAD_QUERY_ATTRIBUTE", HttpStatusCode.BAD_REQUEST))
 		    .put(MalformedDateTimeException.class, new DefaultErrorSummaryFactory("BAD_DATE_TIME_VALUE", HttpStatusCode.BAD_REQUEST))
-		    .put(NotFoundException.class, new DefaultErrorSummaryFactory("RESOURCE_NOT_FOUND", HttpStatusCode.NOT_FOUND))
+		    .put(NotFoundException.class, new NotFoundErrorSummaryFactory())
 		    .put(NotAcceptableException.class, new DefaultErrorSummaryFactory("NOT_ACCEPTABLE", HttpStatusCode.NOT_ACCEPTABLE))
 		    .put(InvalidAnnotationException.class, new DefaultErrorSummaryFactory("BAD_ANNOTATION_VALUE", HttpStatusCode.BAD_REQUEST))
 		    // Sent when oauth tokens are not present. Request is invalid as missing params. Compatible with IE.
