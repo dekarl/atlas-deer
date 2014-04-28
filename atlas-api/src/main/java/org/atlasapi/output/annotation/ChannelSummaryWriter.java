@@ -11,7 +11,7 @@ import org.atlasapi.output.EntityListWriter;
 import org.atlasapi.output.FieldWriter;
 import org.atlasapi.output.OutputContext;
 import org.atlasapi.output.writers.AliasWriter;
-import org.atlasapi.output.writers.ImageWriter;
+import org.atlasapi.output.writers.ImageListWriter;
 
 import com.google.common.base.Function;
 import com.google.common.collect.Iterables;
@@ -22,7 +22,7 @@ public class ChannelSummaryWriter extends OutputAnnotation<Channel> {
     private final NumberToShortStringCodec codec;
     
     private final EntityListWriter<Alias> aliasWriter = new AliasWriter();
-    private final EntityListWriter<Image> imageWriter = new ImageWriter();
+    private final EntityListWriter<Image> imageWriter = new ImageListWriter();
 
     private static final Function<org.atlasapi.media.entity.Alias, Alias> toV4Alias =
         new Function<org.atlasapi.media.entity.Alias, Alias>() {

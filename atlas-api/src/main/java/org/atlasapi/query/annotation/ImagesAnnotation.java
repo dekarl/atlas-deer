@@ -8,12 +8,12 @@ import org.atlasapi.output.EntityListWriter;
 import org.atlasapi.output.FieldWriter;
 import org.atlasapi.output.OutputContext;
 import org.atlasapi.output.annotation.OutputAnnotation;
-import org.atlasapi.output.writers.ImageWriter;
+import org.atlasapi.output.writers.ImageListWriter;
 
 
 public class ImagesAnnotation extends OutputAnnotation<Described> {
 
-    private final EntityListWriter<Image> imageWriter = new ImageWriter();
+    private final EntityListWriter<Image> imageWriter = new ImageListWriter();
     
     @Override
     public void write(Described entity, FieldWriter writer, OutputContext ctxt) throws IOException {
