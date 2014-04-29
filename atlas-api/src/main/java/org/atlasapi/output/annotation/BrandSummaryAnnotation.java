@@ -34,7 +34,7 @@ public class BrandSummaryAnnotation extends OutputAnnotation<Content> {
             ContainerSummary summary = entity.getContainerSummary();
             writer.writeField("id", idCodec.encode(container.getId().toBigInteger()));
             if (summary != null) {
-                writer.writeField("type", summary.getType());
+                writer.writeField("type", summary.getType().toLowerCase());
                 writer.writeField("title", summary.getTitle());
                 writer.writeField("description", summary.getDescription());
                 if (summary.getSeriesNumber() != null) {
