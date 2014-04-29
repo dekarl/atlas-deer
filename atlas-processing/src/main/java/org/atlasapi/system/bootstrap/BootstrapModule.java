@@ -10,6 +10,14 @@ import javax.annotation.PostConstruct;
 import org.atlasapi.AtlasPersistenceModule;
 import org.atlasapi.SchedulerModule;
 import org.atlasapi.content.Content;
+import org.atlasapi.content.ContentResolver;
+import org.atlasapi.content.ContentStore;
+import org.atlasapi.content.ContentWriter;
+import org.atlasapi.entity.Alias;
+import org.atlasapi.entity.Id;
+import org.atlasapi.entity.util.Resolved;
+import org.atlasapi.entity.util.WriteException;
+import org.atlasapi.entity.util.WriteResult;
 import org.atlasapi.media.entity.Publisher;
 import org.atlasapi.system.bootstrap.workers.BootstrapContentPersistor;
 import org.atlasapi.system.bootstrap.workers.BootstrapWorkersModule;
@@ -22,7 +30,9 @@ import org.springframework.context.annotation.Import;
 
 import com.google.common.base.Supplier;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
+import com.metabroadcast.common.collect.OptionalMap;
 import com.metabroadcast.common.scheduling.RepetitionRules;
 import com.metabroadcast.common.scheduling.UpdateProgress;
 import com.metabroadcast.common.time.DayRangeGenerator;
@@ -32,6 +42,34 @@ import com.metabroadcast.common.time.SystemClock;
 @Import({AtlasPersistenceModule.class, BootstrapWorkersModule.class, LegacyPersistenceModule.class,
     SchedulerModule.class})
 public class BootstrapModule {
+
+    private static final class DelegatingContentStore implements ContentStore {
+
+        private final ContentResolver resolver;
+        private final ContentWriter writer;
+
+        private DelegatingContentStore(ContentResolver resolver, ContentWriter writer) {
+            this.resolver = resolver;
+            this.writer = writer;
+        }
+
+        @Override
+        public OptionalMap<Alias, Content> resolveAliases(Iterable<Alias> aliases,
+                Publisher source) {
+            return resolver.resolveAliases(aliases, source);
+        }
+
+        @Override
+        public ListenableFuture<Resolved<Content>> resolveIds(Iterable<Id> ids) {
+            return resolver.resolveIds(ids);
+        }
+
+        @Override
+        public <C extends Content> WriteResult<C> writeContent(C content)
+                throws WriteException {
+            return writer.writeContent(content);
+        }
+    }
 
     @Autowired private AtlasPersistenceModule persistence;
     @Autowired private LegacyPersistenceModule legacy;
@@ -91,8 +129,8 @@ public class BootstrapModule {
     
     @Bean
     ChannelDayScheduleBootstrapTaskFactory scheduleBootstrapTaskFactory() {
-        return new ChannelDayScheduleBootstrapTaskFactory(legacy.legacyScheduleStore(), 
-                persistence.scheduleStore(), legacy.legacyContentResolver());
+        return new ChannelDayScheduleBootstrapTaskFactory(legacy.legacyScheduleStore(), persistence.scheduleStore(), 
+            new DelegatingContentStore(legacy.legacyContentResolver(), persistence.contentStore()));
     }
     
     @PostConstruct

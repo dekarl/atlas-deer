@@ -12,12 +12,15 @@ import java.util.concurrent.TimeUnit;
 import org.atlasapi.content.Broadcast;
 import org.atlasapi.content.Content;
 import org.atlasapi.content.ContentResolver;
+import org.atlasapi.content.ContentStore;
+import org.atlasapi.content.Episode;
 import org.atlasapi.content.Item;
 import org.atlasapi.content.ItemAndBroadcast;
 import org.atlasapi.entity.Id;
+import org.atlasapi.entity.util.ResolveException;
 import org.atlasapi.entity.util.Resolved;
+import org.atlasapi.entity.util.StoreException;
 import org.atlasapi.entity.util.WriteException;
-import org.atlasapi.input.ReadException;
 import org.atlasapi.media.channel.Channel;
 import org.atlasapi.media.entity.Publisher;
 import org.atlasapi.schedule.ChannelSchedule;
@@ -56,18 +59,18 @@ public class ChannelDayScheduleBootstrapTask implements Callable<UpdateProgress>
 
     private final ScheduleResolver scheduleResolver;
     private final ScheduleWriter scheduleWriter;
-    private final ContentResolver contentResolver;
+    private final ContentStore contentStore;
     
     private final Channel channel;
     private final LocalDate day;
     private final Publisher source;
 
     public ChannelDayScheduleBootstrapTask(ScheduleResolver scheduleResolver,
-            ScheduleWriter scheduleWriter, ContentResolver contentResolver,
+            ScheduleWriter scheduleWriter, ContentStore contentStore,
             Channel channel, LocalDate day, Publisher source) {
         this.scheduleResolver = checkNotNull(scheduleResolver);
         this.scheduleWriter = checkNotNull(scheduleWriter);
-        this.contentResolver = checkNotNull(contentResolver);
+        this.contentStore = checkNotNull(contentStore);
         this.channel = checkNotNull(channel);
         this.day = checkNotNull(day);
         this.source = checkNotNull(source);
@@ -77,7 +80,7 @@ public class ChannelDayScheduleBootstrapTask implements Callable<UpdateProgress>
     public UpdateProgress call() throws Exception {
         ListenableFuture<Schedule> resolved =
             scheduleResolver.resolve(ImmutableSet.of(channel), interval(day), source);
-        Schedule schedule = Futures.get(resolved, 1, TimeUnit.MINUTES, ReadException.class);
+        Schedule schedule = Futures.get(resolved, 1, TimeUnit.MINUTES, ResolveException.class);
         /* it's reasonable for there not to be a channel for a given source/channel combination
          * but there should be precisely one if any. 
          */
@@ -88,16 +91,39 @@ public class ChannelDayScheduleBootstrapTask implements Callable<UpdateProgress>
         }
     }
 
-    private UpdateProgress writeItemsIn(ChannelSchedule channelSchedule) throws ReadException {
+    private UpdateProgress writeItemsIn(ChannelSchedule channelSchedule) throws StoreException {
         checkState(channelSchedule.getChannel().equals(channel),
                 "got schedule for %s not %s", channelSchedule.getChannel(), channel);
         Map<Id, Optional<Content>> scheduleItems = resolveItems(channelSchedule);
+        ensureContainers(Optional.presentInstances(scheduleItems.values()));
         UpdateProgress progress = UpdateProgress.START;
         for (ItemAndBroadcast iab : channelSchedule.getEntries()) {
             Optional<Content> item = scheduleItems.get(iab.getItem().getId());
             progress = progress.reduce(tryWriteItem(item, iab.getBroadcast(), channel));
         }
         return progress;
+    }
+
+    private void ensureContainers(Iterable<Content> items) throws StoreException {
+        ImmutableSet<Id> ids = containerIds(items);
+        ListenableFuture<Resolved<Content>> resolved = contentStore.resolveIds(ids);
+        Resolved<Content> containers = Futures.get(resolved, 1, TimeUnit.MINUTES, ResolveException.class);
+        for (Content content : containers.getResources()) {
+            contentStore.writeContent(content);
+        }
+    }
+
+    private ImmutableSet<Id> containerIds(Iterable<Content> items) {
+        ImmutableSet.Builder<Id> containerIds = ImmutableSet.builder(); 
+        for (Item item : Iterables.filter(items, Item.class)) {
+            if (item.getContainerRef() != null) {
+                containerIds.add(item.getContainerRef().getId());
+            }
+            if (item instanceof Episode && ((Episode)item).getSeriesRef() != null) {
+                containerIds.add(((Episode)item).getSeriesRef().getId());
+            }
+        }
+        return containerIds.build();
     }
 
     private UpdateProgress tryWriteItem(Optional<Content> item, Broadcast broadcast, Channel channel) {
@@ -121,14 +147,14 @@ public class ChannelDayScheduleBootstrapTask implements Callable<UpdateProgress>
     }
 
     private OptionalMap<Id, Content> resolveItems(ChannelSchedule channelSchedule)
-            throws ReadException {
+            throws ResolveException {
         List<ItemAndBroadcast> entries = channelSchedule.getEntries();
         Set<Id> entryIds = Sets.newHashSetWithExpectedSize(entries.size());
         for (ItemAndBroadcast itemAndBroadcast : entries) {
             entryIds.add(itemAndBroadcast.getItem().getId());
         }
-        ListenableFuture<Resolved<Content>> resolved = contentResolver.resolveIds(entryIds);
-        return Futures.get(resolved, 1, TimeUnit.MINUTES, ReadException.class).toMap();
+        ListenableFuture<Resolved<Content>> resolved = contentStore.resolveIds(entryIds);
+        return Futures.get(resolved, 1, TimeUnit.MINUTES, ResolveException.class).toMap();
     }
 
     private Interval interval(LocalDate day) {

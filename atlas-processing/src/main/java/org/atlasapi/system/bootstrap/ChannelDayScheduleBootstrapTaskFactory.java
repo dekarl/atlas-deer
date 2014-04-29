@@ -2,7 +2,7 @@ package org.atlasapi.system.bootstrap;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
-import org.atlasapi.content.ContentResolver;
+import org.atlasapi.content.ContentStore;
 import org.atlasapi.media.channel.Channel;
 import org.atlasapi.media.entity.Publisher;
 import org.atlasapi.schedule.ScheduleResolver;
@@ -13,13 +13,13 @@ public class ChannelDayScheduleBootstrapTaskFactory implements SourceChannelDayF
 
     private final ScheduleResolver scheduleResolver;
     private final ScheduleWriter scheduleWriter;
-    private final ContentResolver contentResolver;
+    private final ContentStore contentStore;
 
     public ChannelDayScheduleBootstrapTaskFactory(ScheduleResolver scheduleResolver,
-            ScheduleWriter scheduleWriter, ContentResolver contentResolver) {
+            ScheduleWriter scheduleWriter, ContentStore contentStore) {
         this.scheduleResolver = checkNotNull(scheduleResolver);
         this.scheduleWriter = checkNotNull(scheduleWriter);
-        this.contentResolver = checkNotNull(contentResolver);
+        this.contentStore = checkNotNull(contentStore);
     }
 
     @Override
@@ -28,7 +28,7 @@ public class ChannelDayScheduleBootstrapTaskFactory implements SourceChannelDayF
         return new ChannelDayScheduleBootstrapTask(
                 scheduleResolver,
                 scheduleWriter,
-                contentResolver,
+                contentStore,
                 channel,
                 day,
                 source);
