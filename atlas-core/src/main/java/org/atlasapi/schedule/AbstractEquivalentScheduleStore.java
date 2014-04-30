@@ -30,6 +30,7 @@ import org.slf4j.LoggerFactory;
 import com.google.common.base.Function;
 import com.google.common.base.Functions;
 import com.google.common.base.Optional;
+import com.google.common.base.Predicates;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
@@ -83,15 +84,16 @@ public abstract class AbstractEquivalentScheduleStore implements EquivalentSched
 
     private ImmutableMap<ScheduleRef.Entry, EquivalentScheduleEntry> join(List<ScheduleRef.Entry> entries, 
             OptionalMap<Id, EquivalenceGraph> graphs, Map<Id, Item> allItems) {
-        Function<Id, Item> toItems = Functions.forMap(allItems);
+        Function<Id, Item> toItems = Functions.forMap(allItems, null);
         ImmutableMap.Builder<ScheduleRef.Entry, EquivalentScheduleEntry> entryContent = ImmutableMap.builder();
         for (ScheduleRef.Entry entry : entries) {
             Id itemId = entry.getItem();
-            Item item = toItems.apply(itemId).copy();
+            Item item = toItems.apply(itemId);
             if (item == null) {
                 log.warn("No item for entry " + entry);
                 continue;
             }
+            item = item.copy();
             Broadcast broadcast = findBroadcast(item, entry);
             if (broadcast == null) {
                 log.warn("No broadcast for entry " + entry);
@@ -129,7 +131,7 @@ public abstract class AbstractEquivalentScheduleStore implements EquivalentSched
     }
 
     private Iterable<Item> graphItems(EquivalenceGraph graph, Function<Id, Item> toContent) {
-        return Iterables.transform(graph.getEquivalenceSet(), toContent);
+        return Iterables.filter(Iterables.transform(graph.getEquivalenceSet(), toContent), Predicates.notNull());
     }
 
     private Map<Id, Item> itemsFor(OptionalMap<Id, EquivalenceGraph> graphs, List<Id> itemIds)
