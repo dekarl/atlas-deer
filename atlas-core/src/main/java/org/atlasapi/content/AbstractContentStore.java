@@ -39,12 +39,6 @@ public abstract class AbstractContentStore implements ContentStore {
             return !hasher.hash(writing).equals(hasher.hash(previous));
         }
         
-        private RuntimeWriteException conversionException(Content content,
-                Class<? extends Content> target) {
-            String msg = String.format("cannot convert %s to %s", content, target);
-            return new RuntimeWriteException(new WriteException(msg));
-        }
-        
         private void updateTimes(Content content) {
             DateTime now = clock.now();
             if (content.getFirstSeen() == null) {
