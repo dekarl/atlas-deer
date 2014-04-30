@@ -1,6 +1,7 @@
 package org.atlasapi.equivalence;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static com.google.common.base.Preconditions.checkState;
 import static com.google.common.base.Predicates.in;
 import static com.google.common.base.Predicates.not;
 
@@ -146,6 +147,8 @@ public abstract class AbstractEquivalenceGraphStore implements EquivalenceGraphS
         
         EquivalenceGraph subjGraph = existingGraph(subject).or(EquivalenceGraph.valueOf(subject));
         Adjacents subAdjs = subjGraph.getAdjacents(subject);
+        
+        checkState(subAdjs != null, "adjacents of %s not in graph %s", subject, subjGraph.getId());
         
         if(!changeInAdjacents(subAdjs, assertedAdjacents, sources)) {
             log().debug("{}: no change in neighbours: {}", subject, assertedAdjacents);
