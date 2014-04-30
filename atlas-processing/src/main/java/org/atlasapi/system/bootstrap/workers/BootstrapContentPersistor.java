@@ -54,7 +54,7 @@ public class BootstrapContentPersistor implements ContentWriter {
 
         @Override
         protected WriteResult<Container, Content> visitContainer(Container container) {
-            return writeContent(container);
+            return doWriteContent(container);
         }
 
         @Override
@@ -65,7 +65,7 @@ public class BootstrapContentPersistor implements ContentWriter {
             }
             if (result == null || !result.written()) {
                 log.debug("bootstrapping {}", item);
-                result = writeContent(item);
+                result = doWriteContent(item);
             }
             return result;
         }
@@ -80,10 +80,6 @@ public class BootstrapContentPersistor implements ContentWriter {
             } catch (WriteException e) {
                 throw new RuntimeWriteException(e);
             }
-        }
-
-        private boolean hasBroadcasts(Item item) {
-            return !item.getBroadcasts().isEmpty();
         }
 
         private WriteResult<? extends Content, Content> writeNewBroadcasts(Item item, Optional<Content> current) throws WriteException {
@@ -128,15 +124,14 @@ public class BootstrapContentPersistor implements ContentWriter {
                 }
             );
         }
-
-        private <C extends Content> WriteResult<C, Content> writeContent(C content) {
-            try {
-                return contentStore.writeContent(content);
-            } catch (WriteException e) {
-                throw new RuntimeWriteException(e);
-            }
+    }
+    
+    private <C extends Content> WriteResult<C, Content> doWriteContent(C content) {
+        try {
+            return contentStore.writeContent(content);
+        } catch (WriteException e) {
+            throw new RuntimeWriteException(e);
         }
-
     }
 
     @Override
@@ -151,11 +146,51 @@ public class BootstrapContentPersistor implements ContentWriter {
         }
     }
     
+
+    @SuppressWarnings("unchecked")
+    public <C extends Content> WriteResult<C, Content> fullWriteContent(C content) throws WriteException {
+        content.setReadHash(null);// force write
+        log.debug("bootstrapping {}", content);
+        try {
+            return (WriteResult<C, Content>) content.accept(new ContentVisitorAdapter<WriteResult<? extends Content,Content>>() {
+                
+                @Override
+                protected WriteResult<? extends Content, Content> visitContainer(Container container) {
+                    return doWriteContent(container);
+                }
+                
+                @Override
+                protected WriteResult<? extends Content, Content> visitItem(Item item) {
+                    WriteResult<? extends Content, Content> result = null;
+                    if (hasBroadcasts(item)) {
+                        for (Broadcast broadcast : item.getBroadcasts()) {
+                            try {
+                                result = write(new ItemAndBroadcast(item, broadcast));
+                            } catch (WriteException e) {
+                                throw new RuntimeWriteException(e);
+                            }
+                        }
+                    } else {
+                        result = doWriteContent(item);
+                    }
+                    return result;
+                }
+                
+            });
+        } catch (RuntimeWriteException rwe) {
+            throw rwe.getCause();
+        }
+    }
+    
     private WriteResult<? extends Content, Content> write(ItemAndBroadcast iab) throws WriteException {
         Maybe<Channel> channel = channelResolver.fromId(iab.getBroadcast().getChannelId().longValue());
         Interval interval = interval(iab.getBroadcast());
         List<ScheduleHierarchy> items = ImmutableList.of(ScheduleHierarchy.itemOnly(iab));
         return scheduleWriter.writeSchedule(items, channel.requireValue(), interval).get(0);
+    }
+
+    private boolean hasBroadcasts(Item item) {
+        return !item.getBroadcasts().isEmpty();
     }
 
     private Interval interval(Broadcast broadcast) {

@@ -96,7 +96,7 @@ public class IndividualContentBootstrapController {
                     resp.getWriter().println(ContentType.fromContent(content).get() + " " + content.getId());
                     resp.getWriter().flush();
                     content.setReadHash(null);
-                    return write.writeContent(content);
+                    return write.fullWriteContent(content);
                 } catch (Exception e) {
                     log.error(String.format("Bootstrapping: %s %s", id, content), e);
                     return null;
