@@ -98,9 +98,12 @@ public abstract class AbstractScheduleStore implements ScheduleStore {
     
     private void sendUpdateMessage(Publisher source, List<ScheduleHierarchy> content, ScheduleBlocksUpdate update, Channel channel, Interval interval) throws WriteException {
         try {
-            messageSender.sendMessage(new ScheduleUpdateMessage(UUID.randomUUID().toString(), 
-                Timestamp.of(DateTime.now(DateTimeZones.UTC)), 
-                new ScheduleUpdate(source, scheduleRef(content, channel, interval), broadcastRefs(update.getStaleEntries()))
+            String mid = UUID.randomUUID().toString();
+            Timestamp mts = Timestamp.of(DateTime.now(DateTimeZones.UTC));
+            ScheduleRef updateRef = scheduleRef(content, channel, interval);
+            ImmutableSet<BroadcastRef> staleRefs = broadcastRefs(update.getStaleEntries());
+            messageSender.sendMessage(new ScheduleUpdateMessage(mid, mts, 
+                new ScheduleUpdate(source, updateRef, staleRefs)
             ));
         } catch (MessagingException e) {
             throw new WriteException(e);
@@ -108,11 +111,11 @@ public abstract class AbstractScheduleStore implements ScheduleStore {
     }
 
     private ImmutableSet<BroadcastRef> broadcastRefs(Set<ItemAndBroadcast> staleEntries) {
-        ImmutableSet.Builder<BroadcastRef> ids = ImmutableSet.builder();
+        ImmutableSet.Builder<BroadcastRef> refs = ImmutableSet.builder();
         for (ItemAndBroadcast staleEntry : staleEntries) {
-            ids.add(staleEntry.getBroadcast().toRef());
+            refs.add(staleEntry.getBroadcast().toRef());
         }
-        return ids.build();
+        return refs.build();
     }
 
     private ScheduleRef scheduleRef(List<ScheduleHierarchy> content, Channel channel, Interval interval) {
