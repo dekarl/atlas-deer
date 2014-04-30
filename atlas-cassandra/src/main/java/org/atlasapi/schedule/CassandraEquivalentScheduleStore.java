@@ -149,6 +149,7 @@ public final class CassandraEquivalentScheduleStore extends AbstractEquivalentSc
     private static final Column<Long> CHANNEL = bigIntColumn("channel");
     private static final Column<Date> DAY = dateColumn("day");
     private static final Column<String> BROADCAST_ID = textColumn("broadcast_id");
+    private static final Column<Date> BROADCAST_START = dateColumn("broadcast_start");
     private static final Column<ByteBuffer> BROADCAST = bytesColumn("broadcast");
     private static final Column<ByteBuffer> GRAPH = bytesColumn("graph");
     private static final Column<Long> CONTENT_COUNT = bigIntColumn("content_count");
@@ -256,8 +257,9 @@ public final class CassandraEquivalentScheduleStore extends AbstractEquivalentSc
 
     private Statement updateStatement(Publisher source, Date day, ScheduleRef.Entry entry,
             int contentCount, ByteBuffer content, ByteBuffer graph, ByteBuffer broadcast, DateTime now) {
+        Date broadcastStart = entry.getBroadcast().getTransmissionInterval().getStart().toDate();
         return updateStatement(source, entry.getBroadcast().getChannelId(),
-            day, entry.getBroadcast().getSourceId(), broadcast, graph, contentCount, content
+            day, entry.getBroadcast().getSourceId(), broadcastStart, broadcast, graph, contentCount, content
         ).and(set(SCHEDULE_UPDATE.name(), now.toDate()));
     }
 
@@ -300,6 +302,7 @@ public final class CassandraEquivalentScheduleStore extends AbstractEquivalentSc
             EquivalenceGraph graph, ImmutableSet<Item> content) throws WriteException {
         DateTime now = clock.now();
         
+        Date bcastStart = bcast.getTransmissionTime().toDate();
         ByteBuffer bcastBytes = serialize(bcast);
         ByteBuffer graphBytes = graphSerializer.serialize(graph);
         ByteBuffer contentBytes = serialize(content);
@@ -307,7 +310,7 @@ public final class CassandraEquivalentScheduleStore extends AbstractEquivalentSc
         ImmutableList.Builder<Statement> stmts = ImmutableList.builder();
         for (Date day : daysIn(bcast.getTransmissionInterval())) {
             stmts.add(updateStatement(publisher, bcast.getChannelId(), day, 
-                    bcast.getSourceId(), bcastBytes, graphBytes, content.size(), contentBytes)
+                    bcast.getSourceId(), bcastStart, bcastBytes, graphBytes, content.size(), contentBytes)
                     .and(set(EQUIV_UPDATE.name(),now.toDate())));
         }
         
@@ -316,13 +319,14 @@ public final class CassandraEquivalentScheduleStore extends AbstractEquivalentSc
     }
 
     private Assignments updateStatement(Publisher publisher, Id channelId, Date day, String bcastId,
-            ByteBuffer bcastBytes, ByteBuffer graphBytes, int contentCount, ByteBuffer contentBytes) {
+            Date bcastStart, ByteBuffer bcastBytes, ByteBuffer graphBytes, int contentCount, ByteBuffer contentBytes) {
         return update(EQUIVALENT_SCHEDULE_TABLE)
             .where(eq(SOURCE.name(), publisher.key()))
                 .and(eq(CHANNEL.name(), channelId.longValue()))
                 .and(eq(DAY.name(), day))
                 .and(eq(BROADCAST_ID.name(), bcastId))
             .with(set(BROADCAST.name(), bcastBytes))
+                .and(set(BROADCAST_START.name(), bcastStart))
                 .and(set(GRAPH.name(), graphBytes))
                 .and(set(CONTENT_COUNT.name(), contentCount))
                 .and(set(CONTENT.name(), contentBytes));
