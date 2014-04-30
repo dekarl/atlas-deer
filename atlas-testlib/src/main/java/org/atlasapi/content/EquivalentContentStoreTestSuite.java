@@ -51,7 +51,7 @@ public abstract class EquivalentContentStoreTestSuite {
         Content content = new Item(Id.valueOf(1), Publisher.METABROADCAST);
         content.setThisOrChildLastUpdated(new DateTime(DateTimeZones.UTC));
         
-        WriteResult<Content> result = contentStore.writeContent(content);
+        WriteResult<Content, Content> result = contentStore.writeContent(content);
         assertTrue("Failed to write " + content, result.written());
         
         store.updateContent(content.toRef());
@@ -115,7 +115,7 @@ public abstract class EquivalentContentStoreTestSuite {
         
         String newTitle = "newTitle";
         content1.setTitle(newTitle);
-        WriteResult<Content> result = contentStore.writeContent(content1);
+        WriteResult<Content, Content> result = contentStore.writeContent(content1);
         assertTrue("Failed to write " + content1, result.written());
         
         store.updateContent(content1.toRef());
@@ -160,7 +160,7 @@ public abstract class EquivalentContentStoreTestSuite {
         Content content = new Item(Id.valueOf(1), Publisher.METABROADCAST);
         content.setThisOrChildLastUpdated(new DateTime(DateTimeZones.UTC));
         
-        WriteResult<Content> result = contentStore.writeContent(content);
+        WriteResult<Content, Content> result = contentStore.writeContent(content);
         assertTrue("Failed to write " + content, result.written());
         
         store.updateContent(content.toRef());
@@ -176,7 +176,7 @@ public abstract class EquivalentContentStoreTestSuite {
         Content content = new Item(Id.valueOf(1), Publisher.METABROADCAST);
         content.setThisOrChildLastUpdated(new DateTime(DateTimeZones.UTC));
         
-        WriteResult<Content> result = contentStore.writeContent(content);
+        WriteResult<Content, Content> result = contentStore.writeContent(content);
         assertTrue("Failed to write " + content, result.written());
         
         store.updateContent(content.toRef());
@@ -220,7 +220,7 @@ public abstract class EquivalentContentStoreTestSuite {
         Content content = new Item(Id.valueOf(1), Publisher.METABROADCAST);
         content.setThisOrChildLastUpdated(new DateTime(DateTimeZones.UTC));
         
-        WriteResult<Content> result = contentStore.writeContent(content);
+        WriteResult<Content, Content> result = contentStore.writeContent(content);
         assertTrue("Failed to write " + content, result.written());
         
         store.updateContent(content.toRef());

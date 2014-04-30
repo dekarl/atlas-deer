@@ -40,14 +40,14 @@ public abstract class AbstractTopicStore implements TopicStore {
     }
     
     @Override
-    public WriteResult<Topic> writeTopic(Topic topic) {
+    public WriteResult<Topic, Topic> writeTopic(Topic topic) {
         checkNotNull(topic, "write null topic");
         checkNotNull(topic.getPublisher(), "write unsourced topic");
         
         Topic previous = getPreviousTopic(topic);
         if (previous != null) {
             if (equivalence.equivalent(topic, previous)) {
-                return WriteResult.unwritten(topic)
+                return WriteResult.<Topic, Topic>unwritten(topic)
                     .withPrevious(previous)
                     .build();
             }
@@ -61,7 +61,7 @@ public abstract class AbstractTopicStore implements TopicStore {
         }
         topic.setLastUpdated(now);
         doWrite(ensureId(topic), previous);
-        WriteResult<Topic> result = WriteResult.written(topic)
+        WriteResult<Topic, Topic> result = WriteResult.<Topic, Topic>written(topic)
                 .withPrevious(previous)
                 .build();
         if (result.written()) {
@@ -70,7 +70,7 @@ public abstract class AbstractTopicStore implements TopicStore {
         return result;
     }
     
-    private void writeMessage(final WriteResult<Topic> result) {
+    private void writeMessage(final WriteResult<Topic, Topic> result) {
         ResourceUpdatedMessage message = createEntityUpdatedMessage(result);
         try {
             sender.sendMessage(message);
@@ -80,7 +80,7 @@ public abstract class AbstractTopicStore implements TopicStore {
     }
 
     private <T extends Topic> ResourceUpdatedMessage createEntityUpdatedMessage(
-            WriteResult<T> result) {
+            WriteResult<T, T> result) {
         return new ResourceUpdatedMessage(
                 UUID.randomUUID().toString(),
                 Timestamp.of(result.getWriteTime().getMillis()),

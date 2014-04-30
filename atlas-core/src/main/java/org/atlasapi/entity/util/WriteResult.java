@@ -18,65 +18,65 @@ import com.metabroadcast.common.time.DateTimeZones;
  * 
  * Immutable given W is immutable.
  * 
- * @param <W>
+ * @param <RESOURCE>
  *            - type of the written resource
  */
-public final class WriteResult<W> implements Comparable<WriteResult<?>> {
+public final class WriteResult<RESOURCE, PREVIOUS> implements Comparable<WriteResult<?,?>> {
     
-    public static final Predicate<WriteResult<?>> WRITTEN
-        = new Predicate<WriteResult<?>>() {
+    public static final Predicate<WriteResult<?,?>> WRITTEN
+        = new Predicate<WriteResult<?,?>>() {
             @Override
-            public boolean apply(@Nullable WriteResult<?> input) {
+            public boolean apply(@Nullable WriteResult<?,?> input) {
                 return input.written();
             }
         };
         
     @SuppressWarnings({ "unchecked", "rawtypes" })
-    public static final <W> Predicate<WriteResult<? extends W>> writtenFilter() {
+    public static final <R, P> Predicate<WriteResult<? extends R,? extends P>> writtenFilter() {
         return (Predicate) WRITTEN;
     }
 
-    public static final <W> Builder<W> result(W resource, boolean wasWritten) {
-        return new Builder<W>(resource, wasWritten, new DateTime(DateTimeZones.UTC));
+    public static final <R,P> Builder<R,P> result(R resource, boolean wasWritten) {
+        return new Builder<R,P>(resource, wasWritten, new DateTime(DateTimeZones.UTC));
     }
 
-    public static final <W> Builder<W> unwritten(W resource) {
+    public static final <R,P> Builder<R,P> unwritten(R resource) {
         return result(resource, false);
     }
 
-    public static final <W> Builder<W> written(W resource) {
+    public static final <R,P> Builder<R,P> written(R resource) {
         return result(resource, true);
     }
     
-    public static final class Builder<W> {
+    public static final class Builder<R,P> {
 
-        private W resource;
+        private R resource;
         private boolean written;
         private DateTime writeTime;
-        private W previous;
+        private P previous;
 
-        public Builder(W resource, boolean written, DateTime writeTime) {
+        public Builder(R resource, boolean written, DateTime writeTime) {
             this.resource = resource;
             this.written = written;
             this.writeTime = writeTime;
         }
 
-        public Builder<W> withPrevious(W previous) {
+        public Builder<R,P> withPrevious(P previous) {
             this.previous = previous;
             return this;
         }
         
-        public WriteResult<W> build() {
-            return new WriteResult<W>(resource, written, writeTime, previous);
+        public WriteResult<R,P> build() {
+            return new WriteResult<R,P>(resource, written, writeTime, previous);
         }
     }
 
-    private final W resource;
+    private final RESOURCE resource;
     private final boolean written;
     private final DateTime writeTime;
-    private final Optional<W> previous;
+    private final Optional<PREVIOUS> previous;
 
-    public WriteResult(W resource, boolean written, DateTime writeTime, @Nullable W previous) {
+    public WriteResult(RESOURCE resource, boolean written, DateTime writeTime, @Nullable PREVIOUS previous) {
         this.resource = checkNotNull(resource);
         this.written = written;
         this.writeTime = checkNotNull(writeTime);
@@ -88,7 +88,7 @@ public final class WriteResult<W> implements Comparable<WriteResult<?>> {
      * 
      * @return - the resource
      */
-    public W getResource() {
+    public RESOURCE getResource() {
         return resource;
     }
 
@@ -115,12 +115,12 @@ public final class WriteResult<W> implements Comparable<WriteResult<?>> {
      * The previous version of the resource.
      * @return
      */
-    public Optional<W> getPrevious() {
+    public Optional<PREVIOUS> getPrevious() {
         return previous;
     }
 
     @Override
-    public int compareTo(WriteResult<?> other) {
+    public int compareTo(WriteResult<?, ?> other) {
         return ComparisonChain.start()
             .compare(writeTime, other.writeTime)
             .compareFalseFirst(written, other.written)
@@ -133,8 +133,8 @@ public final class WriteResult<W> implements Comparable<WriteResult<?>> {
         if (this == that) {
             return true;
         }
-        if (that instanceof WriteResult<?>) {
-            WriteResult<?> other = (WriteResult<?>) that;
+        if (that instanceof WriteResult<?,?>) {
+            WriteResult<?,?> other = (WriteResult<?,?>) that;
             return written == other.written
                 && writeTime.equals(other.writeTime)
                 && resource.equals(other.resource);

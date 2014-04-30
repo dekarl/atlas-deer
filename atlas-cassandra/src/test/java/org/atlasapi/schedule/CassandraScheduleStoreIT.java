@@ -134,7 +134,7 @@ public class CassandraScheduleStoreIT {
         );
         
         Interval writtenInterval = new Interval(start, end);
-        List<WriteResult<? extends Content>> results = store.writeSchedule(hiers, channel, writtenInterval);
+        List<WriteResult<? extends Content, Content>> results = store.writeSchedule(hiers, channel, writtenInterval);
         
         assertThat(results.size(), is(2));
         
@@ -168,7 +168,7 @@ public class CassandraScheduleStoreIT {
         );
         
         Interval writtenInterval = new Interval(start, end);
-        List<WriteResult<? extends Content>> results = store.writeSchedule(hiers, channel, writtenInterval);
+        List<WriteResult<? extends Content, Content>> results = store.writeSchedule(hiers, channel, writtenInterval);
         assertThat(results.size(), is(2));
 
         DateTime newMiddle = new DateTime(2013,05,31,23,30,0,0,DateTimeZones.LONDON);
@@ -189,7 +189,7 @@ public class CassandraScheduleStoreIT {
         
         results = store.writeSchedule(hiers, channel, writtenInterval);
         assertThat(results.size(), is(2));
-        AssertJUnit.assertTrue(Iterables.all(results, WriteResult.<Content>writtenFilter()));
+        AssertJUnit.assertTrue(Iterables.all(results, WriteResult.<Content,Content>writtenFilter()));
         
         Interval requestedInterval = new Interval(
             new DateTime(2013,05,31,10,0,0,0,DateTimeZones.UTC), 
@@ -225,7 +225,7 @@ public class CassandraScheduleStoreIT {
         );
         
         Interval writtenInterval = new Interval(start, end);
-        List<WriteResult<? extends Content>> results = store.writeSchedule(hiers, channel, writtenInterval);
+        List<WriteResult<? extends Content, Content>> results = store.writeSchedule(hiers, channel, writtenInterval);
         assertThat(results.size(), is(2));
 
         DateTime newEnd = new DateTime(2013,05,31,23,30,0,0,DateTimeZones.LONDON);
@@ -246,7 +246,7 @@ public class CassandraScheduleStoreIT {
         
         results = store.writeSchedule(hiers, channel, writtenInterval);
         assertThat(results.size(), is(2));
-        AssertJUnit.assertTrue(Iterables.all(results, WriteResult.<Content>writtenFilter()));
+        AssertJUnit.assertTrue(Iterables.all(results, WriteResult.<Content,Content>writtenFilter()));
         
         Interval requestedInterval = new Interval(
             new DateTime(2013,05,31,10,0,0,0,DateTimeZones.UTC), 
@@ -303,7 +303,7 @@ public class CassandraScheduleStoreIT {
         
         when(hasher.hash(argThat(any(Content.class)))).thenReturn("one", "two", "three");
         
-        List<WriteResult<? extends Content>> results
+        List<WriteResult<? extends Content, Content>> results
             = store.writeSchedule(hiers, channel, writtenInterval);
 
         verify(hasher, never()).hash(argThat(is(any(Content.class))));
@@ -346,7 +346,7 @@ public class CassandraScheduleStoreIT {
         );
         
         Interval writtenInterval = new Interval(start, end);
-        List<WriteResult<? extends Content>> results = store.writeSchedule(hiers, channel, writtenInterval);
+        List<WriteResult<? extends Content, Content>> results = store.writeSchedule(hiers, channel, writtenInterval);
         assertThat(results.size(), is(2));
         
         DateTime newEnd = new DateTime(2013,05,31,23,30,0,0,DateTimeZones.LONDON);
@@ -367,7 +367,7 @@ public class CassandraScheduleStoreIT {
         
         results = store.writeSchedule(hiers, channel, new Interval(start, newEnd));
         assertThat(results.size(), is(2));
-        AssertJUnit.assertTrue(Iterables.all(results, WriteResult.<Content>writtenFilter()));
+        AssertJUnit.assertTrue(Iterables.all(results, WriteResult.<Content,Content>writtenFilter()));
         
         Interval requestedInterval = new Interval(
             new DateTime(2013,05,31,10,0,0,0,DateTimeZones.UTC), 

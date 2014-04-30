@@ -69,7 +69,7 @@ public abstract class AbstractScheduleStore implements ScheduleStore {
     }
     
     @Override
-    public List<WriteResult<? extends Content>> writeSchedule(List<ScheduleHierarchy> content, Channel channel,
+    public List<WriteResult<? extends Content,Content>> writeSchedule(List<ScheduleHierarchy> content, Channel channel,
             Interval interval) throws WriteException {
         if (content.isEmpty()) {
             return ImmutableList.of();
@@ -81,7 +81,7 @@ public abstract class AbstractScheduleStore implements ScheduleStore {
                 "broadcasts of items on %s not contiguous in %s", channel, interval);
         Publisher source = getSource(content);
         
-        List<WriteResult<? extends Content>> writeResults = writeContent(content);
+        List<WriteResult<? extends Content, Content>> writeResults = writeContent(content);
         if (!contentChanged(writeResults)) {
             return writeResults;
         }
@@ -210,11 +210,11 @@ public abstract class AbstractScheduleStore implements ScheduleStore {
         return resolved;
     }
 
-    private <T extends Content> boolean contentChanged(List<WriteResult<? extends Content>> writeResults) {
-        return Iterables.any(writeResults, WriteResult.<Content>writtenFilter());
+    private <T extends Content> boolean contentChanged(List<WriteResult<? extends Content,Content>> writeResults) {
+        return Iterables.any(writeResults, WriteResult.<Content,Content>writtenFilter());
     }
 
-    private List<WriteResult<? extends Content>> writeContent(List<ScheduleHierarchy> contents) throws WriteException {
+    private List<WriteResult<? extends Content,Content>> writeContent(List<ScheduleHierarchy> contents) throws WriteException {
         return WritableScheduleHierarchy.from(contents).writeTo(contentStore);
     }
 

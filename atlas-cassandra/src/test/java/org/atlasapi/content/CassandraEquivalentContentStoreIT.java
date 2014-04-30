@@ -241,7 +241,7 @@ public class CassandraEquivalentContentStoreIT extends EquivalentContentStoreTes
         Content content = new Item(id, src);
         content.setThisOrChildLastUpdated(new DateTime(DateTimeZones.UTC));
         
-        WriteResult<Content> result = persistenceModule.contentStore().writeContent(content);
+        WriteResult<Content, Content> result = persistenceModule.contentStore().writeContent(content);
         assertTrue("Failed to write " + content, result.written());
         return content;
     }

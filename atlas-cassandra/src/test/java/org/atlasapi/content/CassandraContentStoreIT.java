@@ -111,7 +111,7 @@ public class CassandraContentStoreIT {
         when(clock.now()).thenReturn(now);
         when(idGenerator.generateRaw()).thenReturn(1234L);
         
-        WriteResult<Content> writeResult = store.writeContent(content);
+        WriteResult<Content, Content> writeResult = store.writeContent(content);
         assertTrue(writeResult.written());
         assertThat(writeResult.getResource().getId().longValue(), is(1234l));
         assertFalse(writeResult.getPrevious().isPresent());
@@ -137,7 +137,7 @@ public class CassandraContentStoreIT {
         when(clock.now()).thenReturn(now);
         when(idGenerator.generateRaw()).thenReturn(1234L);
         
-        WriteResult<Content> writeResult = store.writeContent(content);
+        WriteResult<Content, Content> writeResult = store.writeContent(content);
         assertTrue(writeResult.written());
         
         when(hasher.hash(argThat(isA(Content.class)))).thenReturn("same");
@@ -171,7 +171,7 @@ public class CassandraContentStoreIT {
             .thenReturn(next);
         when(idGenerator.generateRaw()).thenReturn(1234L);
         
-        WriteResult<Content> writeResult = store.writeContent(content);
+        WriteResult<Content, Content> writeResult = store.writeContent(content);
         assertTrue(writeResult.written());
         
         Content resolved = resolve(content.getId().longValue());
@@ -226,7 +226,7 @@ public class CassandraContentStoreIT {
         
         bbcItem.setTitle("newTitle");
         bbcItem.setId(null);
-        WriteResult<Item> writtenContent = store.writeContent(bbcItem);
+        WriteResult<Item, Content> writtenContent = store.writeContent(bbcItem);
         assertThat(writtenContent.getPrevious().get().getTitle(), is("title"));
         
         resolvedItem = (Item) resolve(1234L);
@@ -308,7 +308,7 @@ public class CassandraContentStoreIT {
             when(clock.now()).thenReturn(new DateTime(DateTimeZones.UTC));
             when(idGenerator.generateRaw()).thenReturn(1234L);
 
-            WriteResult<Brand> brandWriteResult = store.writeContent(brand);
+            WriteResult<Brand, Content> brandWriteResult = store.writeContent(brand);
             assertThat(brandWriteResult.getResource().getId().longValue(), is(1234L));
             
             store.writeContent(episode);
@@ -354,21 +354,21 @@ public class CassandraContentStoreIT {
 
         when(clock.now()).thenReturn(now);
         when(idGenerator.generateRaw()).thenReturn(1234L);
-        WriteResult<Brand> brandWriteResult = store.writeContent(brand);
+        WriteResult<Brand, Content> brandWriteResult = store.writeContent(brand);
         
         Series series1 = create(new Series());
         series1.setBrand(brandWriteResult.getResource());
         
         when(clock.now()).thenReturn(now.plusHours(1));
         when(idGenerator.generateRaw()).thenReturn(1235L);
-        WriteResult<Series> series1WriteResult = store.writeContent(series1);
+        WriteResult<Series, Content> series1WriteResult = store.writeContent(series1);
 
         Series series2 = create(new Series());
         series2.setBrand(brandWriteResult.getResource());
         
         when(clock.now()).thenReturn(now.plusHours(1));
         when(idGenerator.generateRaw()).thenReturn(1236L);
-        WriteResult<Series> series2WriteResult = store.writeContent(series2);
+        WriteResult<Series, Content> series2WriteResult = store.writeContent(series2);
         
         Episode episode1 = create(new Episode());
         episode1.setContainer(brandWriteResult.getResource());
@@ -449,14 +449,14 @@ public class CassandraContentStoreIT {
 
         when(clock.now()).thenReturn(now);
         when(idGenerator.generateRaw()).thenReturn(1234L);
-        WriteResult<Brand> brandWriteResult = store.writeContent(brand);
+        WriteResult<Brand, Content> brandWriteResult = store.writeContent(brand);
         
         Series series = create(new Series());
         series.setBrand(brandWriteResult.getResource());
         
         when(clock.now()).thenReturn(now.plusHours(1));
         when(idGenerator.generateRaw()).thenReturn(1235L);
-        WriteResult<Series> seriesWriteResult = store.writeContent(series);
+        WriteResult<Series, Content> seriesWriteResult = store.writeContent(series);
 
         Episode episode = create(new Episode());
         episode.setContainer(brandWriteResult.getResource());
@@ -580,6 +580,58 @@ public class CassandraContentStoreIT {
         OptionalMap<Alias,Content> resolveAliases = store.resolveAliases(ImmutableList.of(alias), Publisher.BBC);
         
         assertThat(resolveAliases.get(alias), is(Optional.<Content>absent()));
+    }
+    
+    @Test
+    public void testSwitchingFromBrandToSeries() throws WriteException {
+        
+        Brand brand = create(new Brand());
+        Alias sharedAlias = new Alias("shared", "alias");
+        brand.addAlias(sharedAlias);
+        
+        when(idGenerator.generateRaw()).thenReturn(1234L);
+        when(hasher.hash(argThat(isA(Content.class))))
+            .thenReturn("different")
+            .thenReturn("differentAgain");
+        
+        WriteResult<Brand, Content> writtenBrand = store.writeContent(brand);
+        assertTrue(writtenBrand.written());
+        
+        Series series = create(new Series());
+        series.setId(writtenBrand.getResource().getId());
+        series.addAlias(sharedAlias);
+        
+        WriteResult<Series, Content> writtenSeries = store.writeContent(series);
+        assertTrue(writtenSeries.written());
+        assertTrue(writtenSeries.getPrevious().get() instanceof Brand);
+        
+        verify(idGenerator, times(1)).generateRaw();
+    }
+
+    @Test
+    public void testSwitchingFromSeriesToBrand() throws WriteException {
+        
+        Series series = create(new Series());
+        Alias sharedAlias = new Alias("shared", "alias");
+        series.addAlias(sharedAlias);
+        
+        when(idGenerator.generateRaw()).thenReturn(1234L);
+        when(hasher.hash(argThat(isA(Content.class))))
+            .thenReturn("different")
+            .thenReturn("differentAgain");
+        
+        WriteResult<Series, Content> writtenSeries = store.writeContent(series);
+        assertTrue(writtenSeries.written());
+        
+        Brand brand = create(new Brand());
+        brand.addAlias(sharedAlias);
+        brand.setId(writtenSeries.getResource().getId());
+        
+        WriteResult<Brand, Content> writtenBrand = store.writeContent(brand);
+        assertTrue(writtenBrand.written());
+        assertTrue(writtenBrand.getPrevious().get() instanceof Series);
+        
+        verify(idGenerator, times(1)).generateRaw();
     }
 
     private <T extends Content> T create(T content) {

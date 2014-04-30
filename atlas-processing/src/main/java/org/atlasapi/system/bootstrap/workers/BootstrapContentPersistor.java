@@ -50,16 +50,16 @@ public class BootstrapContentPersistor implements ContentWriter {
         this.channelResolver = channelResolver;
     }
 
-    private final class PersistingContentVisitor extends ContentVisitorAdapter<WriteResult<? extends Content>> {
+    private final class PersistingContentVisitor extends ContentVisitorAdapter<WriteResult<? extends Content,Content>> {
 
         @Override
-        protected WriteResult<Container> visitContainer(Container container) {
+        protected WriteResult<Container, Content> visitContainer(Container container) {
             return writeContent(container);
         }
 
         @Override
-        protected WriteResult<? extends Content> visitItem(Item item) {
-            WriteResult<? extends Content> result = null;
+        protected WriteResult<? extends Content, Content> visitItem(Item item) {
+            WriteResult<? extends Content, Content> result = null;
             if (hasBroadcasts(item)) {
                 result = get(writeNewBroadcasts(item));
             }
@@ -70,8 +70,8 @@ public class BootstrapContentPersistor implements ContentWriter {
             return result;
         }
 
-        private WriteResult<? extends Content> get(
-                ListenableFuture<WriteResult<? extends Content>> result) {
+        private WriteResult<? extends Content, Content> get(
+                ListenableFuture<WriteResult<? extends Content, Content>> result) {
             try {
                 return Futures.get(result, WriteException.class);
             } catch (UncheckedExecutionException e) {
@@ -86,8 +86,8 @@ public class BootstrapContentPersistor implements ContentWriter {
             return !item.getBroadcasts().isEmpty();
         }
 
-        private WriteResult<? extends Content> writeNewBroadcasts(Item item, Optional<Content> current) throws WriteException {
-            WriteResult<? extends Content> result = null;
+        private WriteResult<? extends Content, Content> writeNewBroadcasts(Item item, Optional<Content> current) throws WriteException {
+            WriteResult<? extends Content, Content> result = null;
             for (Broadcast broadcast : Iterables.filter(item.getBroadcasts(), ACTIVELY_PUBLISHED)) {
                 if (broadcast.getSourceId() != null && !hasBroadcast(current, broadcast)) {
                     ItemAndBroadcast iab = new ItemAndBroadcast(item, broadcast);
@@ -112,12 +112,12 @@ public class BootstrapContentPersistor implements ContentWriter {
             return false;
         }
 
-        private ListenableFuture<WriteResult<? extends Content>> writeNewBroadcasts(final Item item) {
+        private ListenableFuture<WriteResult<? extends Content, Content>> writeNewBroadcasts(final Item item) {
             ListenableFuture<Resolved<Content>> resolved = contentStore.resolveIds(ImmutableList.of(item.getId()));
             return Futures.transform(resolved, 
-                new Function<Resolved<Content>, WriteResult<? extends Content>>() {
+                new Function<Resolved<Content>, WriteResult<? extends Content, Content>>() {
                     @Override
-                    public WriteResult<? extends Content> apply(Resolved<Content> input) {
+                    public WriteResult<? extends Content, Content> apply(Resolved<Content> input) {
                         Optional<Content> current = input.toMap().get(item.getId());
                         try {
                             return writeNewBroadcasts(item, current);
@@ -129,7 +129,7 @@ public class BootstrapContentPersistor implements ContentWriter {
             );
         }
 
-        private <C extends Content> WriteResult<C> writeContent(C content) {
+        private <C extends Content> WriteResult<C, Content> writeContent(C content) {
             try {
                 return contentStore.writeContent(content);
             } catch (WriteException e) {
@@ -141,17 +141,17 @@ public class BootstrapContentPersistor implements ContentWriter {
 
     @Override
     @SuppressWarnings("unchecked")
-    public <C extends Content> WriteResult<C> writeContent(C content) throws WriteException {
+    public <C extends Content> WriteResult<C, Content> writeContent(C content) throws WriteException {
         content.setReadHash(null);// force write
         log.debug("bootstrapping {}", content);
         try {
-            return (WriteResult<C>) content.accept(visitor);
+            return (WriteResult<C, Content>) content.accept(visitor);
         } catch (RuntimeWriteException rwe) {
             throw rwe.getCause();
         }
     }
     
-    private WriteResult<? extends Content> write(ItemAndBroadcast iab) throws WriteException {
+    private WriteResult<? extends Content, Content> write(ItemAndBroadcast iab) throws WriteException {
         Maybe<Channel> channel = channelResolver.fromId(iab.getBroadcast().getChannelId().longValue());
         Interval interval = interval(iab.getBroadcast());
         List<ScheduleHierarchy> items = ImmutableList.of(ScheduleHierarchy.itemOnly(iab));

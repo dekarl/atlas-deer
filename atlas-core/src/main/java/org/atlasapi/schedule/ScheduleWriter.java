@@ -51,7 +51,7 @@ public interface ScheduleWriter {
      *             if the presented schedule is not contiguous or the content is
      *             not source-homogenous
      */
-    List<WriteResult<? extends Content>> writeSchedule(List<ScheduleHierarchy> items,
+    List<WriteResult<? extends Content, Content>> writeSchedule(List<ScheduleHierarchy> items,
             Channel channel,
             Interval interval) throws WriteException;
 

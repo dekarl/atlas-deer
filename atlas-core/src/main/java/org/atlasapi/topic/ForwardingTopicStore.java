@@ -26,7 +26,7 @@ public abstract class ForwardingTopicStore implements TopicStore {
     }
 
     @Override
-    public WriteResult<Topic> writeTopic(Topic topic) {
+    public WriteResult<Topic, Topic> writeTopic(Topic topic) {
         return delegate().writeTopic(topic);
     }
 

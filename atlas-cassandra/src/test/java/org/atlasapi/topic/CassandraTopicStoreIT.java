@@ -125,8 +125,8 @@ public class CassandraTopicStoreIT {
         when(clock.now()).thenReturn(now);
         when(idGenerator.generateRaw()).thenReturn(1234L, 1235L);
 
-        WriteResult<Topic> topic1result = topicStore.writeTopic(topic1);
-        WriteResult<Topic> topic2result = topicStore.writeTopic(topic2);
+        WriteResult<Topic, Topic> topic1result = topicStore.writeTopic(topic1);
+        WriteResult<Topic, Topic> topic2result = topicStore.writeTopic(topic2);
 
         assertThat(topic1result.written(), is(true));
         assertThat(topic2result.written(), is(true));
@@ -194,13 +194,13 @@ public class CassandraTopicStoreIT {
         when(clock.now()).thenReturn(now);
         when(idGenerator.generateRaw()).thenReturn(1234L, 1235L);
 
-        WriteResult<Topic> writeResult = topicStore.writeTopic(topic1);
+        WriteResult<Topic, Topic> writeResult = topicStore.writeTopic(topic1);
 
         reset(clock, idGenerator, equiv);
         when(equiv.doEquivalent(any(Topic.class), any(Topic.class)))
             .thenReturn(true);
 
-        WriteResult<Topic> writeResult2 = topicStore.writeTopic(writeResult.getResource());
+        WriteResult<Topic, Topic> writeResult2 = topicStore.writeTopic(writeResult.getResource());
 
         assertThat(writeResult2.written(), is(false));
         
@@ -221,7 +221,7 @@ public class CassandraTopicStoreIT {
         when(clock.now()).thenReturn(now);
         when(idGenerator.generateRaw()).thenReturn(1234L, 1235L);
         
-        WriteResult<Topic> writeResult = topicStore.writeTopic(topic);
+        WriteResult<Topic, Topic> writeResult = topicStore.writeTopic(topic);
 
         Topic written = writeResult.getResource();
         

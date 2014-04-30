@@ -75,14 +75,14 @@ public class ScheduleHierarchy {
         return this.possibleSeries;
     }
     
-    List<WriteResult<? extends Content>> writeTo(ContentStore store) throws WriteException {
-        List<WriteResult<? extends Content>> results = Lists.newArrayListWithCapacity(3);
-        WriteResult<Container> primaryContainerResult = null;
+    List<WriteResult<? extends Content, Content>> writeTo(ContentStore store) throws WriteException {
+        List<WriteResult<? extends Content, Content>> results = Lists.newArrayListWithCapacity(3);
+        WriteResult<Container, Content> primaryContainerResult = null;
         if (primaryContainer.isPresent()) {
             primaryContainerResult = store.writeContent(primaryContainer.get());
             results.add(primaryContainerResult);
         }
-        WriteResult<Series> secondaryContainerResult = null;
+        WriteResult<Series, Content> secondaryContainerResult = null;
         if (possibleSeries.isPresent()) {
             if (primaryContainerResult != null && primaryContainerResult.getResource() instanceof Brand) {
                 possibleSeries.get().setBrand((Brand)primaryContainer.get());

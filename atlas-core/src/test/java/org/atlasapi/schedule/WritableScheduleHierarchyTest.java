@@ -52,15 +52,15 @@ public class WritableScheduleHierarchyTest {
     public void setup() throws WriteException {
         channel.setId(1L);
         when(store.writeContent(Mockito.argThat(any(Content.class))))
-            .then(new Answer<WriteResult<Content>>() {
+            .then(new Answer<WriteResult<Content, Content>>() {
                 @Override
-                public WriteResult<Content> answer(InvocationOnMock invocation) throws Throwable {
+                public WriteResult<Content, Content> answer(InvocationOnMock invocation) throws Throwable {
                     Content written = (Content) invocation.getArguments()[0];
                     Content copy = (Content) written.copy();
                     if (copy.getId() == null) {
                         copy.setId(copy.hashCode());
                     }
-                    return WriteResult.written(copy).withPrevious(written).build();
+                    return WriteResult.<Content,Content>written(copy).withPrevious(written).build();
                 }
             });
     }
@@ -77,7 +77,7 @@ public class WritableScheduleHierarchyTest {
         ScheduleHierarchy niab
             = ScheduleHierarchy.itemOnly(andBroadcast(item(null, "one", Publisher.METABROADCAST), b1));
         
-        List<WriteResult<? extends Content>> results
+        List<WriteResult<? extends Content, Content>> results
             = WritableScheduleHierarchy.from(ImmutableList.of(niab)).writeTo(store);
         
         verify(store).writeContent(niab.getItemAndBroadcast().getItem());
@@ -98,7 +98,7 @@ public class WritableScheduleHierarchyTest {
         ScheduleHierarchy iab2
             = ScheduleHierarchy.itemOnly(andBroadcast(item(1, "one", Publisher.METABROADCAST), b2));
         
-        List<WriteResult<? extends Content>> results
+        List<WriteResult<? extends Content, Content>> results
             = WritableScheduleHierarchy.from(ImmutableList.of(iab1, iab2)).writeTo(store);
         
         ArgumentCaptor<Content> contentCaptor = ArgumentCaptor.forClass(Content.class);
@@ -124,7 +124,7 @@ public class WritableScheduleHierarchyTest {
         ScheduleHierarchy iab1 = ScheduleHierarchy.itemOnly(new ItemAndBroadcast(i1, b1));
         ScheduleHierarchy iab2 = ScheduleHierarchy.itemOnly(new ItemAndBroadcast(i2, b2));
         
-        List<WriteResult<? extends Content>> results
+        List<WriteResult<? extends Content, Content>> results
             = WritableScheduleHierarchy.from(ImmutableList.of(iab1, iab2)).writeTo(store);
         
         ArgumentCaptor<Content> contentCaptor = ArgumentCaptor.forClass(Content.class);
@@ -152,7 +152,7 @@ public class WritableScheduleHierarchyTest {
         ScheduleHierarchy iab1 = ScheduleHierarchy.itemOnly(new ItemAndBroadcast(i1, b1));
         ScheduleHierarchy iab2 = ScheduleHierarchy.itemOnly(new ItemAndBroadcast(i2, b2));
         
-        List<WriteResult<? extends Content>> results
+        List<WriteResult<? extends Content, Content>> results
             = WritableScheduleHierarchy.from(ImmutableList.of(iab1, iab2)).writeTo(store);
         
         ArgumentCaptor<Content> contentCaptor = ArgumentCaptor.forClass(Content.class);

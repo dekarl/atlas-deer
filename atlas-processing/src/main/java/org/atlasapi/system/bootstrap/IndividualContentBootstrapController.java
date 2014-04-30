@@ -62,7 +62,7 @@ public class IndividualContentBootstrapController {
             
             @Override
             public String visit(Brand brand) {
-                WriteResult<?> brandWrite = write(brand.copy());
+                WriteResult<?, Content> brandWrite = write(brand.copy());
                 int series = resolveAndWrite(Iterables.transform(brand.getSeriesRefs(), Identifiables.toId()));
                 int childs = resolveAndWrite(Iterables.transform(brand.getItemRefs(), Identifiables.toId()));
                 return String.format("%s s:%s c:%s", brandWrite, series, childs);
@@ -70,7 +70,7 @@ public class IndividualContentBootstrapController {
             
             @Override
             public String visit(Series series) {
-                WriteResult<?> seriesWrite = write(series.copy());
+                WriteResult<?, Content> seriesWrite = write(series.copy());
                 int childs = resolveAndWrite(Iterables.transform(series.getItemRefs(), Identifiables.toId()));
                 return String.format("%s c:%s", seriesWrite, childs);
             }
@@ -91,7 +91,7 @@ public class IndividualContentBootstrapController {
                 return write(item).toString();
             }
 
-            private WriteResult<? extends Content> write(Content content) {
+            private WriteResult<? extends Content, Content> write(Content content) {
                 try {
                     resp.getWriter().println(ContentType.fromContent(content).get() + " " + content.getId());
                     resp.getWriter().flush();

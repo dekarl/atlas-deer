@@ -93,8 +93,8 @@ class WritableScheduleHierarchy {
         this.itemSeriesIndex = itemSeriesIndex;
     }
 
-    List<WriteResult<? extends Content>> writeTo(ContentStore contentStore) throws WriteException {
-        ImmutableList.Builder<WriteResult<? extends Content>> results = ImmutableList.builder();
+    List<WriteResult<? extends Content,Content>> writeTo(ContentStore contentStore) throws WriteException {
+        ImmutableList.Builder<WriteResult<? extends Content,Content>> results = ImmutableList.builder();
         Map<Container, Container> tlcWritten = writePrimaryContainers(contentStore, results);
         Map<Series, Series> seriesWritten
             = writeSecondaryContainers(contentStore, results, tlcWritten);
@@ -103,10 +103,10 @@ class WritableScheduleHierarchy {
     }
     
     private Map<Container, Container> writePrimaryContainers(ContentStore contentStore,
-            ImmutableList.Builder<WriteResult<? extends Content>> results) throws WriteException {
+            ImmutableList.Builder<WriteResult<? extends Content,Content>> results) throws WriteException {
         Map<Container, Container> tlcWritten = Maps.newHashMap();
         for (Container container : topLevelContainers) {
-            WriteResult<Container> written = contentStore.writeContent(container);
+            WriteResult<Container,Content> written = contentStore.writeContent(container);
             results.add(written);
             tlcWritten.put(container, written.getResource());
         }
@@ -114,7 +114,7 @@ class WritableScheduleHierarchy {
     }
     
     private Map<Series, Series> writeSecondaryContainers(ContentStore contentStore,
-            ImmutableList.Builder<WriteResult<? extends Content>> results,
+            ImmutableList.Builder<WriteResult<? extends Content,Content>> results,
             Map<Container, Container> tlcWritten) throws WriteException {
         Map<Series, Series> seriesWritten = Maps.newHashMap();
         for (Series sery : series) {
@@ -122,7 +122,7 @@ class WritableScheduleHierarchy {
             if (tlc != null) {
                 sery.setBrand((Brand) tlcWritten.get(tlc));
             }
-            WriteResult<Series> written = contentStore.writeContent(sery);
+            WriteResult<Series,Content> written = contentStore.writeContent(sery);
             results.add(written);
             seriesWritten.put(sery, written.getResource());
         }
@@ -131,7 +131,7 @@ class WritableScheduleHierarchy {
     
 
     private void writeItems(ContentStore contentStore,
-            ImmutableList.Builder<WriteResult<? extends Content>> results,
+            ImmutableList.Builder<WriteResult<? extends Content,Content>> results,
             Map<Container, Container> tlcWritten, Map<Series, Series> seriesWritten) throws WriteException {
         for (Item item : items) {
             Container tlc = itemPrimaryContainerIndex.get(item);

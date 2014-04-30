@@ -164,12 +164,10 @@ public class Item extends Content {
 
     @Override
     public Item copy() {
-        Item copy = new Item();
-        Item.copyTo(this, copy);
-        return copy;
+        return Item.copyTo(this, new Item());
     }
 
-    public static void copyTo(Item from, Item to) {
+    public static Item copyTo(Item from, Item to) {
         Content.copyTo(from, to);
         if (from.containerRef != null) {
             to.containerRef = from.containerRef;
@@ -181,6 +179,7 @@ public class Item extends Content {
         to.restrictions = Sets.newHashSet(from.restrictions);
         to.blackAndWhite = from.blackAndWhite;
         to.countriesOfOrigin = Sets.newHashSet(from.countriesOfOrigin);
+        return to;
     }
 
     public Item withSortKey(String sortKey) {

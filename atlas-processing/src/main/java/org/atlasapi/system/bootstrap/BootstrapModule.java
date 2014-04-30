@@ -65,7 +65,7 @@ public class BootstrapModule {
         }
 
         @Override
-        public <C extends Content> WriteResult<C> writeContent(C content)
+        public <C extends Content> WriteResult<C, Content> writeContent(C content)
                 throws WriteException {
             return writer.writeContent(content);
         }

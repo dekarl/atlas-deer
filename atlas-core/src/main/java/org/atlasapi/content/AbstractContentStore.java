@@ -33,10 +33,16 @@ public abstract class AbstractContentStore implements ContentStore {
     
     protected final Logger log = LoggerFactory.getLogger(getClass());
 
-    private final class ContentWritingVisitor implements ContentVisitor<WriteResult<? extends Content>> {
+    private final class ContentWritingVisitor implements ContentVisitor<WriteResult<? extends Content,Content>> {
 
         private boolean hashChanged(Content writing, Content previous) {
             return !hasher.hash(writing).equals(hasher.hash(previous));
+        }
+        
+        private RuntimeWriteException conversionException(Content content,
+                Class<? extends Content> target) {
+            String msg = String.format("cannot convert %s to %s", content, target);
+            return new RuntimeWriteException(new WriteException(msg));
         }
         
         private void updateTimes(Content content) {
@@ -55,8 +61,8 @@ public abstract class AbstractContentStore implements ContentStore {
         }
         
         @Override
-        public WriteResult<Brand> visit(Brand brand) {
-            Brand previous = (Brand) getPreviousContent(brand);
+        public WriteResult<Brand,Content> visit(Brand brand) {
+            Content previous = getPreviousContent(brand);
 
             brand.setItemRefs(ImmutableSet.<ItemRef>of());
             brand.setSeriesRefs(ImmutableSet.<SeriesRef>of());
@@ -68,27 +74,33 @@ public abstract class AbstractContentStore implements ContentStore {
             updateTimes(brand);
             write(brand, NO_PREVIOUS);
             
-            return WriteResult.written(brand).build();
+            return WriteResult.<Brand,Content>written(brand).build();
             
         }
 
-        private WriteResult<Brand> writeBrandWithPrevious(Brand brand, Brand previous) {
+        private WriteResult<Brand,Content> writeBrandWithPrevious(Brand brand, Content previous) {
             boolean written = false;
             if (hashChanged(brand, previous)) {
                 updateWithPevious(brand, previous);
                 write(brand, previous);
                 written = true;
             } 
-            brand.setItemRefs(previous.getItemRefs());
-            brand.setSeriesRefs(previous.getSeriesRefs());
-            return WriteResult.result(brand, written)
+            if (previous instanceof Container) {
+                Container container = (Container) previous;
+                brand.setItemRefs(container.getItemRefs());
+                if (container instanceof Brand) {
+                    Brand prev = (Brand) container;
+                    brand.setSeriesRefs(prev.getSeriesRefs());
+                }
+            }
+            return WriteResult.<Brand,Content>result(brand, written)
                 .withPrevious(previous)
                 .build();
         }
 
         @Override
-        public WriteResult<Series> visit(Series series) {
-            Series previous = (Series) getPreviousContent(series);
+        public WriteResult<Series,Content> visit(Series series) {
+            Content previous = getPreviousContent(series);
             
             series.setItemRefs(ImmutableSet.<ItemRef>of());
             if (previous != null) {
@@ -97,10 +109,10 @@ public abstract class AbstractContentStore implements ContentStore {
             updateTimes(series);
             writeRefAndSummarizePrimary(series);
             write(series, NO_PREVIOUS);
-            return WriteResult.written(series).build();
+            return WriteResult.<Series,Content>written(series).build();
         }
 
-        private WriteResult<Series> writeSeriesWithPrevious(Series series, Series previous) {
+        private WriteResult<Series, Content> writeSeriesWithPrevious(Series series, Content previous) {
             boolean written = false;
             if (hashChanged(series, previous)) {
                 updateWithPevious(series, previous);
@@ -108,8 +120,10 @@ public abstract class AbstractContentStore implements ContentStore {
                 write(series, previous);
                 written = true;
             }
-            series.setItemRefs(previous.getItemRefs());
-            return WriteResult.result(series, written)
+            if (previous instanceof Container) {
+                series.setItemRefs(((Container)previous).getItemRefs());
+            }
+            return WriteResult.<Series,Content>result(series, written)
                 .withPrevious(previous)
                 .build();
         }
@@ -125,8 +139,8 @@ public abstract class AbstractContentStore implements ContentStore {
         }
         
         @Override
-        public WriteResult<Item> visit(Item item) {
-            Item previous = (Item) getPreviousContent(item);
+        public WriteResult<Item, Content> visit(Item item) {
+            Content previous = getPreviousContent(item);
             
             if (previous != null) {
                 return writeItemWithPrevious(item, previous);
@@ -134,11 +148,11 @@ public abstract class AbstractContentStore implements ContentStore {
             updateTimes(item);
             writeRefAndSummarizeContainer(item);
             write(item, NO_PREVIOUS);
-            return WriteResult.written(item)
+            return WriteResult.<Item,Content>written(item)
                 .build();
         }
 
-        private WriteResult<Item> writeItemWithPrevious(Item item, Item previous) {
+        private WriteResult<Item, Content> writeItemWithPrevious(Item item, Content previous) {
             boolean written = false;
             if (hashChanged(item, previous)) {
                 updateWithPevious(item, previous);
@@ -146,7 +160,7 @@ public abstract class AbstractContentStore implements ContentStore {
                 write(item, previous);
                 written = true;
             } 
-            return WriteResult.result(item, written)
+            return WriteResult.<Item,Content>result(item, written)
                 .withPrevious(previous)
                 .build();
         }
@@ -161,11 +175,11 @@ public abstract class AbstractContentStore implements ContentStore {
         }
 
         @Override
-        public WriteResult<Episode> visit(Episode episode) {
+        public WriteResult<Episode,Content> visit(Episode episode) {
             checkArgument(episode.getContainerRef() != null, 
                     "can't write episode with null container");
             
-            Episode previous = (Episode) getPreviousContent(episode);
+            Content previous = getPreviousContent(episode);
             
             if (previous != null) {
                 return writeEpisodeWithExising(episode, previous);
@@ -173,10 +187,10 @@ public abstract class AbstractContentStore implements ContentStore {
             updateTimes(episode);
             writeRefsAndSummarizeContainers(episode);
             write(episode, NO_PREVIOUS);
-            return WriteResult.written(episode).build();
+            return WriteResult.<Episode,Content>written(episode).build();
         }
 
-        private WriteResult<Episode> writeEpisodeWithExising(Episode episode, Episode previous) {
+        private WriteResult<Episode,Content> writeEpisodeWithExising(Episode episode, Content previous) {
             boolean written = false;
             if (hashChanged(episode, previous)) {
                 updateWithPevious(episode, previous);
@@ -184,7 +198,7 @@ public abstract class AbstractContentStore implements ContentStore {
                 write(episode, previous);
                 written = true;
             } 
-            return WriteResult.result(episode, written)
+            return WriteResult.<Episode,Content>result(episode, written)
                 .withPrevious(previous)
                 .build();
         }
@@ -208,31 +222,31 @@ public abstract class AbstractContentStore implements ContentStore {
         }
 
         @Override
-        public WriteResult<Film> visit(Film film) {
-            Film previous = (Film) getPreviousContent(film);
+        public WriteResult<Film,Content> visit(Film film) {
+            Content previous = getPreviousContent(film);
             if (previous != null) {
                 return writeFilmWithPrevious(film, previous);
             }
             updateTimes(film);
             write(film, NO_PREVIOUS);
-            return WriteResult.written(film).build();
+            return WriteResult.<Film,Content>written(film).build();
         }
 
-        private WriteResult<Film> writeFilmWithPrevious(Film film, Film previous) {
+        private WriteResult<Film,Content> writeFilmWithPrevious(Film film, Content previous) {
             boolean written = false;
             if (hashChanged(film, previous)) {
                 updateWithPevious(film, previous);
                 write(film, previous);
                 written = true;
             }
-            return WriteResult.result(film, written)
+            return WriteResult.<Film,Content>result(film, written)
                 .withPrevious(previous)
                 .build();
         }
 
         @Override
-        public WriteResult<Song> visit(Song song) {
-            Song previous = (Song) getPreviousContent(song);
+        public WriteResult<Song,Content> visit(Song song) {
+            Content previous = getPreviousContent(song);
             
             if (previous != null) {
                 return writeSongWithPrevious(song, previous);
@@ -240,24 +254,24 @@ public abstract class AbstractContentStore implements ContentStore {
             
             updateTimes(song);
             write(song, NO_PREVIOUS);
-            return WriteResult.written(song)
+            return WriteResult.<Song,Content>written(song)
                 .build();
         }
         
-        private WriteResult<Song> writeSongWithPrevious(Song song, Song previous) {
+        private WriteResult<Song,Content> writeSongWithPrevious(Song song, Content previous) {
             boolean written = false;
             if (hashChanged(song, previous)) {
                 updateWithPevious(song, previous);
                 write(song, previous);
                 written = true;
             }
-            return WriteResult.result(song, written)
+            return WriteResult.<Song,Content>result(song, written)
                 .withPrevious(previous)
                 .build();
         }
 
         @Override
-        public WriteResult<Clip> visit(Clip clip) {
+        public WriteResult<Clip,Content> visit(Clip clip) {
             throw new UnsupportedOperationException("Can't yet write Clips top-level");
         }
     }
@@ -279,11 +293,11 @@ public abstract class AbstractContentStore implements ContentStore {
 
     @Override
     @SuppressWarnings("unchecked")
-    public final <C extends Content> WriteResult<C> writeContent(C content) throws WriteException {
+    public final <C extends Content> WriteResult<C, Content> writeContent(C content) throws WriteException {
         checkNotNull(content, "write null content");
         checkNotNull(content.getPublisher(), "write unsourced content");
         try {
-            WriteResult<C> result = (WriteResult<C>)content.accept(writingVisitor);
+            WriteResult<C,Content> result = (WriteResult<C, Content>)content.accept(writingVisitor);
             if (result.written()) {
                 sendResourceUpdatedMessage(result);
             }
@@ -293,7 +307,7 @@ public abstract class AbstractContentStore implements ContentStore {
         }
     }
 
-    private <C extends Content> void sendResourceUpdatedMessage(WriteResult<C> result) {
+    private <C extends Content> void sendResourceUpdatedMessage(WriteResult<C, Content> result) {
         ResourceUpdatedMessage message = createEntityUpdatedMessage(result);
         try {
             sender.sendMessage(message);
@@ -302,7 +316,7 @@ public abstract class AbstractContentStore implements ContentStore {
         }
     }
     
-    private <C extends Content> ResourceUpdatedMessage createEntityUpdatedMessage(WriteResult<C> result) {
+    private <C extends Content> ResourceUpdatedMessage createEntityUpdatedMessage(WriteResult<C, Content> result) {
         return new ResourceUpdatedMessage(
                 UUID.randomUUID().toString(),
                 Timestamp.of(result.getWriteTime().getMillis()),

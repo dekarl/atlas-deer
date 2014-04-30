@@ -5,6 +5,6 @@ import org.atlasapi.entity.util.WriteResult;
 
 public interface ContentWriter {
 
-    <C extends Content> WriteResult<C> writeContent(C content) throws WriteException;
+    <C extends Content> WriteResult<C, Content> writeContent(C content) throws WriteException;
     
 }
