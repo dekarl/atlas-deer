@@ -220,14 +220,16 @@ public final class CassandraEquivalentScheduleStore extends AbstractEquivalentSc
     protected synchronized void writeSchedule(ScheduleUpdate update, Map<ScheduleRef.Entry, EquivalentScheduleEntry> content)
             throws WriteException {
         DateTime now = clock.now();
-        Query updateBatch = batch(Iterables.toArray(Iterables.concat(
-            updateStatements(update.getSource(), update.getSchedule(), content, now),
-            deleteStatements(update.getSource(), update.getStaleBroadcasts())
-        ), Statement.class)).setConsistencyLevel(write);
-        session.execute(updateBatch);
+        List<Statement> updates = updateStatements(update.getSource(), update.getSchedule(), content, now);
+        List<Statement> deletes = deleteStatements(update.getSource(), update.getStaleBroadcasts());
+        if (updates.isEmpty() && deletes.isEmpty()) {
+            return;
+        }
+        Query updateBatch = batch(Iterables.toArray(Iterables.concat(updates, deletes), Statement.class));
+        session.execute(updateBatch.setConsistencyLevel(write));
     }
 
-    private Iterable<Statement> updateStatements(Publisher source, ScheduleRef scheduleRef, Map<ScheduleRef.Entry, EquivalentScheduleEntry> content, DateTime now)
+    private List<Statement> updateStatements(Publisher source, ScheduleRef scheduleRef, Map<ScheduleRef.Entry, EquivalentScheduleEntry> content, DateTime now)
             throws WriteException {
         ImmutableList.Builder<Statement> stmts = ImmutableList.builder();
         for (ScheduleRef.Entry entry : scheduleRef.getScheduleEntries()) {
@@ -279,7 +281,7 @@ public final class CassandraEquivalentScheduleStore extends AbstractEquivalentSc
         return ByteBuffer.wrap(broadcastSerializer.serialize(broadcast).build().toByteArray());
     }
 
-    private Iterable<Statement> deleteStatements(Publisher src, ImmutableSet<BroadcastRef> staleBroadcasts) {
+    private List<Statement> deleteStatements(Publisher src, ImmutableSet<BroadcastRef> staleBroadcasts) {
         ImmutableList.Builder<Statement> stmts = ImmutableList.builder();
         for (BroadcastRef ref : staleBroadcasts) {
             for (Date day : daysIn(ref.getTransmissionInterval())) {
