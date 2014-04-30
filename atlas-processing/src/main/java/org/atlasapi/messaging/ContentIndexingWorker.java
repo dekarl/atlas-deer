@@ -33,7 +33,7 @@ public class ContentIndexingWorker implements Worker<ResourceUpdatedMessage> {
     
                 @Override
                 public void onFailure(Throwable throwable) {
-                    log.error("Indexing error:", throwable);
+                    log.error("iqqndexing error:", throwable);
                 }
     
                 @Override
@@ -41,7 +41,7 @@ public class ContentIndexingWorker implements Worker<ResourceUpdatedMessage> {
                     Optional<Content> content = results.getResources().first();
                     if (content.isPresent()) {
                         Content source = content.get();
-                        log.info("Indexing {}", source);
+                        log.debug("indexing {}", source);
                         try {
                             contentIndex.index(source);
                         } catch (Throwable ie) {

@@ -34,7 +34,7 @@ public class TopicIndexingWorker implements Worker<ResourceUpdatedMessage> {
     
                 @Override
                 public void onFailure(Throwable throwable) {
-                    log.error("Indexing error:", throwable);
+                    log.error("indexing error:", throwable);
                 }
     
                 @Override
@@ -42,14 +42,14 @@ public class TopicIndexingWorker implements Worker<ResourceUpdatedMessage> {
                     Optional<Topic> topic = results.getResources().first();
                     if (topic.isPresent()) {
                         Topic source = topic.get();
-                        log.info("Indexing {}", source);
+                        log.debug("indexing {}", source);
                         try {
                             topicIndex.index(source);
                         } catch (IndexException ie) {
                             onFailure(ie);
                         }
                     } else {
-                        log.warn("{}: failed to resolved {} ",
+                        log.warn("{}: failed to resolve {} ",
                             new Object[]{message.getMessageId(), message.getUpdatedResource()});
                     }
                 }
