@@ -117,6 +117,7 @@ CREATE TABLE equivalent_schedule (
   channel bigint,
   day timestamp,
   broadcast_id text,
+  broadcast_start timestamp,
   broadcast blob,
   graph blob,
   content_count bigint,
