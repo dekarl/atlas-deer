@@ -85,6 +85,7 @@ public class EsTopicIndex extends AbstractIdleService implements TopicIndex {
             .id(topic.getId().toString())
             .source(toEsTopic(topic).toMap());
         esClient.client().index(request).actionGet(timeOutDuration, timeOutUnit);
+        log.debug("indexed {}", topic);
     }
     
     private EsObject toEsTopic(Topic topic) {

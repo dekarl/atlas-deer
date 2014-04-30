@@ -150,7 +150,7 @@ public class EsContentIndex extends AbstractIdleService implements ContentIndex 
             
             requests.add(mainIndexRequest);
             BulkResponse resp = timeoutGet(esClient.client().bulk(requests));
-            log.info("Indexed {} ({}ms)", new Object[]{item, resp.getTookInMillis()});
+            log.debug("indexed {} ({}ms)", item, resp.getTookInMillis());
         } catch (Exception e) {
             throw new RuntimeIndexException("Error indexing " + item, e);
         }
@@ -195,7 +195,7 @@ public class EsContentIndex extends AbstractIdleService implements ContentIndex 
             .id(getDocId(container))
             .source(indexed.toMap());
         timeoutGet(esClient.client().index(request));
-        log.info("Indexed {}", new Object[]{container});
+        log.debug("indexed {}", container);
     }
 
 
