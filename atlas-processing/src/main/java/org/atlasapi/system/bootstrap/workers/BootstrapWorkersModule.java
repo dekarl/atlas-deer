@@ -29,8 +29,6 @@ import com.metabroadcast.common.queue.kafka.KafkaMessageConsumerFactory;
 @Import({AtlasPersistenceModule.class, KafkaMessagingModule.class, LegacyPersistenceModule.class})
 public class BootstrapWorkersModule {
 
-    private static final String BOOTSTRAP_WORKER_NAME = "Bootstrap";
-    
     private String consumerSystem = Configurer.get("messaging.system").get();
     private String zookeeper = Configurer.get("messaging.zookeeper").get();
     private String originSystem = Configurer.get("messaging.bootstrap.system").get();
@@ -57,7 +55,7 @@ public class BootstrapWorkersModule {
         ContentReadWriteWorker worker = new ContentReadWriteWorker(legacyResolver, persistor);
         MessageSerializer<ResourceUpdatedMessage> serializer = 
             new EntityUpdatedLegacyMessageSerializer();
-        return bootstrapQueueFactory().createConsumer(worker, serializer, contentChanges, BOOTSTRAP_WORKER_NAME)
+        return bootstrapQueueFactory().createConsumer(worker, serializer, contentChanges, "ContentBootstrap")
                 .withConsumerSystem(consumerSystem)
                 .withDefaultConsumers(consumers)
                 .withMaxConsumers(maxConsumers)
@@ -72,7 +70,7 @@ public class BootstrapWorkersModule {
         TopicReadWriteWorker worker = new TopicReadWriteWorker(legacyResolver, writer);
         MessageSerializer<ResourceUpdatedMessage> serializer = 
                 new EntityUpdatedLegacyMessageSerializer();
-        return bootstrapQueueFactory().createConsumer(worker, serializer, topicChanges, BOOTSTRAP_WORKER_NAME)
+        return bootstrapQueueFactory().createConsumer(worker, serializer, topicChanges, "TopicBootstrap")
                 .withConsumerSystem(consumerSystem)
                 .withDefaultConsumers(consumers)
                 .withMaxConsumers(maxConsumers)

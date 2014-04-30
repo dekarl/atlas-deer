@@ -28,7 +28,6 @@ import com.metabroadcast.common.queue.kafka.KafkaConsumer;
 @Import({AtlasPersistenceModule.class, KafkaMessagingModule.class})
 public class WorkersModule {
     
-    private static final String INDEXER_CONSUMER = "Indexer";
     private String contentChanges = Configurer.get("messaging.destination.content.changes").get();
     private String topicChanges = Configurer.get("messaging.destination.topics.changes").get();
     private String scheduleChanges = Configurer.get("messaging.destination.schedule.changes").get();
@@ -60,7 +59,7 @@ public class WorkersModule {
     @Lazy(true)
     public KafkaConsumer contentIndexerMessageListener() {
         return messaging.messageConsumerFactory().createConsumer(contentIndexingWorker(), 
-                serializer(ResourceUpdatedMessage.class), contentChanges, INDEXER_CONSUMER)
+                serializer(ResourceUpdatedMessage.class), contentChanges, "ContentIndexer")
                 .withDefaultConsumers(defaultIndexingConsumers)
                 .withMaxConsumers(maxIndexingConsumers)
                 .build();
@@ -80,7 +79,7 @@ public class WorkersModule {
     @Lazy(true)
     public KafkaConsumer topicIndexerMessageListener() {
         return messaging.messageConsumerFactory().createConsumer(topicIndexingWorker(), 
-                serializer(ResourceUpdatedMessage.class), topicChanges, INDEXER_CONSUMER)
+                serializer(ResourceUpdatedMessage.class), topicChanges, "TopicIndexer")
                 .withDefaultConsumers(defaultIndexingConsumers)
                 .withMaxConsumers(maxIndexingConsumers)
                 .build();
