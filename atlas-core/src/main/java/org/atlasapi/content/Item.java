@@ -172,6 +172,7 @@ public class Item extends Content {
         if (from.containerRef != null) {
             to.containerRef = from.containerRef;
         }
+        to.containerSummary = from.containerSummary;
         to.isLongForm = from.isLongForm;
         to.broadcasts = Sets.newHashSet(from.broadcasts);
         to.manifestedAs = Sets.newHashSet(from.manifestedAs);
