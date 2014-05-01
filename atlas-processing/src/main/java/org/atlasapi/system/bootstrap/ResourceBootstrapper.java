@@ -24,6 +24,7 @@ public class ResourceBootstrapper<T extends Identifiable> {
 
     private final ReentrantLock bootstrapLock = new ReentrantLock();
     private final AtomicReference<String> lastStatus = new AtomicReference<String>(NONE);
+    private final AtomicReference<Exception> lastException = new AtomicReference<Exception>();
     private volatile boolean bootstrapping;
     private volatile String destination;
 
@@ -54,6 +55,7 @@ public class ResourceBootstrapper<T extends Identifiable> {
                     if (error == null) {
                         lastStatus.set(SUCCESS);
                     } else {
+                        lastException.set(error);
                         lastStatus.set(FAIL);
                     }
                     listener.afterChange();
@@ -89,6 +91,10 @@ public class ResourceBootstrapper<T extends Identifiable> {
             log.info("Bootstrapping: {} to {}", processed, destination);
         };
         return processed;
+    }
+
+    public Exception getLastException() {
+        return lastException.get();
     }
     
 }

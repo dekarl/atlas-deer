@@ -11,6 +11,7 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.atlasapi.entity.Identifiable;
+import org.elasticsearch.common.base.Throwables;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -90,6 +91,10 @@ public class BootstrapController {
         Map<String, Object> result = Maps.newHashMap();
         result.put("bootstrapping", contentBootstrapper.isBootstrapping());
         result.put("lastStatus", contentBootstrapper.getLastStatus());
+        Exception lastException = contentBootstrapper.getLastException();
+        if (lastException != null) {
+            result.put("lastException", Throwables.getStackTraceAsString(lastException));
+        }
         if (contentBootstrapper.isBootstrapping()) {
             result.put("destination", contentBootstrapper.getDestination());
         }
