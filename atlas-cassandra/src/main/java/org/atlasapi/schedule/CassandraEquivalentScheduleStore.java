@@ -51,11 +51,11 @@ import com.datastax.driver.core.querybuilder.QueryBuilder;
 import com.datastax.driver.core.querybuilder.Update.Assignments;
 import com.google.common.base.Function;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableListMultimap;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.ImmutableSetMultimap;
 import com.google.common.collect.Iterables;
-import com.google.common.collect.ListMultimap;
 import com.google.common.collect.Lists;
+import com.google.common.collect.SetMultimap;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.protobuf.ByteString;
@@ -84,19 +84,19 @@ public final class CassandraEquivalentScheduleStore extends AbstractEquivalentSc
 
         private List<EquivalentChannelSchedule> toChannelSchedules(List<ResultSet> input,
                 Iterable<Channel> channels, final Interval interval) {
-            ListMultimap<Long, EquivalentScheduleEntry> entriesByChannel = transformToEntries(input, interval);
+            SetMultimap<Long, EquivalentScheduleEntry> entriesByChannel = transformToEntries(input, interval);
             ImmutableList.Builder<EquivalentChannelSchedule> channelSchedules = ImmutableList.builder();
             for (Channel channel : channels) {
-                List<EquivalentScheduleEntry> entries = entriesByChannel.get(channel.getId());
+                Set<EquivalentScheduleEntry> entries = entriesByChannel.get(channel.getId());
                 channelSchedules.add(new EquivalentChannelSchedule(channel, interval, entries));
             }
             return channelSchedules.build();
         }
 
-        private ListMultimap<Long, EquivalentScheduleEntry> transformToEntries(
+        private SetMultimap<Long, EquivalentScheduleEntry> transformToEntries(
                 List<ResultSet> input, Interval interval) {
             ScheduleBroadcastFilter broadcastFilter = ScheduleBroadcastFilter.valueOf(interval);
-            ImmutableListMultimap.Builder<Long, EquivalentScheduleEntry> channelEntries = ImmutableListMultimap.builder();
+            ImmutableSetMultimap.Builder<Long, EquivalentScheduleEntry> channelEntries = ImmutableSetMultimap.builder();
             for (Row row : Iterables.concat(input)) {
                 deserializeRow(channelEntries, row, broadcastFilter);
             }
@@ -104,7 +104,7 @@ public final class CassandraEquivalentScheduleStore extends AbstractEquivalentSc
         }
 
         private void deserializeRow(
-                ImmutableListMultimap.Builder<Long, EquivalentScheduleEntry> channelEntries,
+                ImmutableSetMultimap.Builder<Long, EquivalentScheduleEntry> channelEntries,
                 Row row, ScheduleBroadcastFilter broadcastFilter) {
             try {
                 Broadcast broadcast = deserialize(BROADCAST.valueFrom(row));
