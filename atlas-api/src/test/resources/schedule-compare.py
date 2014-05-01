@@ -8,6 +8,30 @@ import sys
 import json
 from tabulate import tabulate
 
+arg_parser = argparse.ArgumentParser(description='Compare Atlas schedules.')
+arg_parser.add_argument('-h1', dest='host1', default='atlas.metabroadcast.com', metavar='host1', help='Remote host for 1st schedule')
+arg_parser.add_argument('-h2', dest='host2', default='atlas.metabroadcast.com', metavar='host2', help='Remote host for 2nd schedule')
+arg_parser.add_argument('-p1', dest='port1', default=80, type=int, metavar='port1', help='Port for 1st schedule')
+arg_parser.add_argument('-p2', dest='port2', default=80, type=int, metavar='port2', help='Port for 2nd schedule')
+arg_parser.add_argument('-v1', dest='version1', default=3, type=int, choices=xrange(3, 5), help='API version for 1st schedule')
+arg_parser.add_argument('-v2', dest='version2', default=4, type=int, choices=xrange(3, 5), help='API version for 2nd schedule')
+arg_parser.add_argument('-k', dest='key', help='API key to use')
+
+arg_parser.add_argument('source', metavar='source', help='Source of the schedules to compare')
+arg_parser.add_argument('channel', metavar='channel', help='v3 ID of channel for which schedules should be compared')
+arg_parser.add_argument('start', metavar='start', help='Start time of schedules to compare')
+arg_parser.add_argument('end', metavar='end', nargs='?', help='End time of schedules to compare')
+
+args = arg_parser.parse_args();
+
+args.start = dateutil.parser.parse(args.start)
+args.end = dateutil.parser.parse(args.end) if not args.end==None else (args.start + datetime.timedelta(days=1))
+
+def color(c, val):
+  if sys.stdin.isatty():
+    return "\x1b[%sm%s\x1b[0m" % (c, val)
+  return val
+
 class Struct:
   def __init__(self, **entries):
     self.__dict__.update(entries)
@@ -47,8 +71,8 @@ class Atlas:
   def get(self, resource):
     conn = httplib.HTTPConnection(self.host, self.port)
     conn.request('GET', resource)
-    color = "32" if self.version == 3 else "33"
-    print "\x1b[%smGET http://%s:%s%s\x1b[0m" % (color, self.host, self.port, resource)
+    col = "32" if self.version == 3 else "33"
+    print color(col, "GET http://%s:%s%s" % (self.host, self.port, resource))
     resp = conn.getresponse()
     if not resp.status == 200:
       if resp.status == 400:
@@ -114,7 +138,7 @@ class Atlas:
       entries.append(SimpleEntry(se['id'],se['title'],b['id'],start,end))
     return entries
 
-headers = ['Title', 'ID', 'BID', 'Start', 'End']
+headers = ['Title', 'ID', 'BID', 'End', 'Start']
 
 def compare(left, right):
   table = [headers + ["|"] + headers[::-1]]
@@ -122,12 +146,12 @@ def compare(left, right):
   l = None
   r = None
   while len(left) > 0 and len(right) > 0:
-    l = l if l != None else left.pop()
-    r = r if r != None else right.pop()
-    if (l.start < r.start):
+    l = l if l != None else left.pop(0)
+    r = r if r != None else right.pop(0)
+    if (l.start > r.start):
       table.append(mismatch(None, r))
       r = None
-    if (l.start > r.start):
+    if (l.start < r.start):
       table.append(mismatch(l, None))
       l = None
     else:
@@ -142,34 +166,22 @@ def compare(left, right):
       table.append(mismatch(None, r))
   print tabulate(table, headers="firstrow")
 
-def matching_start(l, r):
-  return l.as_list()[::-1] +["|"]+ r.as_list()
+highlight = lambda li: [color("31", v) if i in range(2,4) else v for (i,v) in enumerate(li)]
 
-red = lambda x : "\x1b[41m%s\x1b[0m" % (' ' * x)
+def matching_start(l, r):
+  left = l.as_list()
+  right = r.as_list()
+  if (l.id != r.id or l.bid != r.bid):
+    left = highlight(left)
+    right = highlight(right)
+  return left[::-1] +["|"]+ right
+
+red = lambda x : color("41",' ' * x)
 missing_row = [red(8),red(8), red(11), red(6), red(15)]
 
 def mismatch(l, r):
   vals_or_missing = lambda e: missing_row if e == None else e.as_list()
   return vals_or_missing(l)[::-1] +["|"]+ vals_or_missing(r)
-
-arg_parser = argparse.ArgumentParser(description='Compare Atlas schedules.')
-arg_parser.add_argument('-h1', dest='host1', default='atlas.metabroadcast.com', metavar='host1', help='Remote host for 1st schedule')
-arg_parser.add_argument('-h2', dest='host2', default='atlas.metabroadcast.com', metavar='host2', help='Remote host for 2nd schedule')
-arg_parser.add_argument('-p1', dest='port1', default=80, type=int, metavar='port1', help='Port for 1st schedule')
-arg_parser.add_argument('-p2', dest='port2', default=80, type=int, metavar='port2', help='Port for 2nd schedule')
-arg_parser.add_argument('-v1', dest='version1', default=3, type=int, choices=xrange(3, 5), help='API version for 1st schedule')
-arg_parser.add_argument('-v2', dest='version2', default=4, type=int, choices=xrange(3, 5), help='API version for 2nd schedule')
-arg_parser.add_argument('-k', dest='key', help='API key to use')
-
-arg_parser.add_argument('source', metavar='source', help='Source of the schedules to compare')
-arg_parser.add_argument('channel', metavar='channel', help='v3 ID of channel for which schedules should be compared')
-arg_parser.add_argument('start', metavar='start', help='Start time of schedules to compare')
-arg_parser.add_argument('end', metavar='end', nargs='?', help='End time of schedules to compare')
-
-args = arg_parser.parse_args();
-
-args.start = dateutil.parser.parse(args.start)
-args.end = dateutil.parser.parse(args.end) if not args.end==None else (args.start + datetime.timedelta(days=1))
 
 print "identifying channel '%s'" % args.channel
 
@@ -183,7 +195,7 @@ channelHost = 'atlas.metabroadcast.com'
 channelResource = '/3.0/channels/%s.json' % args.channel
 channelConn = httplib.HTTPConnection(channelHost)
 channelConn.request('GET', channelResource)
-print "\x1b[35mGET http://%s%s\x1b[0m" % (channelHost, channelResource)
+print color("35","GET http://%s%s" % (channelHost, channelResource))
 channelResp = channelConn.getresponse()
 if not channelResp.status == 200:
   if channelResp.status == 400:
