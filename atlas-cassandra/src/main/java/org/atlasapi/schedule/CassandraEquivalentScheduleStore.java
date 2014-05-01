@@ -206,7 +206,7 @@ public final class CassandraEquivalentScheduleStore extends AbstractEquivalentSc
     }
 
     private Date[] daysIn(Interval interval) {
-        return Iterables.toArray(Iterables.transform(new IntervalDates(interval), 
+        return Iterables.toArray(Iterables.transform(new ScheduleIntervalDates(interval), 
             new Function<LocalDate, Date>() {
                 @Override
                 public Date apply(LocalDate input) {

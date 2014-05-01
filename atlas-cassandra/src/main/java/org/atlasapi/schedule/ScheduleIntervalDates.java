@@ -4,16 +4,21 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.util.Iterator;
 
+import org.joda.time.DateTime;
 import org.joda.time.Interval;
 import org.joda.time.LocalDate;
 
 import com.google.common.collect.AbstractIterator;
 
-public class IntervalDates implements Iterable<LocalDate> {
+/**
+ * Provides the relevant {@link LocalDate}s for an {@link Interval} in terms of a schedule. 
+ *
+ */
+public class ScheduleIntervalDates implements Iterable<LocalDate> {
 
     private Interval interval;
 
-    public IntervalDates(Interval interval) {
+    public ScheduleIntervalDates(Interval interval) {
         this.interval = checkNotNull(interval);
     }
     
@@ -22,7 +27,18 @@ public class IntervalDates implements Iterable<LocalDate> {
         return new AbstractIterator<LocalDate>() {
             
             private LocalDate next = interval.getStart().toLocalDate();
-            private final LocalDate end = interval.getEnd().toLocalDate();
+            private final LocalDate end = computeEnd(interval);
+            
+            private LocalDate computeEnd(Interval interval) {
+                DateTime end = interval.getEnd();
+                LocalDate endDay = end.toLocalDate();
+                // if the end is at midnight and the interval is not empty then
+                // the final day should not be included.
+                if (end.getMillisOfDay() == 0 && !interval.getStart().equals(interval.getEnd())) {
+                    return endDay.minusDays(1);
+                }
+                return endDay;
+            }
             
             @Override
             protected LocalDate computeNext() {
@@ -34,6 +50,7 @@ public class IntervalDates implements Iterable<LocalDate> {
                 }
                 return next;
             }
+
         };
     }
 

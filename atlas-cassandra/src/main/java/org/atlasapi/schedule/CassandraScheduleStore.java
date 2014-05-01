@@ -269,7 +269,7 @@ public class CassandraScheduleStore extends AbstractScheduleStore {
             Interval interval) throws WriteException {
         Rows<String, String> rows = Futures.get(scheduleRows(rowKeys(channel, interval, source)), 1, TimeUnit.MINUTES, WriteException.class);
         List<ChannelSchedule> channelSchedules = Lists.newArrayList();
-        for (LocalDate date : new IntervalDates(interval)) {
+        for (LocalDate date : new ScheduleIntervalDates(interval)) {
             DateTime start = date.toDateTimeAtStartOfDay(DateTimeZones.UTC);
             Interval dayInterval = new Interval(start, start.plusDays(1));
             channelSchedules.add(schedule(channel, dayInterval, rows.getRow(keyFor(source, channel, date))));
@@ -290,7 +290,7 @@ public class CassandraScheduleStore extends AbstractScheduleStore {
     }
 
     private Iterable<String> rowKeys(final Channel channel, Interval interval, final Publisher source) {
-        return Iterables.transform(new IntervalDates(interval), new Function<LocalDate, String>() {
+        return Iterables.transform(new ScheduleIntervalDates(interval), new Function<LocalDate, String>() {
             @Override
             public String apply(LocalDate input) {
                 return keyFor(source, channel, input);
