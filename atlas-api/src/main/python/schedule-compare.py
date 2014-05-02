@@ -171,9 +171,12 @@ highlight = lambda li: [color("31", v) if i in range(2,4) else v for (i,v) in en
 def matching_start(l, r):
   left = l.as_list()
   right = r.as_list()
-  if (l.id != r.id or l.bid != r.bid):
-    left = highlight(left)
-    right = highlight(right)
+  if (l.bid != r.bid):
+    left[2] = color('31',left[2])
+    right[2] = color('31',right[2])
+  if (l.id != r.id):
+    left[3] = color('45',left[3])
+    right[3] = color('45',right[3])
   return left[::-1] +["|"]+ right
 
 red = lambda x : color("41",' ' * x)
