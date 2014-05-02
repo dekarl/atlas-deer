@@ -33,6 +33,7 @@ import com.google.common.base.Function;
 import com.google.common.base.Objects;
 import com.google.common.base.Predicate;
 import com.google.common.collect.Ordering;
+import com.metabroadcast.common.time.IntervalOrdering;
 
 /**
  * A time and channel at which a Version is/was receivable.
@@ -380,7 +381,8 @@ public class Broadcast extends Identified {
     private static final Ordering<Broadcast> START_TIME_ORDERING = Ordering.from(new Comparator<Broadcast>() {
         @Override
         public int compare(Broadcast o1, Broadcast o2) {
-            return o1.getTransmissionTime().compareTo(o2.getTransmissionTime());
+            return IntervalOrdering.byStartShortestFirst()
+                    .compare(o1.transmissionInterval, o2.transmissionInterval);
         }
     });
 
