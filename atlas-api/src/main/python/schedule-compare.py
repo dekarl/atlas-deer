@@ -28,9 +28,15 @@ args.start = dateutil.parser.parse(args.start)
 args.end = dateutil.parser.parse(args.end) if not args.end==None else (args.start + datetime.timedelta(days=1))
 
 def color(c, val):
-  if sys.stdin.isatty():
+  if sys.stdout.isatty():
     return "\x1b[%sm%s\x1b[0m" % (c, val)
   return val
+
+def days(start,end):
+  cur = start
+  while cur <= end:
+    yield cur
+    cur = cur + datetime.timedelta(1)
 
 class Struct:
   def __init__(self, **entries):
@@ -140,22 +146,26 @@ class Atlas:
 
 headers = ['Title', 'ID', 'BID', 'End', 'Start']
 
-def compare(left, right):
+def compare(left, right, always_print=True):
   table = [headers + ["|"] + headers[::-1]]
-  longer = max(len(left),len(right))
+  difference = False
   l = None
   r = None
   while len(left) > 0 and len(right) > 0:
     l = l if l != None else left.pop(0)
     r = r if r != None else right.pop(0)
     if (l.start > r.start):
+      difference = True
       table.append(mismatch(None, r))
       r = None
-    if (l.start < r.start):
+    elif (l.start < r.start):
+      difference = True
       table.append(mismatch(l, None))
       l = None
     else:
-      table.append(matching_start(l, r))
+      row, diff = matching_start(l, r)
+      difference = difference or diff
+      table.append(row)
       l = None
       r = None
   if len(left) > 0:
@@ -164,20 +174,25 @@ def compare(left, right):
   else :
     for r in right:
       table.append(mismatch(None, r))
-  print tabulate(table, headers="firstrow")
+  if always_print or difference:
+    print tabulate(table, headers="firstrow")
+  else:
+    print "no differences"
 
 highlight = lambda li: [color("31", v) if i in range(2,4) else v for (i,v) in enumerate(li)]
 
 def matching_start(l, r):
+  diff = False
   left = l.as_list()
   right = r.as_list()
   if (l.bid != r.bid):
     left[2] = color('31',left[2])
     right[2] = color('31',right[2])
+    diff = True
   if (l.id != r.id):
     left[3] = color('45',left[3])
     right[3] = color('45',right[3])
-  return left[::-1] +["|"]+ right
+  return (left[::-1] +["|"]+ right, diff)
 
 red = lambda x : color("41",' ' * x)
 missing_row = [red(8),red(8), red(11), red(6), red(15)]
@@ -218,7 +233,16 @@ print "comparing schedules on '%s' between %s and %s" % (channel.title, args.sta
 atlas1 = Atlas(args.host1, args.port1, args.version1, args.key)
 atlas2 = Atlas(args.host2, args.port2, args.version2, args.key)
 
-schedule1 = atlas1.get_schedule(args.source, channel, args.start, args.end)
-schedule2 = atlas2.get_schedule(args.source, channel, args.start, args.end)
+source = args.source
+start = args.start
+end = args.end
 
-compare(schedule1, schedule2)
+if (end - start <= datetime.timedelta(1)):
+  schedule1 = atlas1.get_schedule(source, channel, start, end)
+  schedule2 = atlas2.get_schedule(source, channel, start, end)
+  compare(schedule1, schedule2)
+else:
+  for day in days(start, end):
+    schedule1 = atlas1.get_schedule(source, channel, day, day+datetime.timedelta(1))
+    schedule2 = atlas2.get_schedule(source, channel, day, day+datetime.timedelta(1))
+    compare(schedule1, schedule2, False)
