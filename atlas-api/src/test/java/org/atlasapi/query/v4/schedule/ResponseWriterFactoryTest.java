@@ -6,8 +6,8 @@ import org.atlasapi.output.NotAcceptableException;
 import org.atlasapi.output.ResponseWriter;
 import org.atlasapi.output.ResponseWriterFactory;
 import org.atlasapi.output.UnsupportedFormatException;
-import org.testng.annotations.BeforeMethod;
-import org.testng.annotations.Test;
+import org.junit.Before;
+import org.junit.Test;
 
 import com.google.common.net.HttpHeaders;
 import com.metabroadcast.common.servlet.StubHttpServletRequest;
@@ -21,7 +21,7 @@ public class ResponseWriterFactoryTest {
     private StubHttpServletResponse response;
     private StubHttpServletRequest request;
     
-    @BeforeMethod
+    @Before
     public void setup() {
         request = new StubHttpServletRequest();
         response = new StubHttpServletResponse();
@@ -50,7 +50,7 @@ public class ResponseWriterFactoryTest {
         
     }
     
-    @Test(expectedExceptions=NotAcceptableException.class)
+    @Test(expected=NotAcceptableException.class)
     public void testNotAcceptableForNoExtensionOrAccept() throws Exception {
         
         request.withRequestUri("/extension/is/missing");
@@ -59,7 +59,7 @@ public class ResponseWriterFactoryTest {
         System.out.println("blah " + writerFor);
     }
 
-    @Test(expectedExceptions=NotAcceptableException.class)
+    @Test(expected=NotAcceptableException.class)
     public void testWritesNotAcceptableForUnknownAcceptHeader() throws Exception {
         
         request.withRequestUri("/extension/is/missing");
@@ -69,7 +69,7 @@ public class ResponseWriterFactoryTest {
         
     }
 
-    @Test(expectedExceptions=UnsupportedFormatException.class)
+    @Test(expected=UnsupportedFormatException.class)
     public void testWritesNotFoundForUnknownExtension() throws Exception {
         
         request.withRequestUri("/extension/is.unknown");

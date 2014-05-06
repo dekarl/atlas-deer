@@ -26,7 +26,7 @@ import org.atlasapi.query.common.QueryResult;
 import org.atlasapi.schedule.ChannelSchedule;
 import org.joda.time.DateTime;
 import org.joda.time.Interval;
-import org.testng.annotations.Test;
+import org.junit.Test;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableList;

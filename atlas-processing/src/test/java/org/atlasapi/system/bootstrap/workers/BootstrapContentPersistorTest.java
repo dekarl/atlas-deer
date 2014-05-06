@@ -18,18 +18,18 @@ import org.atlasapi.schedule.ScheduleHierarchy;
 import org.atlasapi.schedule.ScheduleWriter;
 import org.joda.time.DateTime;
 import org.joda.time.Interval;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.RunWith;
 import org.mockito.Mock;
-import org.mockito.testng.MockitoTestNGListener;
-import org.testng.annotations.BeforeClass;
-import org.testng.annotations.Listeners;
-import org.testng.annotations.Test;
+import org.mockito.runners.MockitoJUnitRunner;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.util.concurrent.Futures;
 import com.metabroadcast.common.base.Maybe;
 import com.metabroadcast.common.time.DateTimeZones;
 
-@Listeners(MockitoTestNGListener.class)
+@RunWith(MockitoJUnitRunner.class)
 public class BootstrapContentPersistorTest {
 
     @Mock private ContentStore contentStore;
@@ -38,12 +38,12 @@ public class BootstrapContentPersistorTest {
     
     private BootstrapContentPersistor persistor;
     
-    @BeforeClass
+    @Before
     public void setup() {
         persistor = new BootstrapContentPersistor(contentStore, scheduleWriter, channelResolver);
     }
     
-    @Test(expectedExceptions=MissingResourceException.class)
+    @Test(expected=MissingResourceException.class)
     public void testThrowsUnwrappedWriteExceptionFromContentStore() throws WriteException {
         
         Content content = new Item(Id.valueOf(1), Publisher.METABROADCAST);
@@ -54,7 +54,7 @@ public class BootstrapContentPersistorTest {
         
     }
 
-    @Test(expectedExceptions=MissingResourceException.class)
+    @Test(expected=MissingResourceException.class)
     public void testThrowsUnwrappedWriteExceptionFromScheduleWriter() throws WriteException {
         
         Channel channel = Channel.builder().withUri("channel").build();

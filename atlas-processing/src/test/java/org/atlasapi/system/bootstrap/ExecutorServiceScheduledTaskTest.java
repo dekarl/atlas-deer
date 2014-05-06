@@ -10,7 +10,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import org.testng.annotations.Test;
+import org.junit.Test;
 
 import com.google.common.base.Supplier;
 import com.google.common.collect.ImmutableList;

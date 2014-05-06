@@ -1,6 +1,5 @@
 package org.atlasapi.entity;
 
-import org.testng.annotations.Test;
 import java.util.concurrent.Executors;
 
 import com.google.common.collect.ImmutableMap;
@@ -26,11 +25,10 @@ public class CassandraHelper {
     private static int connectionTimeout = 60000;
     private static int port = 9160;
 
-    @Test
     public static final AstyanaxContext<Keyspace> testCassandraContext() {
         return new AstyanaxContext.Builder()
             .forCluster("Atlas")
-            .forKeyspace("Atlas_Testing")
+            .forKeyspace("atlas_testing")
             .withAstyanaxConfiguration(new AstyanaxConfigurationImpl()
                 .setDiscoveryType(NodeDiscoveryType.RING_DESCRIBE)
                 .setConnectionPoolType(ConnectionPoolType.ROUND_ROBIN)
@@ -40,7 +38,7 @@ public class CassandraHelper {
                     .build()
                 ))
             )
-            .withConnectionPoolConfiguration(new ConnectionPoolConfigurationImpl("Altas")
+            .withConnectionPoolConfiguration(new ConnectionPoolConfigurationImpl("Atlas")
                 .setPort(port)
                 .setMaxBlockedThreadsPerHost(clientThreads)
                 .setMaxConnsPerHost(clientThreads)

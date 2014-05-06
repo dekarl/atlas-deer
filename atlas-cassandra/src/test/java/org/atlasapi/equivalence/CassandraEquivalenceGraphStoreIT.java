@@ -3,9 +3,8 @@ package org.atlasapi.equivalence;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
-import static org.testng.AssertJUnit.assertTrue;
+import static org.junit.Assert.assertTrue;
 
-import java.io.IOException;
 import java.util.Set;
 
 import org.atlasapi.DatastaxCassandraService;
@@ -16,31 +15,31 @@ import org.atlasapi.entity.ResourceRef;
 import org.atlasapi.entity.util.ResolveException;
 import org.atlasapi.media.entity.Publisher;
 import org.joda.time.DateTime;
-import org.testng.annotations.AfterClass;
-import org.testng.annotations.AfterMethod;
-import org.testng.annotations.BeforeClass;
-import org.testng.annotations.Test;
+import org.junit.After;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
+import org.junit.Test;
 
 import com.datastax.driver.core.ConsistencyLevel;
 import com.datastax.driver.core.Session;
+import com.datastax.driver.core.exceptions.InvalidQueryException;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.metabroadcast.common.collect.OptionalMap;
-import com.metabroadcast.common.queue.Message;
 import com.metabroadcast.common.queue.MessageSender;
 import com.metabroadcast.common.time.DateTimeZones;
 
 public class CassandraEquivalenceGraphStoreIT {
 
-    private DatastaxCassandraService service
+    private static DatastaxCassandraService service
         = new DatastaxCassandraService(ImmutableList.of("localhost"));
-    private CassandraEquivalenceGraphStore store;
-    private Session session;
+    private static CassandraEquivalenceGraphStore store;
+    private static Session session;
     
-    private MessageSender<EquivalenceGraphUpdateMessage> messageSender = new MessageSender<EquivalenceGraphUpdateMessage>() {
+    private static MessageSender<EquivalenceGraphUpdateMessage> messageSender = new MessageSender<EquivalenceGraphUpdateMessage>() {
         @Override
         public void sendMessage(EquivalenceGraphUpdateMessage message) {
             //no-op;
@@ -53,7 +52,7 @@ public class CassandraEquivalenceGraphStoreIT {
     };
 
     @BeforeClass
-    public void setUp() {
+    public static void setUp() {
         bbcItem.setThisOrChildLastUpdated(new DateTime(DateTimeZones.UTC));
         paItem.setThisOrChildLastUpdated(new DateTime(DateTimeZones.UTC));
         itvItem.setThisOrChildLastUpdated(new DateTime(DateTimeZones.UTC));
@@ -62,6 +61,7 @@ public class CassandraEquivalenceGraphStoreIT {
         
         service.startAsync().awaitRunning();
         session = service.getCluster().connect();
+        tearDown();
         session.execute("CREATE KEYSPACE atlas_testing WITH replication = {'class': 'SimpleStrategy', 'replication_factor':1};");
         session = service.getSession("atlas_testing");
         session.execute(
@@ -76,22 +76,25 @@ public class CassandraEquivalenceGraphStoreIT {
     }
     
     @AfterClass
-    public void tearDown() {
-        session.execute("DROP KEYSPACE atlas_testing");
+    public static void tearDown() {
+        try {
+            session.execute("DROP KEYSPACE atlas_testing");
+        } catch (InvalidQueryException iqe){
+        }
     }
     
-    @AfterMethod
+    @After
     public void truncate() {
         session.execute("TRUNCATE equivalence_graph_index");
         session.execute("TRUNCATE equivalence_graph");
     }
     
-    private final Item bbcItem = new Item(Id.valueOf(1), Publisher.BBC);
-    private final Item paItem = new Item(Id.valueOf(2), Publisher.PA);
-    private final Item itvItem = new Item(Id.valueOf(3), Publisher.ITV);
-    private final Item c4Item = new Item(Id.valueOf(4), Publisher.C4);
-    private final Item fiveItem = new Item(Id.valueOf(5), Publisher.FIVE);
-    
+    private static final Item bbcItem = new Item(Id.valueOf(1), Publisher.BBC);
+    private static final Item paItem = new Item(Id.valueOf(2), Publisher.PA);
+    private static final Item itvItem = new Item(Id.valueOf(3), Publisher.ITV);
+    private static final Item c4Item = new Item(Id.valueOf(4), Publisher.C4);
+    private static final Item fiveItem = new Item(Id.valueOf(5), Publisher.FIVE);
+             
     @Test
     public void testUpdatingEquivalences() throws Exception {
 

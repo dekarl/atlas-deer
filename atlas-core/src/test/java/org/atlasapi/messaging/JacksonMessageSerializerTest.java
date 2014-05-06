@@ -11,7 +11,7 @@ import org.atlasapi.entity.ResourceRef;
 import org.atlasapi.media.entity.Publisher;
 import org.atlasapi.topic.Topic;
 import org.joda.time.DateTime;
-import org.testng.annotations.Test;
+import org.junit.Test;
 
 import com.google.common.collect.ImmutableSet;
 import com.metabroadcast.common.time.DateTimeZones;

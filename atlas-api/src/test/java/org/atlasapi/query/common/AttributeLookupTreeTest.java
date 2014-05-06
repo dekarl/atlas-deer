@@ -7,7 +7,7 @@ import static org.junit.Assert.*;
 import java.util.Set;
 
 import org.atlasapi.criteria.attribute.Attributes;
-import org.testng.annotations.Test;
+import org.junit.Test;
 
 
 public class AttributeLookupTreeTest {

@@ -7,7 +7,7 @@ import org.atlasapi.entity.ResourceType;
 import org.atlasapi.messaging.ResourceUpdatedMessage;
 import org.atlasapi.messaging.v3.EntityUpdatedMessage;
 import org.atlasapi.serialization.json.JsonFactory;
-import org.testng.annotations.Test;
+import org.junit.Test;
 
 import com.metabroadcast.common.queue.MessageSerializer;
 import com.metabroadcast.common.time.Timestamp;

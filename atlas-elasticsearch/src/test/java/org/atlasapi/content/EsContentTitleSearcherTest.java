@@ -1,7 +1,7 @@
 package org.atlasapi.content;
 
 import static org.atlasapi.util.ElasticSearchHelper.refresh;
-import static org.testng.AssertJUnit.assertEquals;
+import static org.junit.Assert.assertEquals;
 
 import java.util.Arrays;
 
@@ -17,9 +17,9 @@ import org.atlasapi.search.SearchResults;
 import org.atlasapi.util.ElasticSearchHelper;
 import org.elasticsearch.node.Node;
 import org.joda.time.DateTime;
-import org.testng.annotations.AfterMethod;
-import org.testng.annotations.BeforeClass;
-import org.testng.annotations.Test;
+import org.junit.After;
+import org.junit.BeforeClass;
+import org.junit.Test;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.common.util.concurrent.ListenableFuture;
@@ -38,7 +38,7 @@ public class EsContentTitleSearcherTest {
         root.setLevel(Level.WARN);
     }
 
-    @AfterMethod
+    @After
     public void after() throws Exception {
         ElasticSearchHelper.clearIndices(esClient);
         esClient.close();

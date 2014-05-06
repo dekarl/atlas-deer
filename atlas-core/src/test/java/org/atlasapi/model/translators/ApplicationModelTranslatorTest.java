@@ -1,8 +1,8 @@
 package org.atlasapi.model.translators;
 
-import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.assertTrue;
-import org.testng.annotations.Test;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+import org.junit.Test;
 import java.util.List;
 import java.util.Map;
 

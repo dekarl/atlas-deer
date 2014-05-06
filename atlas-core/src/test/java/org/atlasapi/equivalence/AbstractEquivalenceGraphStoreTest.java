@@ -8,9 +8,9 @@ import static org.hamcrest.Matchers.hasKey;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;
 import static org.junit.Assert.assertThat;
-import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.assertFalse;
-import static org.testng.AssertJUnit.assertTrue;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 import java.util.Map;
 import java.util.Set;
@@ -37,9 +37,9 @@ import org.hamcrest.Matcher;
 import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.testng.annotations.AfterMethod;
-import org.testng.annotations.BeforeMethod;
-import org.testng.annotations.Test;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
 
 import com.google.common.base.Function;
 import com.google.common.base.Functions;
@@ -125,7 +125,7 @@ public class AbstractEquivalenceGraphStoreTest {
     
     private final InMemoryEquivalenceGraphStore store = new InMemoryEquivalenceGraphStore();
     
-    @BeforeMethod
+    @Before
     public void setup() {
         bbcItem.setThisOrChildLastUpdated(new DateTime(DateTimeZones.UTC));
         paItem.setThisOrChildLastUpdated(new DateTime(DateTimeZones.UTC));
@@ -134,7 +134,7 @@ public class AbstractEquivalenceGraphStoreTest {
         fiveItem.setThisOrChildLastUpdated(new DateTime(DateTimeZones.UTC));
     }
     
-    @AfterMethod
+    @After
     public void tearDown() {
         store.store.clear();
     }

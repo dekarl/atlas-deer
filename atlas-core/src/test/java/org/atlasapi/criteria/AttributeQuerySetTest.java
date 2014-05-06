@@ -1,7 +1,7 @@
 package org.atlasapi.criteria;
 
 import static org.junit.Assert.assertThat;
-import org.testng.annotations.Test;
+import org.junit.Test;
 import static org.hamcrest.Matchers.allOf;
 import static org.hamcrest.Matchers.is;
 import java.util.List;

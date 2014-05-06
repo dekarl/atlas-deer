@@ -4,7 +4,7 @@ import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
 
 import org.atlasapi.serialization.protobuf.ContentProtos;
-import org.testng.annotations.Test;
+import org.junit.Test;
 
 import com.google.protobuf.InvalidProtocolBufferException;
 

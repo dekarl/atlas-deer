@@ -13,7 +13,7 @@ import org.atlasapi.messaging.EquivalenceAssertionMessage;
 import org.atlasapi.messaging.v3.ContentEquivalenceAssertionMessage;
 import org.atlasapi.messaging.v3.ContentEquivalenceAssertionMessage.AdjacentRef;
 import org.atlasapi.serialization.json.JsonFactory;
-import org.testng.annotations.Test;
+import org.junit.Test;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;

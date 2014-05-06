@@ -1,8 +1,8 @@
 package org.atlasapi.content;
 
-import static org.testng.AssertJUnit.assertNull;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
-import org.testng.annotations.Test;
+import org.junit.Test;
 import static org.hamcrest.Matchers.is;
 
 

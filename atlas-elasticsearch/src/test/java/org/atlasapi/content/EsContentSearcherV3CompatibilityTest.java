@@ -5,7 +5,7 @@ import static org.atlasapi.content.ComplexItemTestDataBuilder.complexItem;
 import static org.atlasapi.util.ElasticSearchHelper.refresh;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
-import static org.testng.AssertJUnit.assertFalse;
+import static org.junit.Assert.assertFalse;
 
 import java.util.Arrays;
 import java.util.List;
@@ -26,12 +26,13 @@ import org.elasticsearch.action.count.CountRequestBuilder;
 import org.elasticsearch.node.Node;
 import org.joda.time.DateTime;
 import org.joda.time.Duration;
-import org.testng.Assert;
-import org.testng.annotations.AfterClass;
-import org.testng.annotations.AfterMethod;
-import org.testng.annotations.BeforeClass;
-import org.testng.annotations.BeforeMethod;
-import org.testng.annotations.Test;
+import org.junit.Assert;
+import org.junit.AfterClass;
+import org.junit.After;
+import org.junit.BeforeClass;
+import org.junit.Before;
+import org.junit.Ignore;
+import org.junit.Test;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
@@ -40,9 +41,10 @@ import com.metabroadcast.common.query.Selection;
 import com.metabroadcast.common.time.DateTimeZones;
 import com.metabroadcast.common.time.SystemClock;
 
+@Ignore
 public class EsContentSearcherV3CompatibilityTest {
     
-    private final Node esClient = ElasticSearchHelper.testNode();
+    private static final Node esClient = ElasticSearchHelper.testNode();
     private EsContentIndex indexer;
     private EsContentTitleSearcher searcher = new EsContentTitleSearcher(esClient);
     
@@ -55,11 +57,11 @@ public class EsContentSearcherV3CompatibilityTest {
     }
     
     @AfterClass
-    public void after() {
+    public static void after() {
         esClient.close();
     }
     
-    @BeforeMethod
+    @Before
     public void setUp() throws Exception {
         ElasticSearchHelper.refresh(esClient);
         indexer = new EsContentIndex(esClient, EsSchema.CONTENT_INDEX, 60000);
@@ -90,7 +92,7 @@ public class EsContentSearcherV3CompatibilityTest {
             .execute().get().getCount();
     }
 
-    @AfterMethod
+    @After
     public void tearDown() throws Exception {
         ElasticSearchHelper.clearIndices(esClient);
     }
@@ -240,7 +242,8 @@ public class EsContentSearcherV3CompatibilityTest {
         check(searcher.search(specializedTitle("aprentice", Specialization.RADIO)).get(), theApprentice);
     }
 
-    @Test(enabled = false)
+    @Test
+    @Ignore
     public void testLimitingToPublishers() throws Exception {
         
         Brand eastenders = brand("/eastenders", "Eastenders");
@@ -282,7 +285,8 @@ public class EsContentSearcherV3CompatibilityTest {
         check(searcher.search(title("l")).get());
     }
 
-    @Test(enabled = false)
+    @Test
+    @Ignore
     public void testLimitAndOffset() throws Exception {
         Brand eastendersWeddings = brand("/eastenders-weddings", "Eastenders Weddings");
         Item eastendersWeddingsItem = complexItem().withBrand(eastendersWeddings).withBroadcasts(broadcast().build()).build();
@@ -314,7 +318,8 @@ public class EsContentSearcherV3CompatibilityTest {
         //check(searcher.search(currentWeighted("spook")).get(), spookyTheCat, spooks);
     }
      
-    @Test(enabled = false)
+    @Test
+    @Ignore
     public void testBrandWithNoChildrenIsPickedWithTitleWeighting() throws Exception {
         Item spookyTheCat = complexItem().withTitle("Spooky the Cat").withUri("/item/spookythecat").withBroadcasts(broadcast().build()).build();
         Item spooks = complexItem().withTitle("Spooks").withUri("/item/spooks")
@@ -331,7 +336,8 @@ public class EsContentSearcherV3CompatibilityTest {
         check(searcher.search(title("spook")).get(), spookie, spookyTheCat, spooks);
     }
     
-    @Test(enabled = false)
+    @Test
+    @Ignore
     public void testBrandWithNoChildrenIsNotPickedWithBroadcastWeighting() throws Exception {
         Item spookyTheCat = complexItem().withTitle("Spooky the Cat").withUri("/item/spookythecat")
                 .withBroadcasts(

@@ -27,12 +27,11 @@ import org.atlasapi.query.common.Resource;
 import org.joda.time.DateTime;
 import org.joda.time.Duration;
 import org.joda.time.Interval;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.RunWith;
 import org.mockito.Mock;
-import org.mockito.testng.MockitoTestNGListener;
-import org.testng.annotations.BeforeClass;
-import org.testng.annotations.BeforeMethod;
-import org.testng.annotations.Listeners;
-import org.testng.annotations.Test;
+import org.mockito.runners.MockitoJUnitRunner;
 
 import com.google.common.base.Function;
 import com.google.common.base.Joiner;
@@ -45,7 +44,7 @@ import com.metabroadcast.common.servlet.StubHttpServletRequest;
 import com.metabroadcast.common.time.DateTimeZones;
 import com.metabroadcast.common.time.TimeMachine;
 
-@Listeners(MockitoTestNGListener.class)
+@RunWith(MockitoJUnitRunner.class)
 public class ScheduleRequestParserTest {
 
     @Mock private ApplicationSourcesFetcher applicationFetcher;
@@ -60,8 +59,8 @@ public class ScheduleRequestParserTest {
     private final ApplicationSources sources = ApplicationSources.defaults()
                 .copyWithChangedReadableSourceStatus(BBC, SourceStatus.AVAILABLE_ENABLED);
     
-    @BeforeClass
-    public void setup() throws Exception {
+    @Before
+    public void before() throws Exception {
         builder  = new ScheduleRequestParser(
                 applicationFetcher,
                 Duration.standardDays(1),
@@ -69,10 +68,7 @@ public class ScheduleRequestParserTest {
             );
         channel1.setId(1234L);
         channel2.setId(1235L);
-    }
-    
-    @BeforeMethod
-    public void before() throws Exception {
+        
         when(annotationsExtractor.extractFromRequest(any(HttpServletRequest.class)))
             .thenReturn(ActiveAnnotations.standard());
         when(applicationFetcher.sourcesFor(any(HttpServletRequest.class)))
@@ -123,7 +119,7 @@ public class ScheduleRequestParserTest {
         assertThat(query.getContext().getApplicationSources(), is(sources));
     }
     
-    @Test(expectedExceptions=IllegalArgumentException.class)
+    @Test(expected=IllegalArgumentException.class)
     public void testDoesntAcceptQueryDurationGreaterThanMax() throws Exception {
         
         DateTime from = new DateTime(DateTimeZones.UTC);
@@ -136,7 +132,7 @@ public class ScheduleRequestParserTest {
 
     }
 
-    @Test(expectedExceptions=IllegalArgumentException.class)
+    @Test(expected=IllegalArgumentException.class)
     public void testDoesntAcceptDisabledPublisherOutOfOpenRange() throws Exception {
         
         DateTime from = new DateTime(2012,12,06,10,00,00,000,DateTimeZones.UTC);
@@ -175,7 +171,7 @@ public class ScheduleRequestParserTest {
         
     }
 
-    @Test(expectedExceptions=IllegalArgumentException.class)
+    @Test(expected=IllegalArgumentException.class)
     public void testDoesntAcceptDisabledPublisherBeyondEndOfRange() throws Exception {
         
         DateTime from = new DateTime(2012,12,22,00,00,00,000,DateTimeZones.UTC);

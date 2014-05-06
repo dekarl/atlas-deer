@@ -13,7 +13,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.atlasapi.application.users.User;
 import org.atlasapi.entity.Id;
-import org.testng.annotations.Test;
+import org.junit.Test;
 
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableSet;

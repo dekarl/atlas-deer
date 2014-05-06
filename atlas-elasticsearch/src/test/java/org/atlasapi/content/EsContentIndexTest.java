@@ -18,11 +18,11 @@ import org.atlasapi.entity.Id;
 import org.atlasapi.media.entity.Publisher;
 import org.atlasapi.util.ElasticSearchHelper;
 import org.elasticsearch.node.Node;
-import org.testng.annotations.AfterClass;
-import org.testng.annotations.AfterMethod;
-import org.testng.annotations.BeforeClass;
-import org.testng.annotations.BeforeMethod;
-import org.testng.annotations.Test;
+import org.junit.AfterClass;
+import org.junit.After;
+import org.junit.BeforeClass;
+import org.junit.Before;
+import org.junit.Test;
 
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
@@ -31,7 +31,7 @@ import com.metabroadcast.common.query.Selection;
 
 public class EsContentIndexTest {
 
-    private final Node esClient = ElasticSearchHelper.testNode();
+    private static final Node esClient = ElasticSearchHelper.testNode();
     
     private EsContentIndex index;
 
@@ -44,17 +44,17 @@ public class EsContentIndexTest {
     }
     
     @AfterClass
-    public void after() throws Exception {
+    public static void after() throws Exception {
         esClient.close();
     }
 
-    @BeforeMethod
+    @Before
     public void setup() {
         index = new EsContentIndex(esClient, EsSchema.CONTENT_INDEX, 60000);
         index.startAsync().awaitRunning();
     }
     
-    @AfterMethod
+    @After
     public void teardown() throws Exception {
         ElasticSearchHelper.clearIndices(esClient);
         ElasticSearchHelper.refresh(esClient);

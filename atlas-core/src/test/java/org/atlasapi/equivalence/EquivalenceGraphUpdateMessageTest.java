@@ -7,7 +7,7 @@ import org.atlasapi.content.BrandRef;
 import org.atlasapi.entity.Id;
 import org.atlasapi.media.entity.Publisher;
 import org.atlasapi.messaging.JacksonMessageSerializer;
-import org.testng.annotations.Test;
+import org.junit.Test;
 
 import com.google.common.collect.ImmutableSet;
 import com.metabroadcast.common.queue.MessagingException;

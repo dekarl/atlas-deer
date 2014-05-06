@@ -7,7 +7,7 @@ import static org.junit.Assert.assertThat;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import static org.testng.AssertJUnit.assertEquals;
+import static org.junit.Assert.assertEquals;
 
 import java.util.List;
 
@@ -32,23 +32,23 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
-import org.mockito.testng.MockitoTestNGListener;
-import org.testng.annotations.AfterMethod;
-import org.testng.annotations.BeforeMethod;
-import org.testng.annotations.Listeners;
-import org.testng.annotations.Test;
+import org.mockito.runners.MockitoJUnitRunner;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.runner.RunWith;
+import org.junit.Test;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import com.metabroadcast.common.time.DateTimeZones;
 
-@Listeners(MockitoTestNGListener.class)
+@RunWith(MockitoJUnitRunner.class)
 public class WritableScheduleHierarchyTest {
     
     @Mock private ContentStore store;
     private final Channel channel = Channel.builder().build();
     
-    @BeforeMethod
+    @Before
     public void setup() throws WriteException {
         channel.setId(1L);
         when(store.writeContent(Mockito.argThat(any(Content.class))))
@@ -65,7 +65,7 @@ public class WritableScheduleHierarchyTest {
             });
     }
     
-    @AfterMethod
+    @After
     public void reset() {
 //        Mockito.reset(store);
     }

@@ -1,15 +1,7 @@
 package org.atlasapi.util;
 
-import static org.junit.Assert.assertThat;
-
-import org.testng.annotations.AfterClass;
-import org.testng.annotations.AfterMethod;
-import org.testng.annotations.Test;
-import org.testng.annotations.BeforeMethod;
-import org.testng.annotations.BeforeClass;
-
-import static org.atlasapi.util.ElasticSearchHelper.refresh;
 import static org.hamcrest.Matchers.is;
+import static org.junit.Assert.assertThat;
 
 import java.util.Set;
 import java.util.UUID;
@@ -34,14 +26,17 @@ import org.atlasapi.entity.Id;
 import org.elasticsearch.action.ActionFuture;
 import org.elasticsearch.action.admin.indices.create.CreateIndexResponse;
 import org.elasticsearch.action.admin.indices.mapping.put.PutMappingResponse;
-import org.elasticsearch.action.admin.indices.status.IndicesStatusRequest;
-import org.elasticsearch.action.admin.indices.status.IndicesStatusResponse;
 import org.elasticsearch.action.index.IndexResponse;
 import org.elasticsearch.client.Requests;
 import org.elasticsearch.node.Node;
 import org.elasticsearch.node.NodeBuilder;
 import org.elasticsearch.search.SearchHits;
 import org.joda.time.DateTime;
+import org.junit.After;
+import org.junit.AfterClass;
+import org.junit.Before;
+import org.junit.BeforeClass;
+import org.junit.Test;
 
 import com.google.common.base.Charsets;
 import com.google.common.collect.ImmutableList;
@@ -80,7 +75,7 @@ public class EsQueryBuilderTest {
 
     private final EsQueryBuilder builder = new EsQueryBuilder();
 
-    private final Node esClient = NodeBuilder.nodeBuilder()
+    private static final Node esClient = NodeBuilder.nodeBuilder()
         .local(true).clusterName(UUID.randomUUID().toString())
         .build().start();
 
@@ -93,17 +88,17 @@ public class EsQueryBuilderTest {
     }
     
     @AfterClass
-    public void after() throws Exception {
+    public static void after() throws Exception {
         esClient.close();
     }
 
-    @AfterMethod
+    @After
     public void tearDown() throws Exception {
         ElasticSearchHelper.clearIndices(esClient);
         ElasticSearchHelper.refresh(esClient);
     }
 
-    @BeforeMethod
+    @Before
     public void setup() throws Exception {
         createIndex(esClient, INDEX).actionGet();
         putMapping(esClient, INDEX, TYPE,

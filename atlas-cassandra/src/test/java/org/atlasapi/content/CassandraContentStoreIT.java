@@ -9,8 +9,8 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import static org.testng.AssertJUnit.assertFalse;
-import static org.testng.AssertJUnit.assertTrue;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
@@ -30,13 +30,13 @@ import org.atlasapi.media.entity.Publisher;
 import org.atlasapi.messaging.ResourceUpdatedMessage;
 import org.joda.time.DateTime;
 import org.mockito.Mock;
-import org.mockito.testng.MockitoTestNGListener;
-import org.testng.annotations.AfterClass;
-import org.testng.annotations.AfterMethod;
-import org.testng.annotations.BeforeClass;
-import org.testng.annotations.BeforeMethod;
-import org.testng.annotations.Listeners;
-import org.testng.annotations.Test;
+import org.mockito.runners.MockitoJUnitRunner;
+import org.junit.AfterClass;
+import org.junit.After;
+import org.junit.BeforeClass;
+import org.junit.Before;
+import org.junit.runner.RunWith;
+import org.junit.Test;
 
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
@@ -50,12 +50,13 @@ import com.metabroadcast.common.time.Clock;
 import com.metabroadcast.common.time.DateTimeZones;
 import com.netflix.astyanax.AstyanaxContext;
 import com.netflix.astyanax.Keyspace;
+import com.netflix.astyanax.connectionpool.exceptions.BadRequestException;
 import com.netflix.astyanax.connectionpool.exceptions.ConnectionException;
 import com.netflix.astyanax.model.ConsistencyLevel;
 import com.netflix.astyanax.serializers.LongSerializer;
 import com.netflix.astyanax.serializers.StringSerializer;
 
-@Listeners(MockitoTestNGListener.class)
+@RunWith(MockitoJUnitRunner.class)
 public class CassandraContentStoreIT {
 
     private static final AstyanaxContext<Keyspace> context = 
@@ -68,7 +69,7 @@ public class CassandraContentStoreIT {
     
     private CassandraContentStore store;
     
-    @BeforeMethod
+    @Before
     public void before() {
         store = CassandraContentStore
                 .builder(context, "Content", hasher, sender, idGenerator)
@@ -78,14 +79,15 @@ public class CassandraContentStoreIT {
                 .build();
     }
     
-    Logger root = Logger.getRootLogger();
+    static Logger root = Logger.getRootLogger();
     
     @BeforeClass
-    public void setup() throws ConnectionException {
+    public static void setup() throws ConnectionException {
         root.addAppender(new ConsoleAppender(
             new PatternLayout(PatternLayout.TTCC_CONVERSION_PATTERN)));
         root.setLevel(Level.WARN);
         context.start();
+        tearDown();
         CassandraHelper.createKeyspace(context);
         CassandraHelper.createColumnFamily(context, "Content", LongSerializer.get(), StringSerializer.get());
         CassandraHelper.createColumnFamily(context, "Content_aliases", StringSerializer.get(), StringSerializer.get(), LongSerializer.get());
@@ -93,10 +95,12 @@ public class CassandraContentStoreIT {
     
     @AfterClass
     public static void tearDown() throws ConnectionException {
-        context.getClient().dropKeyspace();
+        try {
+            context.getClient().dropKeyspace();
+        } catch (BadRequestException ire) { }
     }
     
-    @AfterMethod
+    @After
     public void clearCf() throws ConnectionException {
         context.getClient().truncateColumnFamily("Content");
         context.getClient().truncateColumnFamily("Content_aliases");
@@ -237,7 +241,7 @@ public class CassandraContentStoreIT {
         verify(hasher, times(2)).hash(argThat(isA(Content.class)));
     }
 
-    @Test(expectedExceptions=WriteException.class)
+    @Test(expected=WriteException.class)
     public void testWritingItemWithMissingBrandFails() throws Exception {
         Item item = create(new Item());
         item.setContainerRef(new BrandRef(Id.valueOf(1235), item.getPublisher()));
@@ -248,7 +252,7 @@ public class CassandraContentStoreIT {
         
     }
 
-    @Test(expectedExceptions=WriteException.class)
+    @Test(expected=WriteException.class)
     public void testWritingSeriesWithMissingBrandFails() throws Exception {
         try {
             Series series = create(new Series());
@@ -276,7 +280,7 @@ public class CassandraContentStoreIT {
         assertThat(resolved.getAliases(), is(series.getAliases()));
     }
     
-    @Test(expectedExceptions=IllegalArgumentException.class)
+    @Test(expected=IllegalArgumentException.class)
     public void testWritingEpisodeWithoutBrandRefFails() throws Exception {
         try {
                 
@@ -289,7 +293,7 @@ public class CassandraContentStoreIT {
         }
     }
     
-    @Test(expectedExceptions=WriteException.class)
+    @Test(expected=WriteException.class)
     public void testWritingEpisodeWithoutBrandWrittenFails() throws Exception {
         try {
                 
@@ -308,7 +312,7 @@ public class CassandraContentStoreIT {
         }
     }
 
-    @Test(expectedExceptions = WriteException.class)
+    @Test(expected = WriteException.class)
     public void testWritingEpisodeWithSeriesRefWithoutSeriesWrittenFails() throws Exception {
         try {
             Brand brand = create(new Brand());

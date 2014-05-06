@@ -3,13 +3,13 @@ package org.atlasapi.output;
 import static org.hamcrest.Matchers.any;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.anyCollectionOf;
 import static org.mockito.Matchers.argThat;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import static org.testng.AssertJUnit.assertTrue;
 
 import java.util.List;
 
@@ -19,24 +19,24 @@ import org.atlasapi.application.SourceStatus;
 import org.atlasapi.content.Brand;
 import org.atlasapi.content.Content;
 import org.atlasapi.media.entity.Publisher;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.RunWith;
 import org.mockito.Mock;
-import org.mockito.testng.MockitoTestNGListener;
-import org.testng.annotations.BeforeClass;
-import org.testng.annotations.Listeners;
-import org.testng.annotations.Test;
+import org.mockito.runners.MockitoJUnitRunner;
 
 import com.google.common.collect.Collections2;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 
-@Listeners(MockitoTestNGListener.class)
+@RunWith(MockitoJUnitRunner.class)
 public class StrategyBackedEquivalentsMergerTest {
 
     @Mock private EquivalentsMergeStrategy<Content> strategy;
     
     private StrategyBackedEquivalentsMerger<Content> merger;
     
-    @BeforeClass
+    @Before
     public void setup() {
         merger = new StrategyBackedEquivalentsMerger<Content>(strategy);
     }

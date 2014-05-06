@@ -35,18 +35,18 @@ import org.atlasapi.query.common.QueryContext;
 import org.atlasapi.query.common.QueryExecutionException;
 import org.atlasapi.topic.Topic;
 import org.atlasapi.topic.TopicResolver;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.RunWith;
 import org.mockito.Mock;
-import org.mockito.testng.MockitoTestNGListener;
-import org.testng.annotations.BeforeClass;
-import org.testng.annotations.Listeners;
-import org.testng.annotations.Test;
+import org.mockito.runners.MockitoJUnitRunner;
 
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.util.concurrent.Futures;
 import com.metabroadcast.common.query.Selection;
 
-@Listeners(MockitoTestNGListener.class)
+@RunWith(MockitoJUnitRunner.class)
 public class TopicContentQueryExecutorTest {
 
     private @Mock TopicResolver topicResolver;
@@ -55,7 +55,7 @@ public class TopicContentQueryExecutorTest {
     
     private TopicContentQueryExecutor executor;
     
-    @BeforeClass
+    @Before
     public void setup() {
         executor = new TopicContentQueryExecutor(topicResolver, contentIndex, equivalentsResolver); 
     }
@@ -92,7 +92,7 @@ public class TopicContentQueryExecutorTest {
         assertThat(result.getContext(), is(context));
     }
 
-    @Test(expectedExceptions=NotFoundException.class)
+    @Test(expected=NotFoundException.class)
     public void testFailsWhenTopicIsMissing() throws Throwable {
         
         AttributeQuerySet emptyAttributeQuerySet = new AttributeQuerySet(ImmutableSet.<AttributeQuery<?>>of());
@@ -113,7 +113,7 @@ public class TopicContentQueryExecutorTest {
         
     }
 
-    @Test(expectedExceptions=ForbiddenException.class)
+    @Test(expected=ForbiddenException.class)
     public void testFailsWhenTopicIsForbidden() throws Throwable {
         
         AttributeQuerySet emptyAttributeQuerySet = new AttributeQuerySet(ImmutableSet.<AttributeQuery<?>>of());

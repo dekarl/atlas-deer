@@ -23,16 +23,16 @@ import org.atlasapi.output.annotation.OutputAnnotation;
 import org.atlasapi.output.annotation.SeriesReferenceAnnotation;
 import org.atlasapi.output.annotation.SeriesSummaryAnnotation;
 import org.atlasapi.persistence.output.ContainerSummaryResolver;
-import org.mockito.testng.MockitoTestNGListener;
-import org.testng.annotations.Listeners;
-import org.testng.annotations.Test;
+import org.mockito.runners.MockitoJUnitRunner;
+import org.junit.runner.RunWith;
+import org.junit.Test;
 
 import com.google.common.collect.Collections2;
 import com.google.common.collect.ImmutableSet;
 import com.metabroadcast.common.ids.NumberToShortStringCodec;
 import com.metabroadcast.common.ids.SubstitutionTableNumberCodec;
 
-@Listeners(MockitoTestNGListener.class)
+@RunWith(MockitoJUnitRunner.class)
 public class AnnotationRegistryTest {
 
     private final NumberToShortStringCodec idCodec = SubstitutionTableNumberCodec.lowerCaseOnly();

@@ -4,12 +4,13 @@ import static org.hamcrest.Matchers.any;
 import static org.hamcrest.Matchers.hasItems;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.isA;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.argThat;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import static org.testng.AssertJUnit.assertFalse;
 
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -30,15 +31,15 @@ import org.atlasapi.media.entity.Publisher;
 import org.atlasapi.messaging.ResourceUpdatedMessage;
 import org.joda.time.DateTime;
 import org.joda.time.Interval;
+import org.junit.After;
+import org.junit.AfterClass;
+import org.junit.Before;
+import org.junit.BeforeClass;
+import org.junit.Ignore;
+import org.junit.Test;
+import org.junit.runner.RunWith;
 import org.mockito.Mock;
-import org.mockito.testng.MockitoTestNGListener;
-import org.testng.AssertJUnit;
-import org.testng.annotations.AfterClass;
-import org.testng.annotations.AfterMethod;
-import org.testng.annotations.BeforeClass;
-import org.testng.annotations.BeforeMethod;
-import org.testng.annotations.Listeners;
-import org.testng.annotations.Test;
+import org.mockito.runners.MockitoJUnitRunner;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
@@ -51,12 +52,13 @@ import com.metabroadcast.common.time.DateTimeZones;
 import com.metabroadcast.common.time.TimeMachine;
 import com.netflix.astyanax.AstyanaxContext;
 import com.netflix.astyanax.Keyspace;
+import com.netflix.astyanax.connectionpool.exceptions.BadRequestException;
 import com.netflix.astyanax.connectionpool.exceptions.ConnectionException;
 import com.netflix.astyanax.model.ConsistencyLevel;
 import com.netflix.astyanax.serializers.LongSerializer;
 import com.netflix.astyanax.serializers.StringSerializer;
 
-@Listeners(MockitoTestNGListener.class)
+@RunWith(MockitoJUnitRunner.class)
 public class CassandraScheduleStoreIT {
 
     private static final String SCHEDULE_CF_NAME = "schedule";
@@ -82,6 +84,7 @@ public class CassandraScheduleStoreIT {
     @BeforeClass
     public static void setup() throws ConnectionException {
         context.start();
+        tearDown();
         CassandraHelper.createKeyspace(context);
         CassandraHelper.createColumnFamily(context,
                 SCHEDULE_CF_NAME,
@@ -93,10 +96,12 @@ public class CassandraScheduleStoreIT {
 
     @AfterClass
     public static void tearDown() throws ConnectionException {
-        context.getClient().dropKeyspace();
+        try {
+            context.getClient().dropKeyspace();
+        } catch (BadRequestException ire) { }
     }
     
-    @BeforeMethod
+    @Before
     public void setUp() {
         channel.setCanonicalUri("channel");
         channel.setId(1234L);
@@ -114,7 +119,7 @@ public class CassandraScheduleStoreIT {
                 .build();
     }
 
-    @AfterMethod
+    @After
     public void clearCf() throws ConnectionException {
         context.getClient().truncateColumnFamily(SCHEDULE_CF_NAME);
         context.getClient().truncateColumnFamily(CONTENT_CF_NAME);
@@ -189,7 +194,7 @@ public class CassandraScheduleStoreIT {
         
         results = store.writeSchedule(hiers, channel, writtenInterval);
         assertThat(results.size(), is(2));
-        AssertJUnit.assertTrue(Iterables.all(results, WriteResult.<Content,Content>writtenFilter()));
+        assertTrue(Iterables.all(results, WriteResult.<Content,Content>writtenFilter()));
         
         Interval requestedInterval = new Interval(
             new DateTime(2013,05,31,10,0,0,0,DateTimeZones.UTC), 
@@ -246,7 +251,7 @@ public class CassandraScheduleStoreIT {
         
         results = store.writeSchedule(hiers, channel, writtenInterval);
         assertThat(results.size(), is(2));
-        AssertJUnit.assertTrue(Iterables.all(results, WriteResult.<Content,Content>writtenFilter()));
+        assertTrue(Iterables.all(results, WriteResult.<Content,Content>writtenFilter()));
         
         Interval requestedInterval = new Interval(
             new DateTime(2013,05,31,10,0,0,0,DateTimeZones.UTC), 
@@ -327,7 +332,8 @@ public class CassandraScheduleStoreIT {
         assertThat(item.getBroadcasts(), hasItems(broadcast1, broadcast2, broadcast3));
     }
 
-    @Test(enabled = false)
+    @Test
+    @Ignore
     // TODO Known issue: if the update interval doesn't cover a now stale broadcast
     // in a subsequent segment then that broadcast won't be updated in the
     // subsequent segment, it will be updated in the store though.
@@ -367,7 +373,7 @@ public class CassandraScheduleStoreIT {
         
         results = store.writeSchedule(hiers, channel, new Interval(start, newEnd));
         assertThat(results.size(), is(2));
-        AssertJUnit.assertTrue(Iterables.all(results, WriteResult.<Content,Content>writtenFilter()));
+        assertTrue(Iterables.all(results, WriteResult.<Content,Content>writtenFilter()));
         
         Interval requestedInterval = new Interval(
             new DateTime(2013,05,31,10,0,0,0,DateTimeZones.UTC), 

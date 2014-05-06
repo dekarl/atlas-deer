@@ -1,7 +1,7 @@
 package org.atlasapi.content;
 
 import static org.atlasapi.util.ElasticSearchHelper.refresh;
-import static org.testng.AssertJUnit.assertEquals;
+import static org.junit.Assert.assertEquals;
 
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -25,21 +25,21 @@ import org.elasticsearch.search.facet.Facets;
 import org.elasticsearch.search.facet.terms.TermsFacet;
 import org.elasticsearch.search.facet.terms.TermsFacet.Entry;
 import org.joda.time.DateTime;
-import org.testng.annotations.AfterClass;
-import org.testng.annotations.AfterMethod;
-import org.testng.annotations.BeforeClass;
-import org.testng.annotations.BeforeMethod;
-import org.testng.annotations.Test;
+import org.junit.AfterClass;
+import org.junit.After;
+import org.junit.BeforeClass;
+import org.junit.Before;
+import org.junit.Test;
 
 import com.metabroadcast.common.time.DateTimeZones;
 
 public final class EsContentIndexingTest {
     
-    private final Node esClient = ElasticSearchHelper.testNode();
+    private static final Node esClient = ElasticSearchHelper.testNode();
     private EsContentIndex contentIndexer;
 
     @BeforeClass
-    public void before() throws Exception {
+    public static void before() throws Exception {
         Logger root = Logger.getRootLogger();
         root.addAppender(new ConsoleAppender(
             new PatternLayout(PatternLayout.TTCC_CONVERSION_PATTERN)));
@@ -47,18 +47,18 @@ public final class EsContentIndexingTest {
     }
     
     @AfterClass
-    public void after() {
+    public static void after() {
         esClient.close();
     }
 
-    @BeforeMethod
+    @Before
     public void setup() throws TimeoutException {
         ElasticSearchHelper.refresh(esClient);
         contentIndexer = new EsContentIndex(esClient, EsSchema.CONTENT_INDEX, 60000);
         contentIndexer.startAsync().awaitRunning(10, TimeUnit.SECONDS);
     }
     
-    @AfterMethod
+    @After
     public void teardown() throws Exception {
         ElasticSearchHelper.clearIndices(esClient);
     }

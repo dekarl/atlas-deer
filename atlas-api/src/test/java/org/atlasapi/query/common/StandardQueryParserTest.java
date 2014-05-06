@@ -16,10 +16,10 @@ import org.atlasapi.criteria.attribute.Attributes;
 import org.atlasapi.entity.Id;
 import org.atlasapi.topic.Topic;
 import org.mockito.Mock;
-import org.mockito.testng.MockitoTestNGListener;
-import org.testng.annotations.BeforeMethod;
-import org.testng.annotations.Listeners;
-import org.testng.annotations.Test;
+import org.mockito.runners.MockitoJUnitRunner;
+import org.junit.Before;
+import org.junit.runner.RunWith;
+import org.junit.Test;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
@@ -28,7 +28,7 @@ import com.metabroadcast.common.ids.NumberToShortStringCodec;
 import com.metabroadcast.common.ids.SubstitutionTableNumberCodec;
 import com.metabroadcast.common.servlet.StubHttpServletRequest;
 
-@Listeners(MockitoTestNGListener.class)
+@RunWith(MockitoJUnitRunner.class)
 public class StandardQueryParserTest {
 
     private final NumberToShortStringCodec idCodec = SubstitutionTableNumberCodec.lowerCaseOnly();
@@ -42,7 +42,7 @@ public class StandardQueryParserTest {
     @Mock private QueryContextParser queryContextParser;
     private StandardQueryParser<Topic> queryParser; 
     
-    @BeforeMethod
+    @Before
     public void setUp() {
         when(queryContextParser.getParameterNames()).thenReturn(ImmutableSet.<String>of());
         queryParser = new StandardQueryParser<Topic>(Resource.TOPIC, atrributes, idCodec, queryContextParser);
@@ -95,7 +95,7 @@ public class StandardQueryParserTest {
         verify(queryContextParser).parseListContext(isA(HttpServletRequest.class));
     }
 
-    @Test(expectedExceptions=InvalidParameterException.class)
+    @Test(expected=InvalidParameterException.class)
     public void testRejectsInvalidAttributeKey() throws Exception {
         when(queryContextParser.parseListContext(isA(HttpServletRequest.class)))
         .thenReturn(QueryContext.standard());
@@ -105,7 +105,7 @@ public class StandardQueryParserTest {
         
     }
     
-    @Test(expectedExceptions=InvalidOperatorException.class)
+    @Test(expected=InvalidOperatorException.class)
     public void testRejectsAttributeKeyWithBadOperator() throws Exception {
         when(queryContextParser.parseListContext(isA(HttpServletRequest.class)))
         .thenReturn(QueryContext.standard());

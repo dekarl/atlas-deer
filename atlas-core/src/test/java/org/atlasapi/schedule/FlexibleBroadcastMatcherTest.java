@@ -7,7 +7,7 @@ import org.atlasapi.content.Broadcast;
 import org.atlasapi.media.channel.Channel;
 import org.joda.time.DateTime;
 import org.joda.time.Duration;
-import org.testng.annotations.Test;
+import org.junit.Test;
 
 import com.google.common.base.Optional;
 import com.metabroadcast.common.time.DateTimeZones;

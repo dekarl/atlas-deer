@@ -14,9 +14,9 @@ permissions and limitations under the License. */
 
 package org.atlasapi.content;
 
-import static org.testng.AssertJUnit.assertNull;
-import static org.testng.AssertJUnit.assertEquals;
-import org.testng.annotations.Test;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertEquals;
+import org.junit.Test;
 import com.google.common.collect.Sets;
 import com.metabroadcast.common.intl.Countries;
 

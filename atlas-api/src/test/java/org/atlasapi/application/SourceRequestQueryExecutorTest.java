@@ -13,16 +13,16 @@ import org.atlasapi.query.annotation.ActiveAnnotations;
 import org.atlasapi.query.common.QueryExecutionException;
 import org.atlasapi.query.common.useraware.UserAwareQuery;
 import org.atlasapi.query.common.useraware.UserAwareQueryContext;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.RunWith;
 import org.mockito.Mock;
-import org.mockito.testng.MockitoTestNGListener;
-import org.testng.annotations.BeforeClass;
-import org.testng.annotations.Listeners;
-import org.testng.annotations.Test;
+import org.mockito.runners.MockitoJUnitRunner;
 
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableSet;
 
-@Listeners(MockitoTestNGListener.class)
+@RunWith(MockitoJUnitRunner.class)
 public class SourceRequestQueryExecutorTest {
     
     private SourceRequestQueryExecutor executor;
@@ -31,7 +31,7 @@ public class SourceRequestQueryExecutorTest {
     
     @Mock SourceRequestStore store;
     
-    @BeforeClass
+    @Before
     public void setUp() {
         sourceRequest1 = SourceRequest.builder()
                 .withAppId(Id.valueOf(5000))

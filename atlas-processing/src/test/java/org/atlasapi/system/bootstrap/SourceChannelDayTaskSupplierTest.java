@@ -13,10 +13,10 @@ import org.atlasapi.media.channel.ChannelResolver;
 import org.atlasapi.media.entity.Publisher;
 import org.joda.time.LocalDate;
 import org.mockito.Mock;
-import org.mockito.testng.MockitoTestNGListener;
-import org.testng.annotations.BeforeMethod;
-import org.testng.annotations.Listeners;
-import org.testng.annotations.Test;
+import org.mockito.runners.MockitoJUnitRunner;
+import org.junit.Before;
+import org.junit.runner.RunWith;
+import org.junit.Test;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
@@ -24,7 +24,7 @@ import com.metabroadcast.common.time.Clock;
 import com.metabroadcast.common.time.DayRangeGenerator;
 import com.metabroadcast.common.time.TimeMachine;
 
-@Listeners(MockitoTestNGListener.class)
+@RunWith(MockitoJUnitRunner.class)
 public class SourceChannelDayTaskSupplierTest {
 
     @Mock private SourceChannelDayFactory<Integer> factory;
@@ -38,7 +38,7 @@ public class SourceChannelDayTaskSupplierTest {
 
     private SourceChannelDayTaskSupplier<Integer> supplier;
     
-    @BeforeMethod
+    @Before
     public void setup() {
         supplier = new SourceChannelDayTaskSupplier<Integer>(factory, channelResolver, dayRangeGenerator, srcs, clock);
     }

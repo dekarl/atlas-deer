@@ -10,8 +10,8 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import static org.testng.AssertJUnit.assertFalse;
-import static org.testng.AssertJUnit.assertTrue;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 import java.util.concurrent.TimeUnit;
 
@@ -24,13 +24,13 @@ import org.atlasapi.media.entity.Publisher;
 import org.atlasapi.messaging.ResourceUpdatedMessage;
 import org.joda.time.DateTime;
 import org.mockito.Mock;
-import org.mockito.testng.MockitoTestNGListener;
-import org.testng.annotations.AfterClass;
-import org.testng.annotations.AfterMethod;
-import org.testng.annotations.BeforeClass;
-import org.testng.annotations.BeforeMethod;
-import org.testng.annotations.Listeners;
-import org.testng.annotations.Test;
+import org.mockito.runners.MockitoJUnitRunner;
+import org.junit.AfterClass;
+import org.junit.After;
+import org.junit.BeforeClass;
+import org.junit.Before;
+import org.junit.runner.RunWith;
+import org.junit.Test;
 
 import com.google.common.base.Equivalence;
 import com.google.common.collect.ImmutableList;
@@ -46,7 +46,7 @@ import com.netflix.astyanax.model.ConsistencyLevel;
 import com.netflix.astyanax.serializers.LongSerializer;
 import com.netflix.astyanax.serializers.StringSerializer;
 
-@Listeners(MockitoTestNGListener.class)
+@RunWith(MockitoJUnitRunner.class)
 public class CassandraTopicStoreIT {
     
     public class StubbableEquivalence<T> extends Equivalence<T> {
@@ -73,7 +73,7 @@ public class CassandraTopicStoreIT {
 
     private CassandraTopicStore topicStore;
 
-    @BeforeMethod
+    @Before
     public void before() {
         topicStore = CassandraTopicStore
             .builder(context, "topics", equiv, sender, idGenerator)
@@ -102,7 +102,7 @@ public class CassandraTopicStoreIT {
         context.getClient().dropKeyspace();
     }
 
-    @AfterMethod
+    @After
     public void clearCf() throws ConnectionException {
         CassandraHelper.clearColumnFamily(context, "topics");
         CassandraHelper.clearColumnFamily(context, "topics_aliases");

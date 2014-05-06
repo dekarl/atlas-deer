@@ -15,8 +15,8 @@ import org.atlasapi.output.useraware.UserAwareQueryResult;
 import org.atlasapi.query.annotation.ActiveAnnotations;
 import org.atlasapi.query.common.useraware.UserAwareQuery;
 import org.atlasapi.query.common.useraware.UserAwareQueryContext;
-import org.testng.annotations.BeforeClass;
-import org.testng.annotations.Test;
+import org.junit.Before;
+import org.junit.Test;
 
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
@@ -26,7 +26,7 @@ public class ApplicationQueryExecutorTest {
     
     private ApplicationQueryExecutor executor;
     
-    @BeforeClass
+    @Before
     public void setUp() {
         ApplicationStore store = mock(ApplicationStore.class);
         Application application1 = Application.builder()
@@ -80,7 +80,7 @@ public class ApplicationQueryExecutorTest {
      * Make sure a regular user cannot see an application that they do not own
      * @throws Exception
      */
-    @Test(expectedExceptions=ResourceForbiddenException.class)
+    @Test(expected=ResourceForbiddenException.class)
     public void testCannotSeeOtherUserApplication() throws Exception {
         Set<Id> appIds = ImmutableSet.of(Id.valueOf(5000));
         User user = User.builder()

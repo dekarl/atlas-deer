@@ -17,12 +17,11 @@ import org.atlasapi.criteria.attribute.Attributes;
 import org.atlasapi.entity.Id;
 import org.atlasapi.query.annotation.ActiveAnnotations;
 import org.atlasapi.topic.Topic;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.RunWith;
 import org.mockito.Mock;
-import org.mockito.testng.MockitoTestNGListener;
-import org.testng.annotations.BeforeClass;
-import org.testng.annotations.BeforeMethod;
-import org.testng.annotations.Listeners;
-import org.testng.annotations.Test;
+import org.mockito.runners.MockitoJUnitRunner;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
@@ -30,7 +29,7 @@ import com.metabroadcast.common.ids.NumberToShortStringCodec;
 import com.metabroadcast.common.ids.SubstitutionTableNumberCodec;
 import com.metabroadcast.common.servlet.StubHttpServletRequest;
 
-@Listeners(MockitoTestNGListener.class)
+@RunWith(MockitoJUnitRunner.class)
 public class ContextualQueryParserTest {
 
     @Mock private QueryAttributeParser attributeParser;
@@ -39,7 +38,7 @@ public class ContextualQueryParserTest {
     private final NumberToShortStringCodec idCodec = SubstitutionTableNumberCodec.lowerCaseOnly();
     private ContextualQueryParser<Topic, Content> parser;
     
-    @BeforeClass
+    @Before
     public void setUp() {
         when(queryContextParser.getParameterNames()).thenReturn(ImmutableSet.<String>of());
         when(attributeParser.getParameterNames()).thenReturn(ImmutableSet.of("alias.namespace"));
@@ -47,7 +46,7 @@ public class ContextualQueryParserTest {
                 Resource.CONTENT, idCodec, attributeParser, queryContextParser);
     }
     
-    @BeforeMethod
+    @Before
     public void before() {
     }
     

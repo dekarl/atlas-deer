@@ -1,21 +1,20 @@
 package org.atlasapi.entity;
 
-import static org.junit.Assert.assertThat;
-
-import org.testng.annotations.AfterClass;
-import org.testng.annotations.AfterMethod;
-import org.testng.annotations.Test;
-import org.testng.annotations.BeforeClass;
-
 import static org.hamcrest.Matchers.is;
+import static org.junit.Assert.assertThat;
 
 import org.atlasapi.content.Content;
 import org.atlasapi.content.Episode;
 import org.atlasapi.media.entity.Publisher;
+import org.junit.After;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
+import org.junit.Test;
 
 import com.google.common.collect.ImmutableSet;
 import com.netflix.astyanax.AstyanaxContext;
 import com.netflix.astyanax.Keyspace;
+import com.netflix.astyanax.connectionpool.exceptions.BadRequestException;
 import com.netflix.astyanax.connectionpool.exceptions.ConnectionException;
 import com.netflix.astyanax.serializers.StringSerializer;
 
@@ -32,6 +31,9 @@ public class AliasIndexTest {
     @BeforeClass
     public static void setup() throws ConnectionException {
         context.start();
+        try {
+            context.getClient().dropKeyspace();
+        } catch (BadRequestException ire) { }
         CassandraHelper.createKeyspace(context);
         CassandraHelper.createColumnFamily(context,
             CF_NAME, StringSerializer.get(), StringSerializer.get());
@@ -42,7 +44,7 @@ public class AliasIndexTest {
         context.getClient().dropKeyspace();
     }
 
-    @AfterMethod
+    @After
     public void clearCf() throws ConnectionException {
         CassandraHelper.clearColumnFamily(context, CF_NAME);
     }

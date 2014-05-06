@@ -16,8 +16,8 @@ import org.atlasapi.output.JsonResponseWriter;
 import org.atlasapi.output.OutputContext;
 import org.atlasapi.query.common.QueryContext;
 import org.codehaus.jackson.map.ObjectMapper;
-import org.testng.annotations.BeforeMethod;
-import org.testng.annotations.Test;
+import org.junit.Before;
+import org.junit.Test;
 
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
@@ -34,7 +34,7 @@ public class JsonResponseWriterTest {
     private JsonResponseWriter formatter;
     private OutputContext ctxt; 
             
-    @BeforeMethod
+    @Before
     public void setup() throws IOException {
         mapper = new ObjectMapper();
         request = new StubHttpServletRequest();

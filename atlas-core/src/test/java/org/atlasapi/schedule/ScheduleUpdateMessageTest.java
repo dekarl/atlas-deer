@@ -8,7 +8,7 @@ import org.atlasapi.media.entity.Publisher;
 import org.atlasapi.messaging.JacksonMessageSerializer;
 import org.joda.time.DateTime;
 import org.joda.time.Interval;
-import org.testng.annotations.Test;
+import org.junit.Test;
 
 import com.google.common.collect.ImmutableSet;
 import com.metabroadcast.common.queue.MessagingException;

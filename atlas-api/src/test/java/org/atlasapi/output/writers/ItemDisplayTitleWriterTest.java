@@ -16,13 +16,13 @@ import org.atlasapi.output.OutputContext;
 import org.atlasapi.query.common.QueryContext;
 import org.joda.time.DateTime;
 import org.mockito.Mock;
-import org.mockito.testng.MockitoTestNGListener;
-import org.testng.annotations.Listeners;
-import org.testng.annotations.Test;
+import org.mockito.runners.MockitoJUnitRunner;
+import org.junit.runner.RunWith;
+import org.junit.Test;
 
 import com.metabroadcast.common.time.DateTimeZones;
 
-@Listeners(MockitoTestNGListener.class)
+@RunWith(MockitoJUnitRunner.class)
 public class ItemDisplayTitleWriterTest {
 
     private ItemDisplayTitleWriter titleWriter = new ItemDisplayTitleWriter();

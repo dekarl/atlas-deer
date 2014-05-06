@@ -25,9 +25,9 @@ import org.atlasapi.schedule.ScheduleWriter;
 import org.joda.time.Interval;
 import org.joda.time.LocalDate;
 import org.mockito.Mock;
-import org.mockito.testng.MockitoTestNGListener;
-import org.testng.annotations.Listeners;
-import org.testng.annotations.Test;
+import org.mockito.runners.MockitoJUnitRunner;
+import org.junit.runner.RunWith;
+import org.junit.Test;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
@@ -35,7 +35,7 @@ import com.google.common.util.concurrent.Futures;
 import com.metabroadcast.common.scheduling.UpdateProgress;
 import com.metabroadcast.common.time.DateTimeZones;
 
-@Listeners(MockitoTestNGListener.class)
+@RunWith(MockitoJUnitRunner.class)
 public class ChannelDayScheduleBootstrapTaskTest {
     
     @Mock ScheduleResolver resolver;

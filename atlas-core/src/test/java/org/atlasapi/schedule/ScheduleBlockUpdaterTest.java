@@ -4,7 +4,7 @@ import static org.atlasapi.media.entity.Publisher.METABROADCAST;
 import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
-import static org.testng.AssertJUnit.assertTrue;
+import static org.junit.Assert.assertTrue;
 
 import java.util.List;
 
@@ -14,16 +14,16 @@ import org.atlasapi.content.ItemAndBroadcast;
 import org.atlasapi.media.channel.Channel;
 import org.atlasapi.media.entity.Publisher;
 import org.joda.time.Interval;
-import org.mockito.testng.MockitoTestNGListener;
-import org.testng.annotations.BeforeMethod;
-import org.testng.annotations.Listeners;
-import org.testng.annotations.Test;
+import org.mockito.runners.MockitoJUnitRunner;
+import org.junit.Before;
+import org.junit.runner.RunWith;
+import org.junit.Test;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import com.metabroadcast.common.time.DateTimeZones;
 
-@Listeners(MockitoTestNGListener.class)
+@RunWith(MockitoJUnitRunner.class)
 public class ScheduleBlockUpdaterTest {
 
     private final ScheduleBlockUpdater updater = new ScheduleBlockUpdater(); 
@@ -31,7 +31,7 @@ public class ScheduleBlockUpdaterTest {
     private final Publisher source = Publisher.METABROADCAST;
     private final Channel channel = Channel.builder().build();
 
-    @BeforeMethod
+    @Before
     public void setUp() {
         channel.setCanonicalUri("channel");
         channel.setId(1L);

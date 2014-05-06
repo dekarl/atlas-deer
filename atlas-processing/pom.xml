@@ -47,6 +47,7 @@
             </goals>
             <configuration>
               <includeGroupIds>javax.servlet,org.eclipse.jetty,com.codahale.metrics,com.google.guava</includeGroupIds>
+              <excludeArtifactIds>guava-testlib</excludeArtifactIds>
               <outputDirectory>target/${project.artifactId}</outputDirectory>
               <!-- See https://bugs.eclipse.org/bugs/show_bug.cgi?id=371954 
                 and https://bugs.eclipse.org/bugs/show_bug.cgi?id=406753 for why we exclude 

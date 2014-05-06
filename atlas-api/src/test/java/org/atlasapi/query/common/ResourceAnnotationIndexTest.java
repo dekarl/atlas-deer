@@ -9,7 +9,7 @@ import org.atlasapi.annotation.Annotation;
 import org.atlasapi.query.annotation.ActiveAnnotations;
 import org.atlasapi.query.annotation.ContextualAnnotationIndex;
 import org.atlasapi.query.annotation.ResourceAnnotationIndex;
-import org.testng.annotations.Test;
+import org.junit.Test;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
@@ -138,17 +138,17 @@ public class ResourceAnnotationIndexTest {
         );
     }
     
-    @Test(expectedExceptions = InvalidAnnotationException.class)
+    @Test(expected = InvalidAnnotationException.class)
     public void testSingleLookupInvalidForPlural() throws Exception {
         channelIndex.resolveSingleContext(ImmutableList.of("channels.extended_description"));
     }
 
-    @Test(expectedExceptions = InvalidAnnotationException.class)
+    @Test(expected = InvalidAnnotationException.class)
     public void testListLookupInvalidForSingular() throws Exception {
         channelIndex.resolveListContext(ImmutableList.of("channel.extended_description"));
     }
 
-    @Test(expectedExceptions = InvalidAnnotationException.class)
+    @Test(expected = InvalidAnnotationException.class)
     public void testListLookupInvalidForBadPath() throws Exception {
         channelIndex.resolveListContext(ImmutableList.of("topics.description"));
     }
@@ -201,7 +201,7 @@ public class ResourceAnnotationIndexTest {
         );
     }
     
-    @Test(expectedExceptions = InvalidAnnotationException.class)
+    @Test(expected = InvalidAnnotationException.class)
     public void testCombinedLookupInvalidForBadPath() throws Exception {
         ResourceAnnotationIndex topicIndex = ResourceAnnotationIndex.builder(Resource.TOPIC, annotations).build();
         ResourceAnnotationIndex contentIndex = ResourceAnnotationIndex.builder(Resource.CONTENT, annotations)

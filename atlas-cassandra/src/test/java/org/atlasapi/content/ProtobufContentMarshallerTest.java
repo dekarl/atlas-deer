@@ -14,7 +14,7 @@ import org.atlasapi.media.entity.Publisher;
 import org.mockito.ArgumentCaptor;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
-import org.testng.annotations.Test;
+import org.junit.Test;
 
 import com.netflix.astyanax.ColumnListMutation;
 import com.netflix.astyanax.model.Column;

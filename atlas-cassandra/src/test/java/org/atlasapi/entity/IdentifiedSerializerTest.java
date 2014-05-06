@@ -1,7 +1,7 @@
 package org.atlasapi.entity;
 
 import static org.junit.Assert.assertThat;
-import org.testng.annotations.Test;
+import org.junit.Test;
 import static org.hamcrest.Matchers.is;
 import org.atlasapi.content.Item;
 import org.atlasapi.equivalence.EquivalenceRef;

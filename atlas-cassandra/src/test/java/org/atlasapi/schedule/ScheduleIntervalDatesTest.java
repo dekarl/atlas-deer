@@ -6,7 +6,7 @@ import static org.junit.Assert.assertThat;
 
 import org.joda.time.DateTime;
 import org.joda.time.Interval;
-import org.testng.annotations.Test;
+import org.junit.Test;
 
 import com.google.common.collect.Iterables;
 import com.metabroadcast.common.time.DateTimeZones;

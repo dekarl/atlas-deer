@@ -41,10 +41,10 @@ import org.atlasapi.schedule.Schedule;
 import org.atlasapi.schedule.ScheduleResolver;
 import org.joda.time.Interval;
 import org.mockito.Mock;
-import org.mockito.testng.MockitoTestNGListener;
-import org.testng.annotations.BeforeMethod;
-import org.testng.annotations.Listeners;
-import org.testng.annotations.Test;
+import org.mockito.runners.MockitoJUnitRunner;
+import org.junit.Before;
+import org.junit.runner.RunWith;
+import org.junit.Test;
 
 import com.google.common.base.Function;
 import com.google.common.collect.ImmutableList;
@@ -55,7 +55,7 @@ import com.google.common.util.concurrent.Futures;
 import com.metabroadcast.common.base.Maybe;
 import com.metabroadcast.common.time.DateTimeZones;
 
-@Listeners(MockitoTestNGListener.class)
+@RunWith(MockitoJUnitRunner.class)
 public class ScheduleResolverBackedScheduleQueryExecutorTest {
 
     @Mock private MergingEquivalentsResolver<Content> equivalentContentResolver; 
@@ -64,7 +64,7 @@ public class ScheduleResolverBackedScheduleQueryExecutorTest {
     
     private ScheduleResolverBackedScheduleQueryExecutor executor;
     
-    @BeforeMethod
+    @Before
     public void setup() {
         executor = new ScheduleResolverBackedScheduleQueryExecutor(channelResolver, scheduleResolver, equivalentContentResolver);
     }
