@@ -259,6 +259,22 @@ public class CassandraContentStoreIT {
             verify(idGenerator, never()).generateRaw();
         }
     }
+
+    @Test
+    public void testWritingSeriesWithoutBrandSucceeds() throws Exception {
+        Series series = create(new Series());
+        series.setAliases(ImmutableSet.of(new Alias("namespace", "value")));
+        series.setBrandRef(null);
+        
+        when(idGenerator.generateRaw())
+            .thenReturn(1234L);
+        
+        store.writeContent(series);
+        
+        Series resolved = (Series) resolve(1234L);
+        
+        assertThat(resolved.getAliases(), is(series.getAliases()));
+    }
     
     @Test(expectedExceptions=IllegalArgumentException.class)
     public void testWritingEpisodeWithoutBrandRefFails() throws Exception {

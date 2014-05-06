@@ -15,4 +15,9 @@ public class MissingResourceException extends WriteException {
         return missingId;
     }
     
+    @Override
+    public String getMessage() {
+        return "missing " + getMissingId().toString();
+    }
+    
 }
