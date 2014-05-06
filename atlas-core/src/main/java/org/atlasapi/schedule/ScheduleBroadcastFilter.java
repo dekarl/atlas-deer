@@ -1,17 +1,19 @@
 package org.atlasapi.schedule;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import org.joda.time.Duration;
 import org.joda.time.Interval;
 
 import com.google.common.base.Predicate;
 
 /**
- * Predicate for filtering broadcast intervals in a schedule interval. Valid
+ * <p>Predicate for filtering broadcast intervals in a schedule interval. Valid
  * broadcast intervals either entirely or partially overlap with the schedule
- * interval or, if the schedule interval is an instance, abut its end.
+ * interval or, if the schedule interval is an instance, abut its end.</p>
  * 
- * For a non-empty schedule interval the following cases are
- * covered:
+ * <p>For a non-empty schedule interval the following cases are
+ * covered:</p>
  * 
  * <pre>
  * Schedule Interval:          SS-------------------SE 
@@ -21,8 +23,9 @@ import com.google.common.base.Predicate;
  * Exact match:                bs-------------------be 
  * Entirely Overlapping:   bs----------------------------be
  * </pre>
+ * <p>Empty intervals are included both at the start and end, and within the interval.</p>
  * 
- * For an empty interval the following cases are covered:
+ * <p>For an empty interval the following cases are covered:</p>
  * <pre>
  * Schedule Interval:          |
  * Contains:              bs--------be
@@ -35,13 +38,14 @@ import com.google.common.base.Predicate;
 public abstract class ScheduleBroadcastFilter implements Predicate<Interval> {
 
     public static final ScheduleBroadcastFilter valueOf(Interval scheduleInterval) {
+        checkNotNull(scheduleInterval);
         if (Duration.ZERO.equals(scheduleInterval.toDuration())) {
             return new EmptyScheduleBroadcastFilter(scheduleInterval);
         }
         return new RegularScheduleBroadcastFilter(scheduleInterval);
     }
     
-    private static class EmptyScheduleBroadcastFilter extends ScheduleBroadcastFilter {
+    private static final class EmptyScheduleBroadcastFilter extends ScheduleBroadcastFilter {
         
         private Interval scheduleInterval;
 
@@ -55,9 +59,14 @@ public abstract class ScheduleBroadcastFilter implements Predicate<Interval> {
                 && broadcastInterval.getEnd().isAfter(scheduleInterval.getEnd());
         }
         
+        @Override
+        public String toString() {
+            return "interval covering " + scheduleInterval.getStart().toString();
+        }
+        
     }
 
-    private static class RegularScheduleBroadcastFilter extends ScheduleBroadcastFilter {
+    private static final class RegularScheduleBroadcastFilter extends ScheduleBroadcastFilter {
 
         private final Interval scheduleInterval;
 
@@ -67,9 +76,21 @@ public abstract class ScheduleBroadcastFilter implements Predicate<Interval> {
 
         @Override
         public boolean apply(Interval broadcastInterval) {
-            return scheduleInterval.overlaps(broadcastInterval);
+            return scheduleInterval.overlaps(broadcastInterval)
+                || (empty(broadcastInterval) && 
+                        broadcastInterval.getStart().equals(scheduleInterval.getStart()) 
+                     || broadcastInterval.getEnd().equals(scheduleInterval.getEnd()));
         }
 
+        private boolean empty(Interval broadcastInterval) {
+            return broadcastInterval.getStart().equals(broadcastInterval.getEnd());
+        }
+
+        @Override
+        public String toString() {
+            return "interval in " + scheduleInterval;
+        }
+        
     }
 
 }

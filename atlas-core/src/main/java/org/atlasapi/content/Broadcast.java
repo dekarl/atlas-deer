@@ -16,11 +16,6 @@ package org.atlasapi.content;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
-import java.util.Comparator;
-
-import javax.annotation.Nullable;
-
-import org.atlasapi.content.Identified;
 import org.atlasapi.entity.Id;
 import org.atlasapi.media.channel.Channel;
 import org.atlasapi.schedule.ScheduleBroadcastFilter;
@@ -352,39 +347,63 @@ public class Broadcast extends Identified {
     };
     
     public static final Predicate<Broadcast> channelFilter(final Channel channel) {
-        return new Predicate<Broadcast>() {
-            @Override
-            public boolean apply(Broadcast input) {
-                return input.getChannelId() != null 
-                    && input.getChannelId().longValue() == channel.getId();
-            }
-        };
+        return new BroadcastChannelFilter(channel);
     }
-    
-    public static final Predicate<Broadcast> intervalFilter(final Interval interval) {
-        return new Predicate<Broadcast>() {
-            
-            private final Predicate<Interval> scheduleFilter
-                    = ScheduleBroadcastFilter.valueOf(interval);
-            
-            @Override
-            public boolean apply(@Nullable Broadcast input) {
-                return scheduleFilter.apply(transmissionInterval(input));
-            }
 
-            private Interval transmissionInterval(Broadcast input) {
-                return new Interval(input.getTransmissionTime(), input.getTransmissionEndTime());
-            }
-        };
+    private static final class BroadcastChannelFilter implements Predicate<Broadcast> {
+
+        private final Channel channel;
+
+        private BroadcastChannelFilter(Channel channel) {
+            this.channel = checkNotNull(channel);
+        }
+
+        @Override
+        public boolean apply(Broadcast input) {
+            return input.getChannelId() != null 
+                && input.getChannelId().longValue() == channel.getId();
+        }
+        
+        @Override
+        public String toString() {
+            return "broadcasts on " + channel;
+        }
+    }
+
+    public static final Predicate<Broadcast> intervalFilter(final Interval interval) {
+        return new BroadcastIntervalFilter(interval);
     }
     
-    private static final Ordering<Broadcast> START_TIME_ORDERING = Ordering.from(new Comparator<Broadcast>() {
-        @Override
-        public int compare(Broadcast o1, Broadcast o2) {
-            return IntervalOrdering.byStartShortestFirst()
-                    .compare(o1.transmissionInterval, o2.transmissionInterval);
+    private static final class BroadcastIntervalFilter implements Predicate<Broadcast> {
+
+        private final Predicate<Interval> scheduleFilter;
+
+        private BroadcastIntervalFilter(Interval interval) {
+            scheduleFilter = ScheduleBroadcastFilter.valueOf(interval);
         }
-    });
+
+        @Override
+        public boolean apply(Broadcast input) {
+            return scheduleFilter.apply(input.getTransmissionInterval());
+        }
+        
+        @Override
+        public String toString() {
+            return "broadcasts with " + scheduleFilter;
+        }
+    }
+
+    private static final class BroadcastStartTimeOrdering extends Ordering<Broadcast> {
+
+        @Override
+        public int compare(Broadcast left, Broadcast right) {
+            return IntervalOrdering.byStartShortestFirst()
+                    .compare(left.transmissionInterval, right.transmissionInterval);
+        }
+        
+    }
+    
+    private static final Ordering<Broadcast> START_TIME_ORDERING = new BroadcastStartTimeOrdering();
 
     public static final Ordering<Broadcast> startTimeOrdering() {
         return START_TIME_ORDERING;
