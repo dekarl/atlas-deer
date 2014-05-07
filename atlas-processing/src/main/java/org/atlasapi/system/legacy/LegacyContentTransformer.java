@@ -117,6 +117,10 @@ public class LegacyContentTransformer extends DescribedLegacyResourceTransformer
             new Function<org.atlasapi.media.entity.ChildRef, ItemRef>() {
                 @Override
                 public ItemRef apply(org.atlasapi.media.entity.ChildRef input) {
+                    if (input.getId() == null) {
+                        log.warn("no id in ref for {} in {}", input, container);
+                        return null;
+                    }
                     Id id = Id.valueOf(input.getId());
                     DateTime updated = Objects.firstNonNull(input.getUpdated(),new DateTime(DateTimeZones.UTC));
                     org.atlasapi.media.entity.EntityType type 
