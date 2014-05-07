@@ -156,8 +156,12 @@ public class ChannelDayScheduleBootstrapTask implements Callable<UpdateProgress>
         ImmutableSet<Id> ids = containerIds(items);
         ListenableFuture<Resolved<Content>> resolved = contentStore.resolveIds(ids);
         Resolved<Content> containers = Futures.get(resolved, 1, TimeUnit.MINUTES, ResolveException.class);
-        for (Content content : containers.getResources()) {
-            contentStore.writeContent(content);
+        OptionalMap<Id, Content> containerIndex = containers.toMap();
+        for (Id id : ids) {
+            Optional<Content> possibleContainer = containerIndex.get(id);
+            if (possibleContainer.isPresent()) {
+                contentStore.writeContent(possibleContainer.get());
+            }
         }
     }
 
