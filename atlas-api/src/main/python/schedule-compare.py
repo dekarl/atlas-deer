@@ -16,16 +16,18 @@ arg_parser.add_argument('-p2', dest='port2', default=80, type=int, metavar='port
 arg_parser.add_argument('-v1', dest='version1', default=3, type=int, choices=xrange(3, 5), help='API version for 1st schedule')
 arg_parser.add_argument('-v2', dest='version2', default=4, type=int, choices=xrange(3, 5), help='API version for 2nd schedule')
 arg_parser.add_argument('-k', dest='key', help='API key to use')
+arg_parser.add_argument('-platform', metavar='platform', nargs='?', help='platform of channels to compare')
+arg_parser.add_argument('-offset', dest='offset', type=int, nargs='?', metavar='offset', help='initial platform offset')
 
 arg_parser.add_argument('source', metavar='source', help='Source of the schedules to compare')
-arg_parser.add_argument('channel', metavar='channel', help='v3 ID of channel for which schedules should be compared')
 arg_parser.add_argument('start', metavar='start', help='Start time of schedules to compare')
-arg_parser.add_argument('end', metavar='end', nargs='?', help='End time of schedules to compare')
+arg_parser.add_argument('end', metavar='end', help='End time of schedules to compare')
+arg_parser.add_argument('channel', nargs='*', metavar='channel', help='v3 ID of channel for which schedules should be compared')
 
 args = arg_parser.parse_args();
 
 args.start = dateutil.parser.parse(args.start)
-args.end = dateutil.parser.parse(args.end) if not args.end==None else (args.start + datetime.timedelta(days=1))
+args.end = dateutil.parser.parse(args.end)
 
 def color(c, val):
   if sys.stdout.isatty():
@@ -37,6 +39,9 @@ def days(start,end):
   while cur <= end:
     yield cur
     cur = cur + datetime.timedelta(1)
+
+def param_str(params):
+  return "&".join(["%s=%s"%(k,v) for k,v in params.iteritems() if not v == None])
 
 class Struct:
   def __init__(self, **entries):
@@ -71,14 +76,14 @@ class Atlas:
 
   def get_schedule(self, source, channel, start, end):
     resource = self.get_resource(source, channel, start, end)
-    response = self.get(resource)
-    return self.simplify(response)
+    request, response = self.get(resource)
+    return (request, self.simplify(response))
 
   def get(self, resource):
     conn = httplib.HTTPConnection(self.host, self.port)
-    conn.request('GET', resource)
     col = "32" if self.version == 3 else "33"
-    print color(col, "GET http://%s:%s%s" % (self.host, self.port, resource))
+    request = color(col, "GET http://%s:%s%s" % (self.host, self.port, resource))
+    conn.request('GET', resource)
     resp = conn.getresponse()
     if not resp.status == 200:
       if resp.status == 400:
@@ -90,7 +95,14 @@ class Atlas:
       resp.read()
       conn.close()
       sys.exit()
-    return Struct(**json.loads(resp.read()))
+    body = resp.read()
+    try:
+      response = Struct(**json.loads(body))
+    except Exception as e:
+      print "couldn't decode response to %s: %s" % (request, e)
+      print body
+      sys.exit()
+    return (request, response)
 
   def v4_channel_id(self, channel):
     prefix = 'http://atlas.metabroadcast.com/4.0/channels/'
@@ -100,13 +112,13 @@ class Atlas:
     raise Exception("couldn't find v4 channel id for %s" % channel.id)
 
   def join(self, params):
-    return "&".join(["%s=%s"%(k,v) for k,v in params.iteritems() if not v == None])
+    return param_str(params)
 
   def get_resource(self, source, channel, start, end):
     if (self.version == 3):
       params = {
         'publisher':source,
-        'channel_id' : channel.id,
+        'channel_id' : channel['v3id'],
         'from':start.isoformat(),
         'to':end.isoformat(),
         'apiKey':self.key
@@ -114,7 +126,7 @@ class Atlas:
       return "/3.0/schedule.json?%s" % self.join(params)
     if (self.version == 4):
       params = {'source':source,'from':start.isoformat(),'to':end.isoformat(),'apiKey':self.key}
-      channel_id = self.v4_channel_id(channel)
+      channel_id = channel['v4id']
       return "/4.0/schedules/%s.json?annotations=content.description&%s" %(channel_id, self.join(params))
     raise Exception("unexpected version %s" % self.version)
 
@@ -146,7 +158,7 @@ class Atlas:
 
 headers = ['Title', 'ID', 'BID', 'End', 'Start']
 
-def compare(left, right, always_print=True):
+def compare(left, right):
   table = [headers + ["|"] + headers[::-1]]
   difference = False
   l = None
@@ -170,14 +182,13 @@ def compare(left, right, always_print=True):
       r = None
   if len(left) > 0:
     for l in left:
+      difference = True
       table.append(mismatch(l, None))
   else :
     for r in right:
+      difference = True
       table.append(mismatch(None, r))
-  if always_print or difference:
-    print tabulate(table, headers="firstrow")
-  else:
-    print "no differences"
+  return (table, difference)
 
 highlight = lambda li: [color("31", v) if i in range(2,4) else v for (i,v) in enumerate(li)]
 
@@ -201,7 +212,11 @@ def mismatch(l, r):
   vals_or_missing = lambda e: missing_row if e == None else e.as_list()
   return vals_or_missing(l)[::-1] +["|"]+ vals_or_missing(r)
 
-print "identifying channel '%s'" % args.channel
+v4_channel_prefix = "http://atlas.metabroadcast.com/4.0/channels/"
+
+def v4_id(als):
+  prfx = v4_channel_prefix
+  return [a[len(prfx):] for a in als if a.startswith(prfx)][0]
 
 ##
 # Currently there's only a v3 /channels resource so we may need to find the v4 id and we may as well
@@ -209,26 +224,82 @@ print "identifying channel '%s'" % args.channel
 # There's no guarantee that the hosts specified in the args have a 3.0/channels resource so this is
 # hard-coded.
 ##
-channelHost = 'atlas.metabroadcast.com'
-channelResource = '/3.0/channels/%s.json' % args.channel
-channelConn = httplib.HTTPConnection(channelHost)
-channelConn.request('GET', channelResource)
-print color("35","GET http://%s%s" % (channelHost, channelResource))
-channelResp = channelConn.getresponse()
-if not channelResp.status == 200:
-  if channelResp.status == 400:
-    print "request failed for %s: %s" % (args.channel, channelResp.reason)
-  if channelResp.status == 404:
-    print "channel %s doesn't appear to exist" % (args.channel)
-  if channelResp.status >= 500:
-    print "problem with %s? %s %s" % (channelHost, channelResp.status, channelResp.reason)
-  channelResp.read()
-  channelConn.close()
-  sys.exit()
+def get_channel(cid):
+  channelHost = 'atlas.metabroadcast.com'
+  channelResource = '/3.0/channels/%s.json' % cid
+  channelConn = httplib.HTTPConnection(channelHost)
+  channelConn.request('GET', channelResource)
+  print color("35","GET http://%s%s" % (channelHost, channelResource))
+  channelResp = channelConn.getresponse()
+  if not channelResp.status == 200:
+    if channelResp.status == 400:
+      print "request failed for %s: %s" % (args.channel, channelResp.reason)
+    if channelResp.status == 404:
+      print "channel %s doesn't appear to exist" % (args.channel)
+    if channelResp.status >= 500:
+      print "problem with %s? %s %s" % (channelHost, channelResp.status, channelResp.reason)
+    channelResp.read()
+    channelConn.close()
+    sys.exit()
+  channel = Struct(**json.loads(channelResp.read())['channels'][0])
+  return channel_data(channel)
 
-channel = Struct(**json.loads(channelResp.read())['channels'][0])
+def channel_data(channel):
+  return {'v3id': channel.id, 'v4id': v4_id(channel.aliases), 'title': channel.title}
 
-print "comparing schedules on '%s' between %s and %s" % (channel.title, args.start, args.end)
+def get_platform_channels(platform):
+  limit = 5
+  offset = 0 if args.offset == None else args.offset
+  channels = get_channels(platform, limit, offset)
+  while (len(channels) > 0):
+    for chan in channels:
+      yield {'v3id': chan['id'], 'v4id': v4_id(chan['aliases']), 'title': chan['title']}
+    offset = offset+limit
+    channels = get_channels(platform, limit, offset)
+
+def get_channels(platform, limit, offset):
+  channelHost = 'atlas.metabroadcast.com'
+  params = {"platforms":platform,"limit":limit,"offset":offset}
+  channelResource = '/3.0/channels.json?%s' % param_str(params)
+  channelConn = httplib.HTTPConnection(channelHost)
+  channelConn.request('GET', channelResource)
+  print color("35", "GET http://%s%s\x1b[0m" % (channelHost, channelResource))
+  channelResp = channelConn.getresponse()
+  return Struct(**json.loads(channelResp.read())).channels
+
+print arg_parser.get_default("host1")
+
+def dflt(p):
+  return arg_parser.get_default(p)
+
+def compare_params(channel, day):
+  cmd = "./schedule-compare.py"
+  if not args.host1 == dflt("host1"):
+    cmd += " -h1 " + args.host1
+  if not args.host2 == dflt("host2"):
+    cmd += " -h2 " + args.host2
+  if not args.port1 == dflt("port1"):
+    cmd += " -p1 " + args.port1
+  if not args.port2 == dflt("port2"):
+    cmd += " -p2 " + args.port2
+  if not args.version1 == dflt("version1"):
+    cmd += " -v1 " + args.version1
+  if not args.version2 == dflt("version2"):
+    cmd += " -v2 " + args.version2
+  if args.key:
+    cmd += " -k " + args.key
+  start = day.date()
+  end = (day + datetime.timedelta(1)).date()
+  cmd += " %s %s %s %s" % (args.source, start, end, channel['v3id'])
+  return cmd
+
+platform = args.platform
+if platform:
+  print "identifying channels for platform %s" % platform
+  channels = get_platform_channels(platform)
+else:
+  print "identifying channels %s" % ', '.join(args.channel)
+  channels = [get_channel(cid) for cid in args.channel]
 
 atlas1 = Atlas(args.host1, args.port1, args.version1, args.key)
 atlas2 = Atlas(args.host2, args.port2, args.version2, args.key)
@@ -237,12 +308,27 @@ source = args.source
 start = args.start
 end = args.end
 
-if (end - start <= datetime.timedelta(1)):
-  schedule1 = atlas1.get_schedule(source, channel, start, end)
-  schedule2 = atlas2.get_schedule(source, channel, start, end)
-  compare(schedule1, schedule2)
+if (end - start <= datetime.timedelta(1) and len(channels) == 1):
+  channel = channels[0]
+  print "comparing schedules on '%s' between %s and %s" % ("/".join(channel.values()), args.start, args.end)
+  req1, schedule1 = atlas1.get_schedule(source, channel, start, end)
+  req2, schedule2 = atlas2.get_schedule(source, channel, start, end)
+  print req1
+  print req2
+  table, difference = compare(schedule1, schedule2)
+  print tabulate(table, headers="firstrow")
 else:
-  for day in days(start, end):
-    schedule1 = atlas1.get_schedule(source, channel, day, day+datetime.timedelta(1))
-    schedule2 = atlas2.get_schedule(source, channel, day, day+datetime.timedelta(1))
-    compare(schedule1, schedule2, False)
+  for channel in channels:
+    print " / ".join(channel.values())
+    for day in days(start, end):
+      s = day
+      e = day+datetime.timedelta(1)
+      sys.stdout.write("\t%s: " % day.date())
+      sys.stdout.flush()
+      req1, schedule1 = atlas1.get_schedule(source, channel, s, e)
+      req2, schedule2 = atlas2.get_schedule(source, channel, s, e)
+      table, difference = compare(schedule1, schedule2)
+      if difference:
+        print compare_params(channel, day)
+      else:
+        print "no differences"
