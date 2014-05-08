@@ -105,7 +105,7 @@ class Atlas:
     return (request, response)
 
   def v4_channel_id(self, channel):
-    prefix = 'http://atlas.metabroadcast.com/4.0/channels/'
+    prefix = 'http://atlas.metabroadcast.com/4/channels/'
     for a in channel.aliases:
       if a.startswith(prefix):
         return a[len(prefix):]
@@ -127,7 +127,7 @@ class Atlas:
     if (self.version == 4):
       params = {'source':source,'from':start.isoformat(),'to':end.isoformat(),'apiKey':self.key}
       channel_id = channel['v4id']
-      return "/4.0/schedules/%s.json?annotations=content.description&%s" %(channel_id, self.join(params))
+      return "/4/schedules/%s.json?annotations=content.description&%s" %(channel_id, self.join(params))
     raise Exception("unexpected version %s" % self.version)
 
   def simplify(self, schedule):
@@ -212,7 +212,7 @@ def mismatch(l, r):
   vals_or_missing = lambda e: missing_row if e == None else e.as_list()
   return vals_or_missing(l)[::-1] +["|"]+ vals_or_missing(r)
 
-v4_channel_prefix = "http://atlas.metabroadcast.com/4.0/channels/"
+v4_channel_prefix = "http://atlas.metabroadcast.com/4/channels/"
 
 def v4_id(als):
   prfx = v4_channel_prefix

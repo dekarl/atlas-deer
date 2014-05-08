@@ -54,7 +54,7 @@ public class ContextualQueryParserTest {
     public void testParseRequest() throws Exception {
         
         HttpServletRequest req = new StubHttpServletRequest().withRequestUri(
-            "/4.0/topics/cbbh/content.json"
+            "/4/topics/cbbh/content.json"
         ).withParam("alias.namespace", "ns");
         
         when(attributeParser.parse(req))

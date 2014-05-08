@@ -25,7 +25,7 @@ start = dateutil.parser.parse(args.start).date()
 end = start if args.end == None else dateutil.parser.parse(args.end).date()
 host = args.host
 
-v4_channel_prefix = "http://atlas.metabroadcast.com/4.0/channels/"
+v4_channel_prefix = "http://atlas.metabroadcast.com/4/channels/"
 
 def color(c, val):
   if sys.stdout.isatty():

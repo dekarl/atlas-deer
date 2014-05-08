@@ -278,7 +278,7 @@ public class ScheduleRequestParserTest {
 
     private StubHttpServletRequest multiScheduleRequest(String ids, Interval intvl, Publisher src,
             String appKey, Set<Annotation> annotations, String ext) {
-        String resource = String.format("http://localhost/4.0/schedules%s", ext);
+        String resource = String.format("http://localhost/4/schedules%s", ext);
         StubHttpServletRequest req = createScheduleRequest(resource, intvl.getStart(), intvl.getEnd(), src, appKey, annotations);
         return req.withParam("id", ids);
     }
@@ -300,7 +300,7 @@ public class ScheduleRequestParserTest {
     private StubHttpServletRequest singleScheduleRequest(String channelKey, DateTime from,
             DateTime to, Publisher publisher, String appKey, Set<Annotation> annotations,
             String extension) {
-        String resource = String.format("http://localhost/4.0/schedules/%s%s",
+        String resource = String.format("http://localhost/4/schedules/%s%s",
             channelKey, extension
         );
         return createScheduleRequest(resource, from, to, publisher, appKey, annotations);

@@ -92,7 +92,7 @@ public class SearchController {
         this.resultWriter = resultWriter;
     }
 
-    @RequestMapping({"/4.0/search.*", "/4.0/search"})
+    @RequestMapping({"/4/search.*", "/4/search"})
     public void search(@RequestParam(QUERY_PARAM) String q,
             @RequestParam(value = SPECIALIZATION_PARAM, required = false) String specialization,
             @RequestParam(value = PUBLISHER_PARAM, required = false) String publisher,
