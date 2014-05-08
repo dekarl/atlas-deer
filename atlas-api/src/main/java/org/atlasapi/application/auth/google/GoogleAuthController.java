@@ -75,7 +75,7 @@ public class GoogleAuthController {
         this.tokenRequestStore = checkNotNull(tokenRequestStore);
     }
 
-    @RequestMapping(value = { "/4.0/auth/google/login.*" }, method = RequestMethod.GET)
+    @RequestMapping(value = { "/4/auth/google/login.*" }, method = RequestMethod.GET)
     public void getGoogleLogin(HttpServletRequest request,
         HttpServletResponse response,
             @RequestParam(required = true) String callbackUrl,
@@ -101,7 +101,7 @@ public class GoogleAuthController {
         oauthRequestResultWriter.write(queryResult, writer);
     }
     
-    @RequestMapping(value = { "/4.0/auth/google/callback.json" }, method = RequestMethod.GET)
+    @RequestMapping(value = { "/4/auth/google/callback.json" }, method = RequestMethod.GET)
     public void handleOauthCallback(HttpServletResponse response, HttpServletRequest request, 
             @RequestParam(required = false) String code,
             @RequestParam(required = false) String state,
@@ -116,7 +116,7 @@ public class GoogleAuthController {
         response.sendRedirect(redirectUrl);
     }
     
-    @RequestMapping(value = { "/4.0/auth/google/token.*" }, method = RequestMethod.GET)
+    @RequestMapping(value = { "/4/auth/google/token.*" }, method = RequestMethod.GET)
     public void getAccessToken(HttpServletResponse response, HttpServletRequest request, 
             @RequestParam String code,
             @RequestParam(required = false) String targetUri) throws IOException {

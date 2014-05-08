@@ -73,7 +73,7 @@ public class GitHubAuthController {
         this.tokenRequestStore = checkNotNull(tokenRequestStore);
     }
     
-    @RequestMapping(value = { "/4.0/auth/github/login.*" }, method = RequestMethod.GET)
+    @RequestMapping(value = { "/4/auth/github/login.*" }, method = RequestMethod.GET)
     public void getGitHubLogin(HttpServletRequest request,
         HttpServletResponse response,
             @RequestParam(required = true) String callbackUrl,
@@ -97,7 +97,7 @@ public class GitHubAuthController {
         oauthRequestResultWriter.write(queryResult, writer);
     }
 
-    @RequestMapping(value = { "/4.0/auth/github/token.*" }, method = RequestMethod.GET)
+    @RequestMapping(value = { "/4/auth/github/token.*" }, method = RequestMethod.GET)
     public void getAccessToken(HttpServletResponse response, HttpServletRequest request, 
             @RequestParam String code,
             @RequestParam(required = false) String targetUri) throws IOException {

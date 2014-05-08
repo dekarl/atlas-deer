@@ -212,19 +212,19 @@ public class ApplicationWebModule {
                 .withUserFetcher(userFetcher())
                 .withIdCodec(idCodec)
                 .withUrlsToProtect(ImmutableSet.of(
-                        "/4.0/applications",
-                        "/4.0/sources",
-                        "/4.0/requests",
-                        "/4.0/users",
-                        "/4.0/auth/user",
-                        "/4.0/videosource"))
+                        "/4/applications",
+                        "/4/sources",
+                        "/4/requests",
+                        "/4/users",
+                        "/4/auth/user",
+                        "/4/videosource"))
                .withUrlsNotNeedingCompleteProfile(ImmutableSet.of(
-                "/4.0/auth/user",
-                "/4.0/users/:uid",
-                "/4.0/eula",
-                "/4.0/users/:uid/eula/accept"))
+                "/4/auth/user",
+                "/4/users/:uid",
+                "/4/eula",
+                "/4/users/:uid/eula/accept"))
                .withExemptions(ImmutableSet.of(
-                		"/4.0/videosource/youtube/token.json"
+                		"/4/videosource/youtube/token.json"
                 		))
                 .build();
     }

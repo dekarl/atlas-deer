@@ -34,7 +34,7 @@ public class VideoSourceController {
         this.userFetcher = userFetcher;
     }
 
-    @RequestMapping(value = { "/4.0/videosource/providers.*" }, method = RequestMethod.GET)
+    @RequestMapping(value = { "/4/videosource/providers.*" }, method = RequestMethod.GET)
     public void listAuthProviders(HttpServletRequest request,
             HttpServletResponse response) throws IOException {
         ResponseWriter writer = null;
