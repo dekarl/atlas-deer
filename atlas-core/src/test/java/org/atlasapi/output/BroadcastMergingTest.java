@@ -1,11 +1,8 @@
 package org.atlasapi.output;
 
+import static com.metabroadcast.common.time.DateTimeZones.UTC;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
-
-import org.junit.Test;
-
-import static com.metabroadcast.common.time.DateTimeZones.UTC;
 
 import org.atlasapi.application.ApplicationSources;
 import org.atlasapi.application.SourceReadEntry;
@@ -15,8 +12,8 @@ import org.atlasapi.content.Item;
 import org.atlasapi.entity.Alias;
 import org.atlasapi.entity.Id;
 import org.atlasapi.media.entity.Publisher;
-import org.atlasapi.output.OutputContentMerger;
 import org.joda.time.DateTime;
+import org.junit.Test;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;

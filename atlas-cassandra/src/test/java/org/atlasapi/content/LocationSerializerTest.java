@@ -1,12 +1,14 @@
 package org.atlasapi.content;
 
-import static org.junit.Assert.assertThat;
-import org.junit.Test;
 import static org.hamcrest.Matchers.is;
+import static org.junit.Assert.assertThat;
+
 import java.util.Currency;
 
 import org.atlasapi.serialization.protobuf.ContentProtos;
 import org.joda.time.DateTime;
+import org.junit.Test;
+
 import com.google.common.collect.ImmutableSet;
 import com.metabroadcast.common.currency.Price;
 import com.metabroadcast.common.intl.Countries;

@@ -1,6 +1,5 @@
 package org.atlasapi.content;
 
-import org.atlasapi.content.Identified;
 
 public class Restriction extends Identified {
 

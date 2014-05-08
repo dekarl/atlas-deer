@@ -2,7 +2,7 @@ package org.atlasapi.model.translators;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
-import org.junit.Test;
+
 import java.util.List;
 import java.util.Map;
 
@@ -15,6 +15,8 @@ import org.atlasapi.application.v3.ApplicationConfiguration;
 import org.atlasapi.entity.Id;
 import org.atlasapi.media.entity.Publisher;
 import org.joda.time.DateTime;
+import org.junit.Test;
+
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Maps;
 import com.metabroadcast.common.time.DateTimeZones;

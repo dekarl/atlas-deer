@@ -1,8 +1,6 @@
 package org.atlasapi.messaging;
 
 import org.atlasapi.entity.ResourceRef;
-import org.atlasapi.media.entity.Publisher;
-import org.atlasapi.schedule.ScheduleRef;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;

@@ -2,10 +2,10 @@ package org.atlasapi.output.annotation;
 
 import java.io.IOException;
 
-import org.atlasapi.content.Content;
-import org.atlasapi.content.ContentVisitor;
 import org.atlasapi.content.Brand;
 import org.atlasapi.content.Clip;
+import org.atlasapi.content.Content;
+import org.atlasapi.content.ContentVisitor;
 import org.atlasapi.content.Episode;
 import org.atlasapi.content.Film;
 import org.atlasapi.content.Item;

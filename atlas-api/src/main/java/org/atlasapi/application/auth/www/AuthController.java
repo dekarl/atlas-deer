@@ -2,12 +2,14 @@ package org.atlasapi.application.auth.www;
 
 import static org.atlasapi.application.auth.OAuthTokenUserFetcher.OAUTH_PROVIDER_QUERY_PARAMETER;
 import static org.atlasapi.application.auth.OAuthTokenUserFetcher.OAUTH_TOKEN_QUERY_PARAMETER;
+
 import java.io.IOException;
 import java.math.BigInteger;
 import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+
 import org.atlasapi.application.auth.UserFetcher;
 import org.atlasapi.application.model.auth.OAuthProvider;
 import org.atlasapi.application.users.User;

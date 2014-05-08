@@ -1,6 +1,7 @@
 package org.atlasapi.content;
 
 import java.util.Date;
+
 import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
 

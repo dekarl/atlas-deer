@@ -1,11 +1,8 @@
 package org.atlasapi.content;
 
-import static org.junit.Assert.assertEquals;
-
-import org.junit.Test;
-
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
+import static org.junit.Assert.assertEquals;
 
 import java.util.Collections;
 import java.util.List;
@@ -15,6 +12,7 @@ import org.atlasapi.entity.Id;
 import org.atlasapi.media.entity.Publisher;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
+import org.junit.Test;
 
 import com.google.common.base.Function;
 import com.google.common.collect.ImmutableList;

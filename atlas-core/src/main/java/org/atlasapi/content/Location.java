@@ -15,8 +15,6 @@ permissions and limitations under the License. */
 
 package org.atlasapi.content;
 
-import org.atlasapi.content.Identified;
-
 import com.google.common.base.Function;
 import com.google.common.base.Predicate;
 

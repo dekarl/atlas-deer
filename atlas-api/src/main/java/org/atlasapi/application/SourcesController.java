@@ -14,7 +14,6 @@ import org.atlasapi.entity.Id;
 import org.atlasapi.media.entity.Publisher;
 import org.atlasapi.output.ErrorResultWriter;
 import org.atlasapi.output.ErrorSummary;
-import org.atlasapi.output.NotAuthorizedException;
 import org.atlasapi.output.NotFoundException;
 import org.atlasapi.output.ResourceForbiddenException;
 import org.atlasapi.output.ResponseWriter;

@@ -26,11 +26,11 @@ import org.elasticsearch.action.count.CountRequestBuilder;
 import org.elasticsearch.node.Node;
 import org.joda.time.DateTime;
 import org.joda.time.Duration;
-import org.junit.Assert;
-import org.junit.AfterClass;
 import org.junit.After;
-import org.junit.BeforeClass;
+import org.junit.AfterClass;
+import org.junit.Assert;
 import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Ignore;
 import org.junit.Test;
 

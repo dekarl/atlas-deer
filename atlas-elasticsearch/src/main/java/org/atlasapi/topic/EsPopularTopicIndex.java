@@ -7,7 +7,6 @@ import org.atlasapi.content.EsBroadcast;
 import org.atlasapi.content.EsContent;
 import org.atlasapi.content.EsTopicMapping;
 import org.atlasapi.entity.Id;
-import org.atlasapi.topic.PopularTopicIndex;
 import org.atlasapi.util.FutureSettingActionListener;
 import org.elasticsearch.action.search.SearchRequestBuilder;
 import org.elasticsearch.action.search.SearchResponse;

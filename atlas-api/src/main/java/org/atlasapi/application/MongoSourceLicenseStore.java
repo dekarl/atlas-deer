@@ -1,8 +1,8 @@
 package org.atlasapi.application;
 
-import org.atlasapi.media.entity.Publisher;
-
 import static com.metabroadcast.common.persistence.mongo.MongoBuilders.where;
+
+import org.atlasapi.media.entity.Publisher;
 
 import com.google.common.base.Optional;
 import com.metabroadcast.common.persistence.mongo.DatabasedMongo;

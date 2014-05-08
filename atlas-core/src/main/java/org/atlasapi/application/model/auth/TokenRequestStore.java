@@ -2,8 +2,6 @@ package org.atlasapi.application.model.auth;
 
 import java.util.UUID;
 
-import org.atlasapi.application.model.auth.OAuthRequest;
-
 import com.google.common.base.Optional;
 import com.metabroadcast.common.social.model.UserRef.UserNamespace;
 

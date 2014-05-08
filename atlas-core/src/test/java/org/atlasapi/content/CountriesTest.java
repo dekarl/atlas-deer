@@ -14,9 +14,11 @@ permissions and limitations under the License. */
 
 package org.atlasapi.content;
 
-import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
+
 import org.junit.Test;
+
 import com.google.common.collect.Sets;
 import com.metabroadcast.common.intl.Countries;
 

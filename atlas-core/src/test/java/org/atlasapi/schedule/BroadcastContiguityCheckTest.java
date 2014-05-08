@@ -3,14 +3,13 @@ package org.atlasapi.schedule;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
-import org.junit.Test;
-
 import java.util.List;
 
 import org.atlasapi.content.Broadcast;
 import org.atlasapi.entity.Id;
 import org.joda.time.DateTime;
 import org.joda.time.Duration;
+import org.junit.Test;
 
 import com.google.common.collect.ImmutableList;
 import com.metabroadcast.common.time.DateTimeZones;

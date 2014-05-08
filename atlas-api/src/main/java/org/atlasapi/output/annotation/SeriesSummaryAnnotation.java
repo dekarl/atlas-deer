@@ -12,7 +12,6 @@ import org.atlasapi.output.FieldWriter;
 import org.atlasapi.output.OutputContext;
 import org.atlasapi.persistence.output.ContainerSummaryResolver;
 
-import com.google.common.base.Optional;
 import com.metabroadcast.common.ids.NumberToShortStringCodec;
 
 public class SeriesSummaryAnnotation extends OutputAnnotation<Content> {

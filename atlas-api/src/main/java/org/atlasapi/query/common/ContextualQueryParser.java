@@ -9,9 +9,9 @@ import javax.servlet.http.HttpServletRequest;
 
 import org.atlasapi.application.auth.InvalidApiKeyException;
 import org.atlasapi.criteria.AttributeQuery;
+import org.atlasapi.criteria.AttributeQuerySet;
 import org.atlasapi.criteria.attribute.Attribute;
 import org.atlasapi.criteria.operator.Operators;
-import org.atlasapi.criteria.AttributeQuerySet;
 import org.atlasapi.entity.Id;
 import org.atlasapi.query.common.Query.ListQuery;
 import org.atlasapi.query.common.Query.SingleQuery;

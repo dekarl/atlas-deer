@@ -8,7 +8,6 @@ import org.atlasapi.query.annotation.ActiveAnnotations;
 import org.atlasapi.query.annotation.AnnotationIndex;
 import org.atlasapi.query.annotation.AnnotationsExtractor;
 
-
 import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableSet;
 

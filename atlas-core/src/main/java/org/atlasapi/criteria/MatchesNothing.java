@@ -14,8 +14,6 @@ permissions and limitations under the License. */
 
 package org.atlasapi.criteria;
 
-import java.util.Collections;
-import java.util.List;
 
 
 /**

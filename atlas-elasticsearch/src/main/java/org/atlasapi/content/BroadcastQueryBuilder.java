@@ -1,6 +1,7 @@
 package org.atlasapi.content;
 
 import java.util.concurrent.TimeUnit;
+
 import org.elasticsearch.index.query.FilterBuilders;
 import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;

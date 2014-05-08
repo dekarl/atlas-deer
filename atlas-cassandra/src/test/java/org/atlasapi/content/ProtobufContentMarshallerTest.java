@@ -11,10 +11,10 @@ import static org.mockito.Mockito.when;
 
 import org.atlasapi.entity.Id;
 import org.atlasapi.media.entity.Publisher;
+import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
-import org.junit.Test;
 
 import com.netflix.astyanax.ColumnListMutation;
 import com.netflix.astyanax.model.Column;

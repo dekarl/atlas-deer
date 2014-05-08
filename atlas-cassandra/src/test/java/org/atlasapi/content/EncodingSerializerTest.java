@@ -1,9 +1,11 @@
 package org.atlasapi.content;
 
-import static org.junit.Assert.assertThat;
-import org.junit.Test;
 import static org.hamcrest.Matchers.is;
+import static org.junit.Assert.assertThat;
+
 import org.atlasapi.serialization.protobuf.ContentProtos;
+import org.junit.Test;
+
 import com.google.common.collect.ImmutableSet;
 import com.metabroadcast.common.media.MimeType;
 

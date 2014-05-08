@@ -1,7 +1,7 @@
 package org.atlasapi.entity;
 
-import org.atlasapi.content.Identified;
 import org.atlasapi.content.Content;
+import org.atlasapi.content.Identified;
 import org.atlasapi.topic.Topic;
 
 import com.google.common.base.Function;

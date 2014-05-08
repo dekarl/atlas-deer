@@ -2,8 +2,6 @@ package org.atlasapi.application;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
-import com.google.common.base.Objects;
-
 public class ApplicationCredentials {
 
 	private final String apiKey;

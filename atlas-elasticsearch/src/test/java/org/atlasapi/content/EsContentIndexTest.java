@@ -18,10 +18,10 @@ import org.atlasapi.entity.Id;
 import org.atlasapi.media.entity.Publisher;
 import org.atlasapi.util.ElasticSearchHelper;
 import org.elasticsearch.node.Node;
-import org.junit.AfterClass;
 import org.junit.After;
-import org.junit.BeforeClass;
+import org.junit.AfterClass;
 import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Test;
 
 import com.google.common.collect.FluentIterable;

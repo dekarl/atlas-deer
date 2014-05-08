@@ -5,12 +5,9 @@ import java.io.IOException;
 import org.atlasapi.application.Application;
 import org.atlasapi.output.EntityListWriter;
 import org.atlasapi.output.OutputContext;
-import org.atlasapi.output.QueryResultWriter;
 import org.atlasapi.output.ResponseWriter;
 import org.atlasapi.output.useraware.UserAwareQueryResult;
 import org.atlasapi.output.useraware.UserAwareQueryResultWriter;
-import org.atlasapi.query.common.QueryContext;
-import org.atlasapi.query.common.QueryResult;
 import org.atlasapi.query.common.useraware.UserAwareQueryContext;
 
 import com.google.common.collect.FluentIterable;

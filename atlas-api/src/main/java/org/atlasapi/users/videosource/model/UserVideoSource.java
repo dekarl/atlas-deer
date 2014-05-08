@@ -4,7 +4,6 @@ import org.atlasapi.entity.Id;
 import org.atlasapi.media.entity.Publisher;
 
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Sets;
 import com.metabroadcast.common.social.model.UserRef;
 
 public class UserVideoSource {

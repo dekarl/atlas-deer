@@ -1,6 +1,7 @@
 package org.atlasapi.application.notification;
 
 import java.util.Properties;
+
 import org.springframework.beans.factory.FactoryBean;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.JavaMailSenderImpl;

@@ -1,6 +1,7 @@
 package org.atlasapi.application.auth;
 
 import static com.google.api.client.repackaged.com.google.common.base.Preconditions.checkNotNull;
+
 import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;

@@ -1,9 +1,9 @@
 package org.atlasapi.users.videosource;
 
-import static org.atlasapi.users.videosource.model.translators.UserVideoSourceTranslator.USER_REF_KEY;
-import static org.atlasapi.users.videosource.model.translators.UserVideoSourceTranslator.ATLAS_USER_KEY;
-import static com.metabroadcast.common.social.model.translator.UserRefTranslator.USER_NAMESPACE_KEY;
 import static com.metabroadcast.common.persistence.mongo.MongoBuilders.where;
+import static com.metabroadcast.common.social.model.translator.UserRefTranslator.USER_NAMESPACE_KEY;
+import static org.atlasapi.users.videosource.model.translators.UserVideoSourceTranslator.ATLAS_USER_KEY;
+import static org.atlasapi.users.videosource.model.translators.UserVideoSourceTranslator.USER_REF_KEY;
 
 import org.atlasapi.application.users.User;
 import org.atlasapi.users.videosource.model.UserVideoSource;

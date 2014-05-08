@@ -23,9 +23,9 @@ import org.atlasapi.output.annotation.OutputAnnotation;
 import org.atlasapi.output.annotation.SeriesReferenceAnnotation;
 import org.atlasapi.output.annotation.SeriesSummaryAnnotation;
 import org.atlasapi.persistence.output.ContainerSummaryResolver;
-import org.mockito.runners.MockitoJUnitRunner;
-import org.junit.runner.RunWith;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.runners.MockitoJUnitRunner;
 
 import com.google.common.collect.Collections2;
 import com.google.common.collect.ImmutableSet;

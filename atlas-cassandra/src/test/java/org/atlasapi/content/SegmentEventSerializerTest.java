@@ -1,12 +1,13 @@
 package org.atlasapi.content;
 
-import static org.junit.Assert.assertThat;
-import org.junit.Test;
 import static org.hamcrest.Matchers.is;
+import static org.junit.Assert.assertThat;
+
 import org.atlasapi.segment.SegmentEvent;
 import org.atlasapi.segment.SegmentRef;
 import org.atlasapi.serialization.protobuf.ContentProtos;
 import org.joda.time.Duration;
+import org.junit.Test;
 
 public class SegmentEventSerializerTest {
 

@@ -2,6 +2,7 @@ package org.atlasapi.search;
 
 import java.util.Set;
 
+import org.atlasapi.content.Specialization;
 import org.atlasapi.media.entity.Publisher;
 
 import com.google.common.base.Joiner;
@@ -9,8 +10,6 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 import com.metabroadcast.common.query.Selection;
 import com.metabroadcast.common.url.QueryStringParameters;
-
-import org.atlasapi.content.Specialization;
 
 public class SearchQuery {
     

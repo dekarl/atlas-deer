@@ -1,9 +1,9 @@
 package org.atlasapi.criteria;
 
-import static org.junit.Assert.assertThat;
-import org.junit.Test;
 import static org.hamcrest.Matchers.allOf;
 import static org.hamcrest.Matchers.is;
+import static org.junit.Assert.assertThat;
+
 import java.util.List;
 import java.util.Queue;
 
@@ -17,6 +17,8 @@ import org.hamcrest.Description;
 import org.hamcrest.FeatureMatcher;
 import org.hamcrest.Matcher;
 import org.hamcrest.TypeSafeDiagnosingMatcher;
+import org.junit.Test;
+
 import com.google.common.base.Function;
 import com.google.common.collect.Collections2;
 import com.google.common.collect.ImmutableList;

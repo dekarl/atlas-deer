@@ -13,7 +13,6 @@ import org.atlasapi.output.ErrorResultWriter;
 import org.atlasapi.output.ErrorSummary;
 import org.atlasapi.output.NotAcceptableException;
 import org.atlasapi.output.NotAuthenticatedException;
-import org.atlasapi.output.NotAuthorizedException;
 import org.atlasapi.output.ResponseWriter;
 import org.atlasapi.output.ResponseWriterFactory;
 import org.atlasapi.output.UnsupportedFormatException;

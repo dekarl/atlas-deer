@@ -16,8 +16,8 @@ import com.google.common.base.Supplier;
 import com.google.common.collect.ImmutableList;
 import com.metabroadcast.common.scheduling.FailedRunHandler;
 import com.metabroadcast.common.scheduling.ScheduledTask;
-import com.metabroadcast.common.scheduling.UpdateProgress;
 import com.metabroadcast.common.scheduling.ScheduledTask.TaskState;
+import com.metabroadcast.common.scheduling.UpdateProgress;
 
 public class ExecutorServiceScheduledTaskTest {
 

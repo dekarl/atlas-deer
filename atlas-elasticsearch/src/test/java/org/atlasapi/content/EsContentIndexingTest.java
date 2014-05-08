@@ -25,10 +25,10 @@ import org.elasticsearch.search.facet.Facets;
 import org.elasticsearch.search.facet.terms.TermsFacet;
 import org.elasticsearch.search.facet.terms.TermsFacet.Entry;
 import org.joda.time.DateTime;
-import org.junit.AfterClass;
 import org.junit.After;
-import org.junit.BeforeClass;
+import org.junit.AfterClass;
 import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Test;
 
 import com.metabroadcast.common.time.DateTimeZones;

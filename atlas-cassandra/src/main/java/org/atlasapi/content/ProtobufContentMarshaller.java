@@ -1,14 +1,28 @@
 package org.atlasapi.content;
 
+import static org.atlasapi.serialization.protobuf.ContentProtos.Column.BROADCASTS;
+import static org.atlasapi.serialization.protobuf.ContentProtos.Column.CHILDREN;
+import static org.atlasapi.serialization.protobuf.ContentProtos.Column.CHILD_UPDATED;
+import static org.atlasapi.serialization.protobuf.ContentProtos.Column.CLIPS;
+import static org.atlasapi.serialization.protobuf.ContentProtos.Column.DESC;
+import static org.atlasapi.serialization.protobuf.ContentProtos.Column.GROUPS;
+import static org.atlasapi.serialization.protobuf.ContentProtos.Column.IDENT;
+import static org.atlasapi.serialization.protobuf.ContentProtos.Column.KEYPHRASES;
+import static org.atlasapi.serialization.protobuf.ContentProtos.Column.LINKS;
+import static org.atlasapi.serialization.protobuf.ContentProtos.Column.LOCATIONS;
+import static org.atlasapi.serialization.protobuf.ContentProtos.Column.PEOPLE;
+import static org.atlasapi.serialization.protobuf.ContentProtos.Column.SECONDARY;
+import static org.atlasapi.serialization.protobuf.ContentProtos.Column.SEGMENTS;
+import static org.atlasapi.serialization.protobuf.ContentProtos.Column.SOURCE;
+import static org.atlasapi.serialization.protobuf.ContentProtos.Column.TOPICS;
+import static org.atlasapi.serialization.protobuf.ContentProtos.Column.TYPE;
+
 import java.util.Collection;
 import java.util.List;
 import java.util.Map.Entry;
 
 import org.atlasapi.entity.Serializer;
 import org.atlasapi.serialization.protobuf.CommonProtos.Reference;
-
-import static org.atlasapi.serialization.protobuf.ContentProtos.Column.*;
-
 import org.atlasapi.serialization.protobuf.ContentProtos;
 import org.atlasapi.serialization.protobuf.ContentProtos.Content.Builder;
 

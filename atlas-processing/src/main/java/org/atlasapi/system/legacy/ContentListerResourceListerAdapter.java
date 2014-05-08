@@ -2,8 +2,8 @@ package org.atlasapi.system.legacy;
 
 import java.util.Iterator;
 
-import org.atlasapi.entity.ResourceLister;
 import org.atlasapi.content.Content;
+import org.atlasapi.entity.ResourceLister;
 import org.atlasapi.media.channel.ChannelResolver;
 import org.atlasapi.persistence.content.ContentCategory;
 import org.atlasapi.persistence.content.listing.ContentLister;

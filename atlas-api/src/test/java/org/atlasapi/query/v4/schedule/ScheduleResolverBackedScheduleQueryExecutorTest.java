@@ -40,11 +40,11 @@ import org.atlasapi.schedule.ChannelSchedule;
 import org.atlasapi.schedule.Schedule;
 import org.atlasapi.schedule.ScheduleResolver;
 import org.joda.time.Interval;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
-import org.junit.Before;
-import org.junit.runner.RunWith;
-import org.junit.Test;
 
 import com.google.common.base.Function;
 import com.google.common.collect.ImmutableList;

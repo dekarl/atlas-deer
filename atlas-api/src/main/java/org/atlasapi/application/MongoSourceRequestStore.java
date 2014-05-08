@@ -6,8 +6,6 @@ import static org.atlasapi.application.SourceRequestTranslator.SOURCE_KEY;
 
 import java.util.Set;
 
-import org.atlasapi.application.SourceRequest;
-import org.atlasapi.application.SourceRequestStore;
 import org.atlasapi.entity.Id;
 import org.atlasapi.entity.util.Resolved;
 import org.atlasapi.media.entity.Publisher;

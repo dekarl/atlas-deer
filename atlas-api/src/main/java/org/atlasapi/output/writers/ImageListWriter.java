@@ -3,10 +3,6 @@ package org.atlasapi.output.writers;
 import java.io.IOException;
 
 import org.atlasapi.content.Image;
-import org.atlasapi.content.Image.AspectRatio;
-import org.atlasapi.content.Image.Color;
-import org.atlasapi.content.Image.Theme;
-import org.atlasapi.content.Image.Type;
 import org.atlasapi.output.EntityListWriter;
 import org.atlasapi.output.FieldWriter;
 import org.atlasapi.output.OutputContext;

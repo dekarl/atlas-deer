@@ -8,8 +8,8 @@ import static org.atlasapi.topic.EsTopic.TITLE;
 import static org.atlasapi.util.ElasticSearchHelper.refresh;
 import static org.atlasapi.util.EsAlias.VALUE;
 import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThat;
 
 import java.util.List;
 import java.util.Map;
@@ -29,10 +29,10 @@ import org.atlasapi.util.ElasticSearchHelper;
 import org.elasticsearch.action.get.GetResponse;
 import org.elasticsearch.client.Requests;
 import org.elasticsearch.node.Node;
-import org.junit.AfterClass;
 import org.junit.After;
-import org.junit.BeforeClass;
+import org.junit.AfterClass;
 import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Test;
 
 import com.google.common.collect.ImmutableList;

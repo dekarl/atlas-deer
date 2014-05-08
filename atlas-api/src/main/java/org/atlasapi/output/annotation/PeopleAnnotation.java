@@ -3,8 +3,8 @@ package org.atlasapi.output.annotation;
 
 import java.io.IOException;
 
-import org.atlasapi.content.Content;
 import org.atlasapi.content.Actor;
+import org.atlasapi.content.Content;
 import org.atlasapi.content.CrewMember;
 import org.atlasapi.output.EntityListWriter;
 import org.atlasapi.output.FieldWriter;

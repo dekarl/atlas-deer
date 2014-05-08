@@ -24,10 +24,10 @@ import org.atlasapi.schedule.ScheduleResolver;
 import org.atlasapi.schedule.ScheduleWriter;
 import org.joda.time.Interval;
 import org.joda.time.LocalDate;
+import org.junit.Test;
+import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
-import org.junit.runner.RunWith;
-import org.junit.Test;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;

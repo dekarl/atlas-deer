@@ -15,10 +15,10 @@ import org.atlasapi.output.FieldWriter;
 import org.atlasapi.output.OutputContext;
 import org.atlasapi.query.common.QueryContext;
 import org.joda.time.DateTime;
+import org.junit.Test;
+import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
-import org.junit.runner.RunWith;
-import org.junit.Test;
 
 import com.metabroadcast.common.time.DateTimeZones;
 

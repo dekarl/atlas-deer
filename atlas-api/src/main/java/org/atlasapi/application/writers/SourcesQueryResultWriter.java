@@ -1,6 +1,7 @@
 package org.atlasapi.application.writers;
 
 import java.io.IOException;
+
 import org.atlasapi.media.entity.Publisher;
 import org.atlasapi.output.EntityListWriter;
 import org.atlasapi.output.OutputContext;

@@ -1,8 +1,6 @@
 package org.atlasapi.application;
 
 
-import org.atlasapi.application.SourceRequest;
-import org.atlasapi.application.UsageType;
 import org.atlasapi.entity.Id;
 import org.atlasapi.source.Sources;
 

@@ -1,7 +1,7 @@
 package org.atlasapi.content;
 
-import org.atlasapi.equivalence.EquivalenceRef;
 import org.atlasapi.equivalence.Equivalable;
+import org.atlasapi.equivalence.EquivalenceRef;
 import org.atlasapi.media.entity.Publisher;
 
 import com.google.common.collect.ImmutableList;

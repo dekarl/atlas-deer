@@ -3,13 +3,11 @@ package org.atlasapi.model.translators;
 import java.util.List;
 import java.util.Map;
 
-import org.atlasapi.application.SourceStatus;
-import org.atlasapi.application.v3.ApplicationConfiguration;
-import org.atlasapi.application.v3.SourceStatus.SourceState;
 import org.atlasapi.application.Application;
 import org.atlasapi.application.ApplicationCredentials;
 import org.atlasapi.application.ApplicationSources;
 import org.atlasapi.application.SourceReadEntry;
+import org.atlasapi.application.v3.ApplicationConfiguration;
 import org.atlasapi.entity.Id;
 import org.atlasapi.media.entity.Publisher;
 

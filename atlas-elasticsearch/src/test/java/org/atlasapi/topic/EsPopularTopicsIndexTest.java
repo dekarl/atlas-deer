@@ -2,10 +2,10 @@ package org.atlasapi.topic;
 
 import static org.atlasapi.util.ElasticSearchHelper.refresh;
 import static org.hamcrest.Matchers.hasItems;
+import static org.junit.Assert.assertEquals;
 import static org.mockito.Matchers.argThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
-import static org.junit.Assert.assertEquals;
 
 import org.apache.log4j.ConsoleAppender;
 import org.apache.log4j.Level;
@@ -24,8 +24,8 @@ import org.elasticsearch.node.Node;
 import org.joda.time.DateTime;
 import org.joda.time.Interval;
 import org.junit.After;
-import org.junit.BeforeClass;
 import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Test;
 
 import com.google.common.collect.FluentIterable;
