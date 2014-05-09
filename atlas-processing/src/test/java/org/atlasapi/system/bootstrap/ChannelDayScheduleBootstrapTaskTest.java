@@ -85,12 +85,10 @@ public class ChannelDayScheduleBootstrapTaskTest {
         assertThat(call.getProcessed(), is(2));
         assertThat(call.getFailures(), is(0));
         
-        verify(contentStore).writeContent(brand1);
-        verify(contentStore).writeContent(brand2);
-        verify(contentStore).writeContent(series2);
-        
-        verify(writer).writeSchedule(ImmutableList.of(ScheduleHierarchy.itemOnly(iab1)), chan, interval);
-        verify(writer).writeSchedule(ImmutableList.of(ScheduleHierarchy.itemOnly(iab2)), chan, interval);
+        verify(writer).writeSchedule(ImmutableList.of(
+            ScheduleHierarchy.brandAndItem(brand1, iab1), 
+            ScheduleHierarchy.brandSeriesAndItem(brand2, series2, iab2)
+        ), chan, interval);
         
     }
 
