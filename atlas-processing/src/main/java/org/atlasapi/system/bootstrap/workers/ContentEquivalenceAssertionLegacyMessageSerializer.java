@@ -26,7 +26,7 @@ public class ContentEquivalenceAssertionLegacyMessageSerializer
     protected EquivalenceAssertionMessage transform(ContentEquivalenceAssertionMessage leg) {
         String mid = leg.getMessageId();
         Timestamp ts = leg.getTimestamp();
-        ResourceRef subj = resourceRef(leg);
+        ResourceRef subj = resourceRef(leg.getEntityId(), leg.getEntitySource(), leg.getEntityType(), leg.getTimestamp());
         Set<ResourceRef> adjacents = toResourceRef(leg);
         Set<Publisher> srcs = ImmutableSet.copyOf(Iterables.transform(leg.getSources(), Publisher.FROM_KEY));
         return new EquivalenceAssertionMessage(mid, ts, subj, adjacents, srcs);
