@@ -58,7 +58,7 @@ public class SourceLicenseController {
         this.store = store;
     }
     
-    @RequestMapping({"/4.0/source_licenses/{sid}.*", "/4.0/source_licenses.*" })
+    @RequestMapping({"/4/source_licenses/{sid}.*", "/4/source_licenses.*" })
     public void listSources(HttpServletRequest request,
             HttpServletResponse response) throws QueryParseException, QueryExecutionException, IOException {
         ResponseWriter writer = writerResolver.writerFor(request, response);
@@ -72,7 +72,7 @@ public class SourceLicenseController {
         }
     }
     
-    @RequestMapping(value = "/4.0/license.*", method = RequestMethod.POST)
+    @RequestMapping(value = "/4/license.*", method = RequestMethod.POST)
     public void writeLicense(HttpServletRequest request, HttpServletResponse response)
             throws IOException {
         ResponseWriter writer = null;

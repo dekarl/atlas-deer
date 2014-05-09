@@ -4,9 +4,9 @@ import com.google.common.collect.ImmutableSet;
 import com.metabroadcast.common.social.model.UserRef.UserNamespace;
 
 public enum OAuthProvider {
-    TWITTER(UserNamespace.TWITTER, "Sign in with Twitter", "/4.0/auth/twitter/login"),
-    GITHUB(UserNamespace.GITHUB, "Sign in with GitHub", "/4.0/auth/github/login"),
-    GOOGLE(UserNamespace.GOOGLE, "Sign in with Google", "/4.0/auth/google/login");
+    TWITTER(UserNamespace.TWITTER, "Sign in with Twitter", "/4/auth/twitter/login"),
+    GITHUB(UserNamespace.GITHUB, "Sign in with GitHub", "/4/auth/github/login"),
+    GOOGLE(UserNamespace.GOOGLE, "Sign in with Google", "/4/auth/google/login");
     
     private final UserNamespace namespace;
     private final String loginPromptMessage;

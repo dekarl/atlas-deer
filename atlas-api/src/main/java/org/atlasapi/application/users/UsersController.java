@@ -67,7 +67,7 @@ public class UsersController {
         this.clock = clock;
     }
 
-    @RequestMapping({ "/4.0/users/{uid}.*", "/4.0/users.*" })
+    @RequestMapping({ "/4/users/{uid}.*", "/4/users.*" })
     public void outputUsers(HttpServletRequest request, HttpServletResponse response) throws IOException {
         ResponseWriter writer = null;
         try {
@@ -84,7 +84,7 @@ public class UsersController {
     
     // If user posts to this endpoint with the oauth token then they are accepting the 
     // terms and conditions
-    @RequestMapping(value = "/4.0/users/{uid}/eula/accept.*", method = RequestMethod.POST)
+    @RequestMapping(value = "/4/users/{uid}/eula/accept.*", method = RequestMethod.POST)
     public void userAcceptsLicense(HttpServletRequest request, 
             HttpServletResponse response,
             @PathVariable String uid) throws IOException {
@@ -112,7 +112,7 @@ public class UsersController {
         }
     }
     
-    @RequestMapping(value = "/4.0/users/{uid}.*", method = RequestMethod.POST)
+    @RequestMapping(value = "/4/users/{uid}.*", method = RequestMethod.POST)
     public void updateUser(HttpServletRequest request, 
             HttpServletResponse response,
             @PathVariable String uid) throws IOException {

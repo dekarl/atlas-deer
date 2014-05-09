@@ -56,7 +56,7 @@ public class SourceRequestsController {
         this.userFetcher = userFetcher;
     }
     
-    @RequestMapping(value = {"/4.0/requests.*", "/4.0/requests/{id}.*"}, method = RequestMethod.GET)
+    @RequestMapping(value = {"/4/requests.*", "/4/requests/{id}.*"}, method = RequestMethod.GET)
     public void listSourceRequests(HttpServletRequest request, 
             HttpServletResponse response) throws IOException {
         ResponseWriter writer = null;
@@ -72,7 +72,7 @@ public class SourceRequestsController {
       
     }
   
-    @RequestMapping(value = "/4.0/sources/{sid}/requests", method = RequestMethod.POST)
+    @RequestMapping(value = "/4/sources/{sid}/requests", method = RequestMethod.POST)
     public void storeSourceRequest(HttpServletRequest request, 
             HttpServletResponse response,
             @PathVariable String sid,
@@ -99,7 +99,7 @@ public class SourceRequestsController {
         }
     }
     
-    @RequestMapping(value = "/4.0/requests/{rid}/approve", method = RequestMethod.POST)
+    @RequestMapping(value = "/4/requests/{rid}/approve", method = RequestMethod.POST)
     public void storeSourceRequest(HttpServletRequest request, 
             HttpServletResponse response,
             @PathVariable String rid) throws IOException {

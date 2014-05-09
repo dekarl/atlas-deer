@@ -85,7 +85,7 @@ public class ApplicationsController {
         this.userStore = userStore;
     }
 
-    @RequestMapping({ "/4.0/applications/{aid}.*", "/4.0/applications.*" })
+    @RequestMapping({ "/4/applications/{aid}.*", "/4/applications.*" })
     public void outputAllApplications(HttpServletRequest request, HttpServletResponse response)
             throws IOException {
         ResponseWriter writer = null;
@@ -101,7 +101,7 @@ public class ApplicationsController {
         }
     }
 
-    @RequestMapping(value = "/4.0/applications.*", method = RequestMethod.POST)
+    @RequestMapping(value = "/4/applications.*", method = RequestMethod.POST)
     public void writeApplication(HttpServletRequest request, HttpServletResponse response)
             throws IOException {
         ResponseWriter writer = null;
@@ -145,7 +145,7 @@ public class ApplicationsController {
         }
     }
 
-    @RequestMapping(value = "/4.0/applications/{aid}/sources", method = RequestMethod.POST)
+    @RequestMapping(value = "/4/applications/{aid}/sources", method = RequestMethod.POST)
     public void writeApplicationSources(HttpServletRequest request, 
             HttpServletResponse response,
             @PathVariable String aid)
@@ -170,7 +170,7 @@ public class ApplicationsController {
         }
     }
     
-    @RequestMapping(value = "/4.0/applications/{aid}/precedence", method = RequestMethod.POST)
+    @RequestMapping(value = "/4/applications/{aid}/precedence", method = RequestMethod.POST)
     public void setPrecedenceOrder(HttpServletRequest request, 
             HttpServletResponse response,
             @PathVariable String aid) throws IOException {
@@ -193,7 +193,7 @@ public class ApplicationsController {
       
     }
     
-    @RequestMapping(value = "/4.0/applications/{aid}/precedence", method = RequestMethod.DELETE)
+    @RequestMapping(value = "/4/applications/{aid}/precedence", method = RequestMethod.DELETE)
     public void disablePrecedence(HttpServletRequest request, 
             HttpServletResponse response,
             @PathVariable String aid) throws IOException {

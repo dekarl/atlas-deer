@@ -10,8 +10,6 @@ import java.util.regex.Pattern;
 import javax.servlet.http.HttpServletRequest;
 
 import org.atlasapi.application.ApplicationSources;
-import org.atlasapi.application.SourceReadEntry;
-import org.atlasapi.application.SourceStatus;
 import org.atlasapi.application.auth.ApplicationSourcesFetcher;
 import org.atlasapi.application.auth.InvalidApiKeyException;
 import org.atlasapi.entity.Id;
@@ -43,6 +41,7 @@ class ScheduleRequestParser {
     private static final Pattern CHANNEL_ID_PATTERN = Pattern.compile(
         ".*schedules/([^.]+)(.[\\w\\d.]+)?$"
     );
+    private static final Splitter commaSplitter = Splitter.on(",").omitEmptyStrings().trimResults();
     
     private final ApplicationSourcesFetcher applicationStore;
 
@@ -88,7 +87,7 @@ class ScheduleRequestParser {
         Publisher publisher = extractPublisher(request);
         Interval queryInterval = extractInterval(request);
         
-        QueryContext context = parseContext(request, publisher, queryInterval);
+        QueryContext context = parseContext(request, publisher);
         
         Id channel = extractChannel(request);
         return ScheduleQuery.single(publisher, queryInterval, context, channel);
@@ -101,50 +100,26 @@ class ScheduleRequestParser {
         
         Publisher publisher = extractPublisher(request);
         Interval queryInterval = extractInterval(request);
-        QueryContext context = parseContext(request, publisher, queryInterval);
+        QueryContext context = parseContext(request, publisher);
         
         List<Id> channels = extractChannels(request);
         return ScheduleQuery.multi(publisher, queryInterval, context, channels);
     }
 
 
-    private QueryContext parseContext(HttpServletRequest request, Publisher publisher,
-            Interval queryInterval) throws InvalidApiKeyException, InvalidAnnotationException {
+    private QueryContext parseContext(HttpServletRequest request, Publisher publisher)
+            throws InvalidApiKeyException, InvalidAnnotationException {
         ApplicationSources appSources = getConfiguration(request);
-        appSources = appConfigForValidPublisher(publisher, appSources, queryInterval);
-        checkArgument(appSources != null, "Source %s not enabled", publisher);
+        checkArgument(appSources.isReadEnabled(publisher), "Source %s not enabled", publisher);
         
         ActiveAnnotations annotations = annotationExtractor.extractFromRequest(request);
         QueryContext context = new QueryContext(appSources, annotations);
         return context;
     }
 
-    
-    private ApplicationSources appConfigForValidPublisher(Publisher publisher,
-                                                                ApplicationSources appSources,
-                                                                Interval interval) {
-        if (appSources.isReadEnabled(publisher)) {
-            return appSources;
-        }
-        if (Publisher.PA.equals(publisher) && overlapsOpenInterval(interval)) {
-            List<SourceReadEntry> reads = ImmutableList.<SourceReadEntry>builder().addAll(appSources.getReads())
-                    .add(new SourceReadEntry(Publisher.PA, SourceStatus.AVAILABLE_ENABLED))
-                    .build();
-            appSources = appSources.copy().withReadableSources(reads).build();
-            return appSources;
-        }
-        return null;
-    }
-
-    private boolean overlapsOpenInterval(Interval interval) {
-        DateTime now = clock.now().toLocalDate().toDateTimeAtStartOfDay();
-        Interval openInterval = new Interval(now.minusDays(7), now.plusDays(8));
-        return openInterval.contains(interval);
-    }
-
     private List<Id> extractChannels(HttpServletRequest request) throws QueryParseException {
         String csvCids = request.getParameter("id");
-        List<String> cids = Splitter.on(",").omitEmptyStrings().trimResults().splitToList(csvCids);
+        List<String> cids = commaSplitter.splitToList(csvCids);
         List<String> invalidIds = Lists.newLinkedList();
         ImmutableList.Builder<Id> ids = ImmutableList.builder();
         for (String cid : cids) {

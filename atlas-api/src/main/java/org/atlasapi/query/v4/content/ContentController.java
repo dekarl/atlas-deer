@@ -38,7 +38,7 @@ public class ContentController {
         this.resultWriter = resultWriter;
     }
 
-    @RequestMapping({ "/4.0/content/{cid}.*", "/4.0/content/{cid}", "/4.0/content.*", "/4.0/content" })
+    @RequestMapping({ "/4/content/{cid}.*", "/4/content/{cid}", "/4/content.*", "/4/content" })
     public void writeSingleTopic(HttpServletRequest request, HttpServletResponse response)
         throws IOException {
         ResponseWriter writer = null;

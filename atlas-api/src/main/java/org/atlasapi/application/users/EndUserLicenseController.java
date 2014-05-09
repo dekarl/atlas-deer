@@ -49,7 +49,7 @@ public class EndUserLicenseController {
         this.userFetcher = userFetcher;
     }
     
-    @RequestMapping({ "/4.0/eula.*" })
+    @RequestMapping({ "/4/eula.*" })
     public void outputLicense(HttpServletRequest request, HttpServletResponse response) throws IOException {
         ResponseWriter writer = null;
         try {
@@ -64,7 +64,7 @@ public class EndUserLicenseController {
         }
     }
     
-    @RequestMapping(value = "/4.0/eula.*", method = RequestMethod.POST)
+    @RequestMapping(value = "/4/eula.*", method = RequestMethod.POST)
     public void updatelicense(HttpServletRequest request, 
             HttpServletResponse response) throws IOException {
         ResponseWriter writer = null;

@@ -38,7 +38,7 @@ public class TopicController {
         this.resultWriter = resultWriter;
     }
 
-    @RequestMapping({ "/4.0/topics/{tid}.*", "/4.0/topics/{tid}", "/4.0/topics.*", "/4.0/topics" })
+    @RequestMapping({ "/4/topics/{tid}.*", "/4/topics/{tid}", "/4/topics.*", "/4/topics" })
     public void writeSingleTopic(HttpServletRequest request, HttpServletResponse response)
         throws IOException {
         ResponseWriter writer = null;

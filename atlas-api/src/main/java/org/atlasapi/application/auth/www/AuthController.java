@@ -39,7 +39,7 @@ public class AuthController {
     private final QueryResultWriter<OAuthProvider> resultWriter;
     private final UserFetcher userFetcher;
     private final NumberToShortStringCodec idCodec;
-    private final String USER_URL = "/4.0/users/%s.%s";
+    private final String USER_URL = "/4/users/%s.%s";
     
     public AuthController(QueryResultWriter<OAuthProvider> resultWriter,
             UserFetcher userFetcher,
@@ -49,7 +49,7 @@ public class AuthController {
         this.idCodec = idCodec;
     }
     
-    @RequestMapping(value = { "/4.0/auth/providers.*" }, method = RequestMethod.GET) 
+    @RequestMapping(value = { "/4/auth/providers.*" }, method = RequestMethod.GET) 
     public void listAuthProviders(HttpServletRequest request,
             HttpServletResponse response) throws IOException {
         ResponseWriter writer = null;
@@ -64,7 +64,7 @@ public class AuthController {
         }
     }
     
-    @RequestMapping(value = { "/4.0/auth/user.json" }, method = RequestMethod.GET) 
+    @RequestMapping(value = { "/4/auth/user.json" }, method = RequestMethod.GET) 
     public void redirectToCurrentUser(HttpServletRequest request,
             HttpServletResponse response,
             @RequestParam (value = OAUTH_PROVIDER_QUERY_PARAMETER) String oauthProvider,

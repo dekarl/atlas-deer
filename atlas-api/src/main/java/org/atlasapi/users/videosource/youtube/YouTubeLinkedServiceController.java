@@ -131,7 +131,7 @@ public class YouTubeLinkedServiceController {
     }
 
     // Any callback URL used must be registered in the Google API console
-    @RequestMapping(value = { "/4.0/videosource/youtube/login.*" }, method = RequestMethod.GET)
+    @RequestMapping(value = { "/4/videosource/youtube/login.*" }, method = RequestMethod.GET)
     public void getYouTubeLinkLogin(HttpServletRequest request,
             HttpServletResponse response,
             @RequestParam(required = true) String redirectUri) throws UnsupportedFormatException,
@@ -161,7 +161,7 @@ public class YouTubeLinkedServiceController {
         oauthRequestResultWriter.write(queryResult, writer);
     }
 
-    @RequestMapping(value = { "/4.0/videosource/youtube/token.*" }, method = RequestMethod.GET)
+    @RequestMapping(value = { "/4/videosource/youtube/token.*" }, method = RequestMethod.GET)
     public void getAccessToken(HttpServletResponse response, HttpServletRequest request)
             throws IOException {
         StringBuffer fullUrlBuf = request.getRequestURL();
@@ -209,7 +209,7 @@ public class YouTubeLinkedServiceController {
         }
     }
     
-    @RequestMapping(value = { "/4.0/videosource/youtube/channels.*" }, method = RequestMethod.GET)
+    @RequestMapping(value = { "/4/videosource/youtube/channels.*" }, method = RequestMethod.GET)
     public void getChannels(HttpServletResponse response, HttpServletRequest request)
             throws IOException {
         ResponseWriter writer = null;
@@ -226,7 +226,7 @@ public class YouTubeLinkedServiceController {
         }
     }
     
-    @RequestMapping(value = { "/4.0/videosource/youtube/{youtubeId}/source/add/{sourceId}.*" }, method = RequestMethod.POST)
+    @RequestMapping(value = { "/4/videosource/youtube/{youtubeId}/source/add/{sourceId}.*" }, method = RequestMethod.POST)
     public void addSource(HttpServletResponse response, HttpServletRequest request, 
             @PathVariable String youtubeId, 
             @PathVariable String sourceId) throws IOException {
@@ -251,7 +251,7 @@ public class YouTubeLinkedServiceController {
         }
     }
     
-    @RequestMapping(value = { "/4.0/videosource/youtube/{youtubeId}/channels/add/{channelId}.*" }, method = RequestMethod.POST) 
+    @RequestMapping(value = { "/4/videosource/youtube/{youtubeId}/channels/add/{channelId}.*" }, method = RequestMethod.POST) 
     public void addChannel(HttpServletResponse response, HttpServletRequest request, 
             @PathVariable String youtubeId, 
             @PathVariable String channelId) throws IOException {

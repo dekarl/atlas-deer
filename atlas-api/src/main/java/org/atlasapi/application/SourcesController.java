@@ -62,13 +62,13 @@ public class SourcesController {
     }
 
     /**
-     * POST /4.0/sources/:sourceId/applications Updates permission for a source.
+     * POST /4/sources/:sourceId/applications Updates permission for a source.
      * Post with app id and permission (read/write) required Params: "id":
      * "abc", "permission": "read"
      * @throws NotFoundException 
      * @throws ResourceForbiddenException if user does not manage source
      */
-    @RequestMapping(value = "/4.0/sources/{sourceId}/applications", method = RequestMethod.POST)
+    @RequestMapping(value = "/4/sources/{sourceId}/applications", method = RequestMethod.POST)
     public void writeSourceForApplication(HttpServletRequest request, 
             HttpServletResponse response,
             @PathVariable String sourceId,
@@ -104,13 +104,13 @@ public class SourcesController {
     }
 
     /**
-     * DELETE /4.0/sources/:sourceId/applications Removes a permission
+     * DELETE /4/sources/:sourceId/applications Removes a permission
      * (read/write) from an app on a source. Post with app id and permission
      * needed.
      * @throws QueryExecutionException 
      * @throws ResourceForbiddenException 
      */
-    @RequestMapping(value = "/4.0/sources/{sourceId}/applications", method = RequestMethod.DELETE)
+    @RequestMapping(value = "/4/sources/{sourceId}/applications", method = RequestMethod.DELETE)
     public void deleteSourceForApplication(HttpServletRequest request, 
             HttpServletResponse response,
             @PathVariable String sourceId,
@@ -146,13 +146,13 @@ public class SourcesController {
     }
 
     /**
-     * POST /4.0/sources/:sourceId/applications/readers/:appId/state Changes
+     * POST /4/sources/:sourceId/applications/readers/:appId/state Changes
      * state of app for source, e.g. "available", "requested". Params: "state":
      * "available"
      * @throws ResourceForbiddenException 
      * @throws Exception 
      */
-    @RequestMapping(value = "/4.0/sources/{sourceId}/applications/readers/{id}/state", method = RequestMethod.POST)
+    @RequestMapping(value = "/4/sources/{sourceId}/applications/readers/{id}/state", method = RequestMethod.POST)
     public void changeSourceStateForApplication(HttpServletRequest request,
             HttpServletResponse response,
             @PathVariable String sourceId,
@@ -180,7 +180,7 @@ public class SourcesController {
         }
     }
     
-    @RequestMapping({"/4.0/sources/{sid}.*", "/4.0/sources.*"})
+    @RequestMapping({"/4/sources/{sid}.*", "/4/sources.*"})
     public void listSources(HttpServletRequest request,
             HttpServletResponse response) throws QueryParseException, QueryExecutionException, IOException {
         ResponseWriter writer = writerResolver.writerFor(request, response);

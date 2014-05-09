@@ -1,11 +1,14 @@
 package org.atlasapi.query.v4.schedule;
 
 import static org.atlasapi.media.entity.Publisher.BBC;
+import static org.atlasapi.media.entity.Publisher.METABROADCAST;
 import static org.atlasapi.media.entity.Publisher.PA;
 import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.not;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.argThat;
 import static org.mockito.Mockito.when;
 
 import java.math.BigInteger;
@@ -23,7 +26,10 @@ import org.atlasapi.media.channel.Channel;
 import org.atlasapi.media.entity.Publisher;
 import org.atlasapi.query.annotation.ActiveAnnotations;
 import org.atlasapi.query.annotation.ContextualAnnotationsExtractor;
+import org.atlasapi.query.common.QueryParseException;
 import org.atlasapi.query.common.Resource;
+import org.hamcrest.FeatureMatcher;
+import org.hamcrest.Matcher;
 import org.joda.time.DateTime;
 import org.joda.time.Duration;
 import org.joda.time.Interval;
@@ -71,10 +77,23 @@ public class ScheduleRequestParserTest {
         
         when(annotationsExtractor.extractFromRequest(any(HttpServletRequest.class)))
             .thenReturn(ActiveAnnotations.standard());
-        when(applicationFetcher.sourcesFor(any(HttpServletRequest.class)))
+        when(applicationFetcher.sourcesFor(argThat(httpRequestWithParam("apiKey",is("apikey")))))
             .thenReturn(Optional.of(sources));
+        when(applicationFetcher.sourcesFor(argThat(httpRequestWithParam("apiKey",not("apikey")))))
+            .thenReturn(Optional.<ApplicationSources>absent());
     }
     
+    private Matcher<HttpServletRequest> httpRequestWithParam(final String key, final Matcher<? super String> value) {
+        String desc = String.format("request with param %s", key);
+        return new FeatureMatcher<HttpServletRequest, String>(value, desc, "request param " + key) {
+
+            @Override
+            protected String featureValueOf(HttpServletRequest actual) {
+                return actual.getParameter(key);
+            }
+        };
+    }
+
     @Test
     public void testCreatesSingleQueryFromValidSingleQueryString() throws Exception {
         
@@ -133,46 +152,7 @@ public class ScheduleRequestParserTest {
     }
 
     @Test(expected=IllegalArgumentException.class)
-    public void testDoesntAcceptDisabledPublisherOutOfOpenRange() throws Exception {
-        
-        DateTime from = new DateTime(2012,12,06,10,00,00,000,DateTimeZones.UTC);
-        DateTime to = from.plusDays(1);
-        
-        StubHttpServletRequest request = singleScheduleRequest(channel1, from, to,
-            PA, "apikey", Annotation.standard(), ".json");
-        
-        builder.queryFrom(request);
-        
-    }
-
-    @Test
-    public void testAcceptsDisabledPublisherAtBeginningOfRange() throws Exception {
-        
-        DateTime from = new DateTime(2012,12,07,00,00,00,000,DateTimeZones.UTC);
-        DateTime to = from.plusHours(2);
-        
-        StubHttpServletRequest request = singleScheduleRequest(channel1, from, to,
-            PA, "apikey", Annotation.standard(), ".json");
-        
-        builder.queryFrom(request);
-        
-    }
-
-    @Test
-    public void testAcceptsDisabledPublisherAtEndOfRange() throws Exception {
-        
-        DateTime from = new DateTime(2012,12,21,00,00,00,000,DateTimeZones.UTC);
-        DateTime to = from.plusHours(24);
-        
-        StubHttpServletRequest request = singleScheduleRequest(channel1, from, to,
-            PA, "apikey", Annotation.standard(), ".json");
-        
-        builder.queryFrom(request);
-        
-    }
-
-    @Test(expected=IllegalArgumentException.class)
-    public void testDoesntAcceptDisabledPublisherBeyondEndOfRange() throws Exception {
+    public void testDoesntAcceptDisabledPublisher() throws Exception {
         
         DateTime from = new DateTime(2012,12,22,00,00,00,000,DateTimeZones.UTC);
         DateTime to = from.plusHours(24);
@@ -181,6 +161,45 @@ public class ScheduleRequestParserTest {
             PA, "apikey", Annotation.standard(), ".json");
         
         builder.queryFrom(request);
+    }
+    
+    @Test(expected=IllegalArgumentException.class)
+    public void testDoesntAcceptUnknownApiKey() throws Exception {
+        
+        DateTime from = new DateTime(2012,12,22,00,00,00,000,DateTimeZones.UTC);
+        DateTime to = from.plusHours(24);
+        
+        StubHttpServletRequest request = singleScheduleRequest(channel1, from, to,
+                BBC, "unknownapikey", Annotation.standard(), ".json");
+
+        builder.queryFrom(request);
+        
+    }
+
+    @Test(expected=IllegalArgumentException.class)
+    public void testDoesntAcceptRequestWithoutSource() throws Exception {
+        
+        DateTime from = new DateTime(2012,12,22,00,00,00,000,DateTimeZones.UTC);
+        DateTime to = from.plusHours(24);
+        
+        StubHttpServletRequest request = singleScheduleRequest(channel1, from, to,
+                null, "unknownapikey", Annotation.standard(), ".json");
+        
+        builder.queryFrom(request);
+        
+    }
+
+    @Test(expected=QueryParseException.class)
+    public void testDoesntAccpetRequestWithInvalidId() throws Exception {
+        
+        DateTime from = new DateTime(2012,12,22,00,00,00,000,DateTimeZones.UTC);
+        DateTime to = from.plusHours(24);
+        
+        StubHttpServletRequest request = singleScheduleRequest("invalid", from, to,
+                BBC, "apikey", Annotation.standard(), ".json");
+        
+        builder.queryFrom(request);
+        
     }
     
     @Test
@@ -202,26 +221,87 @@ public class ScheduleRequestParserTest {
         assertThat(query.getChannelIds().asList().get(1), is(Id.valueOf(channel2.getId())));
     }
 
+    @Test(expected=QueryParseException.class)
+    public void testDoesntAcceptMultiScheduleFromQueryWithInvalidIds() throws Exception {
+        
+        Interval intvl = new Interval(new DateTime(DateTimeZones.UTC), new DateTime(DateTimeZones.UTC).plusHours(1));
+        StubHttpServletRequest request = multiScheduleRequest(
+            "hkqs,invalid", 
+            intvl, 
+            BBC, 
+            "apikey", 
+            Annotation.standard(), 
+            ""
+        );
+        
+        ScheduleQuery query = builder.queryFrom(request);
+        assertTrue(query.isMultiChannel());
+        assertThat(query.getChannelIds().size(), is(2));
+        assertThat(query.getChannelIds().asList().get(0), is(Id.valueOf(channel1.getId())));
+        assertThat(query.getChannelIds().asList().get(1), is(Id.valueOf(channel2.getId())));
+    }
+    
+    @Test
+    public void testCreatesSingleQueryFromQueryWithNoApiKeyForDefaultEnabledSource() throws Exception {
+        
+        Interval intvl = new Interval(new DateTime(DateTimeZones.UTC), new DateTime(DateTimeZones.UTC).plusHours(1));
+        StubHttpServletRequest request = singleScheduleRequest(
+            channel1, 
+            intvl, 
+            METABROADCAST,
+            null, 
+            Annotation.standard(), 
+            ""
+        );
+        
+        ScheduleQuery query = builder.queryFrom(request);
+        
+        assertThat(query.getChannelId(), is(Id.valueOf(channel1.getId())));
+        assertThat(query.getInterval(), is(intvl));
+        assertThat(query.getSource(), is(METABROADCAST));
+        assertThat(query.getContext().getAnnotations().forPath(ImmutableList.of(Resource.CONTENT)), is(Annotation.standard()));
+        assertThat(query.getContext().getApplicationSources(), is(sources));
+    }
+
     private StubHttpServletRequest multiScheduleRequest(List<Channel> channels, Interval intvl,
             Publisher src, String appKey, Set<Annotation> annotations, String ext) {
-        String resource = String.format("http://localhost/4.0/schedules%s", ext);
-        StubHttpServletRequest req = createScheduleRequest(resource, intvl.getStart(), intvl.getEnd(), src, appKey, annotations);
-        return req.withParam("id", Joiner.on(',').join(Iterables.transform(channels,
+        String ids = Joiner.on(',').join(Iterables.transform(channels,
             new Function<Channel, String>() {
                 @Override
                 public String apply(Channel channel) {
                     return codec.encode(BigInteger.valueOf(channel.getId()));
                 }
             }
-        )));
+        ));
+        return multiScheduleRequest(ids, intvl, src, appKey, annotations, ext);
+    }
+
+    private StubHttpServletRequest multiScheduleRequest(String ids, Interval intvl, Publisher src,
+            String appKey, Set<Annotation> annotations, String ext) {
+        String resource = String.format("http://localhost/4/schedules%s", ext);
+        StubHttpServletRequest req = createScheduleRequest(resource, intvl.getStart(), intvl.getEnd(), src, appKey, annotations);
+        return req.withParam("id", ids);
     }
 
     private StubHttpServletRequest singleScheduleRequest(Channel channel, Interval interval, Publisher publisher, String appKey, Set<Annotation> annotations, String extension) {
         return singleScheduleRequest(channel, interval.getStart(), interval.getEnd(), publisher, appKey, annotations, extension);
     }
     private StubHttpServletRequest singleScheduleRequest(Channel channel, DateTime from, DateTime to, Publisher publisher, String appKey, Set<Annotation> annotations, String extension) {
-        String resource = String.format("http://localhost/4.0/schedules/%s%s",
-            codec.encode(BigInteger.valueOf(channel.getId())), extension
+        String channelKey = codec.encode(BigInteger.valueOf(channel.getId()));
+        return singleScheduleRequest(channelKey,
+                from,
+                to,
+                publisher,
+                appKey,
+                annotations,
+                extension);
+    }
+
+    private StubHttpServletRequest singleScheduleRequest(String channelKey, DateTime from,
+            DateTime to, Publisher publisher, String appKey, Set<Annotation> annotations,
+            String extension) {
+        String resource = String.format("http://localhost/4/schedules/%s%s",
+            channelKey, extension
         );
         return createScheduleRequest(resource, from, to, publisher, appKey, annotations);
     }
@@ -231,7 +311,7 @@ public class ScheduleRequestParserTest {
         return new StubHttpServletRequest().withRequestUri(resource)
                 .withParam("from", from.toString())
                 .withParam("to", to.toString())
-                .withParam("source", publisher.key())
+                .withParam("source", publisher == null ? null : publisher.key())
                 .withParam("annotations", Joiner.on(',').join(Iterables.transform(annotations, Annotation.toKeyFunction())))
                 .withParam("apiKey", appKey);
     }

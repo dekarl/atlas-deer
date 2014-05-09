@@ -76,7 +76,7 @@ public class TwitterAuthController {
         this.oauthResultResultWriter = oauthResultResultWriter;
     }
 
-    @RequestMapping(value = { "/4.0/auth/twitter/login.*" }, method = RequestMethod.GET)
+    @RequestMapping(value = { "/4/auth/twitter/login.*" }, method = RequestMethod.GET)
     public void getTwitterLogin(HttpServletRequest request,
             HttpServletResponse response,
             @RequestParam(required = true) String callbackUrl,
@@ -105,7 +105,7 @@ public class TwitterAuthController {
         }
     }
     
-    @RequestMapping(value = { "/4.0/auth/twitter/token.*" }, method = RequestMethod.GET)
+    @RequestMapping(value = { "/4/auth/twitter/token.*" }, method = RequestMethod.GET)
     public void getAccessToken(HttpServletResponse response, HttpServletRequest request, 
             @RequestParam String oauthToken,
             @RequestParam String oauthVerifier,
