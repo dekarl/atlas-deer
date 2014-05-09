@@ -49,7 +49,6 @@ import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.metabroadcast.common.collect.OptionalMap;
 import com.metabroadcast.common.scheduling.UpdateProgress;
-import com.metabroadcast.common.time.DateTimeZones;
 
 /**
  * <p>Copies a schedule from a {@link ScheduleResolver} to a {@link ScheduleWriter}
@@ -58,34 +57,34 @@ import com.metabroadcast.common.time.DateTimeZones;
  * <p>Items in the schedule are resolved via a {@link ContentResolver} to ensure
  * all broadcasts are found.</p>
  */
-public class ChannelDayScheduleBootstrapTask implements Callable<UpdateProgress> {
+public class ChannelIntervalScheduleBootstrapTask implements Callable<UpdateProgress> {
 
     private static final Logger log =
-        LoggerFactory.getLogger(ChannelDayScheduleBootstrapTask.class);
+        LoggerFactory.getLogger(ChannelIntervalScheduleBootstrapTask.class);
 
     private final ScheduleResolver scheduleResolver;
     private final ScheduleWriter scheduleWriter;
     private final ContentStore contentStore;
     
     private final Channel channel;
-    private final LocalDate day;
+    private final Interval interval;
     private final Publisher source;
 
-    public ChannelDayScheduleBootstrapTask(ScheduleResolver scheduleResolver,
+    public ChannelIntervalScheduleBootstrapTask(ScheduleResolver scheduleResolver,
             ScheduleWriter scheduleWriter, ContentStore contentStore,
-            Channel channel, LocalDate day, Publisher source) {
+            Publisher source, Channel channel, Interval interval) {
         this.scheduleResolver = checkNotNull(scheduleResolver);
         this.scheduleWriter = checkNotNull(scheduleWriter);
         this.contentStore = checkNotNull(contentStore);
         this.channel = checkNotNull(channel);
-        this.day = checkNotNull(day);
+        this.interval = checkNotNull(interval);
         this.source = checkNotNull(source);
     }
 
     @Override
     public UpdateProgress call() throws Exception {
         ListenableFuture<Schedule> resolved =
-            scheduleResolver.resolve(ImmutableSet.of(channel), interval(day), source);
+            scheduleResolver.resolve(ImmutableSet.of(channel), interval, source);
         Schedule schedule = Futures.get(resolved, 1, TimeUnit.MINUTES, ResolveException.class);
         /* it's reasonable for there not to be a channel for a given source/channel combination
          * but there should be precisely one if any. 
@@ -188,19 +187,13 @@ public class ChannelDayScheduleBootstrapTask implements Callable<UpdateProgress>
         ListenableFuture<Resolved<Content>> resolved = contentStore.resolveIds(entryIds);
         return Futures.get(resolved, 1, TimeUnit.MINUTES, ResolveException.class).toMap();
     }
-
-    private Interval interval(LocalDate day) {
-        return new Interval(day.toDateTimeAtStartOfDay(DateTimeZones.UTC),
-                day.plusDays(1).toDateTimeAtStartOfDay(DateTimeZones.UTC));
-    }
-
     
     @Override
     public String toString() {
         return Objects.toStringHelper(getClass())
             .add("src", source)
             .add("channel", channel)
-            .add("day", day)
+            .add("day", interval)
             .toString();
     }
 }

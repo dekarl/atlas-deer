@@ -117,19 +117,19 @@ public class BootstrapModule {
     
     @Bean
     ExecutorServiceScheduledTask<UpdateProgress> scheduleBootstrapTask() {
-        ChannelDayScheduleBootstrapTaskFactory taskFactory = scheduleBootstrapTaskFactory();
+        ChannelIntervalScheduleBootstrapTaskFactory taskFactory = scheduleBootstrapTaskFactory();
         DayRangeGenerator dayRangeGenerator = new DayRangeGenerator().withLookAhead(7).withLookBack(7);
         Set<Publisher> sources = ImmutableSet.of(Publisher.PA);
-        Supplier<Iterable<ChannelDayScheduleBootstrapTask>> supplier = 
-            new SourceChannelDayTaskSupplier<ChannelDayScheduleBootstrapTask>(taskFactory, persistence.channelStore(), dayRangeGenerator, sources, new SystemClock());
+        Supplier<Iterable<ChannelIntervalScheduleBootstrapTask>> supplier = 
+            new SourceChannelIntervalTaskSupplier<ChannelIntervalScheduleBootstrapTask>(taskFactory, persistence.channelStore(), dayRangeGenerator, sources, new SystemClock());
         ExecutorService executor = Executors.newFixedThreadPool(10, 
             new ThreadFactoryBuilder().setDaemon(true).setNameFormat("schedule-bootstrap-%d").build());
         return new ExecutorServiceScheduledTask<UpdateProgress>(executor, supplier, 10, 1, TimeUnit.MINUTES);
     }
     
     @Bean
-    ChannelDayScheduleBootstrapTaskFactory scheduleBootstrapTaskFactory() {
-        return new ChannelDayScheduleBootstrapTaskFactory(legacy.legacyScheduleStore(), persistence.scheduleStore(), 
+    ChannelIntervalScheduleBootstrapTaskFactory scheduleBootstrapTaskFactory() {
+        return new ChannelIntervalScheduleBootstrapTaskFactory(legacy.legacyScheduleStore(), persistence.scheduleStore(), 
             new DelegatingContentStore(legacy.legacyContentResolver(), persistence.contentStore()));
     }
     

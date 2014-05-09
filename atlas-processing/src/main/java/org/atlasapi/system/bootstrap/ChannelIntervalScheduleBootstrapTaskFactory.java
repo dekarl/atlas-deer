@@ -7,15 +7,16 @@ import org.atlasapi.media.channel.Channel;
 import org.atlasapi.media.entity.Publisher;
 import org.atlasapi.schedule.ScheduleResolver;
 import org.atlasapi.schedule.ScheduleWriter;
-import org.joda.time.LocalDate;
+import org.joda.time.Interval;
 
-public class ChannelDayScheduleBootstrapTaskFactory implements SourceChannelDayFactory<ChannelDayScheduleBootstrapTask> {
+public class ChannelIntervalScheduleBootstrapTaskFactory
+        implements SourceChannelIntervalFactory<ChannelIntervalScheduleBootstrapTask> {
 
     private final ScheduleResolver scheduleResolver;
     private final ScheduleWriter scheduleWriter;
     private final ContentStore contentStore;
 
-    public ChannelDayScheduleBootstrapTaskFactory(ScheduleResolver scheduleResolver,
+    public ChannelIntervalScheduleBootstrapTaskFactory(ScheduleResolver scheduleResolver,
             ScheduleWriter scheduleWriter, ContentStore contentStore) {
         this.scheduleResolver = checkNotNull(scheduleResolver);
         this.scheduleWriter = checkNotNull(scheduleWriter);
@@ -23,15 +24,15 @@ public class ChannelDayScheduleBootstrapTaskFactory implements SourceChannelDayF
     }
 
     @Override
-    public ChannelDayScheduleBootstrapTask create(Publisher source, Channel channel,
-            LocalDate day) {
-        return new ChannelDayScheduleBootstrapTask(
+    public ChannelIntervalScheduleBootstrapTask create(Publisher source, Channel channel,
+            Interval interval) {
+        return new ChannelIntervalScheduleBootstrapTask(
                 scheduleResolver,
                 scheduleWriter,
                 contentStore,
+                source,
                 channel,
-                day,
-                source);
+                interval);
     }
-
+    
 }
