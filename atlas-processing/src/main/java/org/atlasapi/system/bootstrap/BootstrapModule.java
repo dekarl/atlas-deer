@@ -11,7 +11,6 @@ import org.atlasapi.AtlasPersistenceModule;
 import org.atlasapi.SchedulerModule;
 import org.atlasapi.content.Content;
 import org.atlasapi.media.entity.Publisher;
-import org.atlasapi.system.bootstrap.workers.BootstrapContentPersistor;
 import org.atlasapi.system.bootstrap.workers.BootstrapWorkersModule;
 import org.atlasapi.system.bootstrap.workers.DelegatingContentStore;
 import org.atlasapi.system.legacy.LegacyPersistenceModule;
@@ -47,7 +46,7 @@ public class BootstrapModule {
             new BootstrapListenerFactory<Content>() {
                 @Override
                 public BootstrapListener<Content> buildWithConcurrency(int concurrencyLevel) {
-                    return new ContentWritingBootstrapListener(concurrencyLevel, persistor());
+                    return new ContentWritingBootstrapListener(concurrencyLevel, persistence.contentStore());
                 }
             }
         );
@@ -62,16 +61,9 @@ public class BootstrapModule {
         return bootstrapController;
     }
 
-    private BootstrapContentPersistor persistor() {
-        return new BootstrapContentPersistor(
-                persistence.contentStore(),
-                persistence.scheduleStore(),
-                persistence.channelStore());
-    }
-
     @Bean
     IndividualContentBootstrapController contentBootstrapController() {
-        return new IndividualContentBootstrapController(legacy.legacyContentResolver(), persistor());
+        return new IndividualContentBootstrapController(legacy.legacyContentResolver(), persistence.contentStore());
     }
 
     @Bean

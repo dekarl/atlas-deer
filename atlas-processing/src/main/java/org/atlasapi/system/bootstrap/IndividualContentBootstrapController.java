@@ -11,6 +11,7 @@ import org.atlasapi.content.Content;
 import org.atlasapi.content.ContentResolver;
 import org.atlasapi.content.ContentType;
 import org.atlasapi.content.ContentVisitorAdapter;
+import org.atlasapi.content.ContentWriter;
 import org.atlasapi.content.Identified;
 import org.atlasapi.content.Item;
 import org.atlasapi.content.Series;
@@ -18,7 +19,6 @@ import org.atlasapi.entity.Id;
 import org.atlasapi.entity.Identifiables;
 import org.atlasapi.entity.util.Resolved;
 import org.atlasapi.entity.util.WriteResult;
-import org.atlasapi.system.bootstrap.workers.BootstrapContentPersistor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
@@ -39,9 +39,9 @@ public class IndividualContentBootstrapController {
     private final Logger log = LoggerFactory.getLogger(getClass());
 
     private final ContentResolver read;
-    private final BootstrapContentPersistor write;
+    private final ContentWriter write;
 
-    public IndividualContentBootstrapController(ContentResolver read, BootstrapContentPersistor write) {
+    public IndividualContentBootstrapController(ContentResolver read, ContentWriter write) {
         this.read = checkNotNull(read);
         this.write = checkNotNull(write);
     }
@@ -96,7 +96,7 @@ public class IndividualContentBootstrapController {
                     resp.getWriter().println(ContentType.fromContent(content).get() + " " + content.getId());
                     resp.getWriter().flush();
                     content.setReadHash(null);
-                    return write.fullWriteContent(content);
+                    return write.writeContent(content);
                 } catch (Exception e) {
                     log.error(String.format("Bootstrapping: %s %s", id, content), e);
                     return null;

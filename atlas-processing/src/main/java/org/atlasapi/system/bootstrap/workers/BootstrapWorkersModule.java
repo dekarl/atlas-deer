@@ -54,9 +54,7 @@ public class BootstrapWorkersModule {
     @Lazy(true)
     KafkaConsumer contentReadWriter() {
         ContentResolver legacyResolver = legacy.legacyContentResolver();
-        BootstrapContentPersistor persistor = new BootstrapContentPersistor(
-            persistence.contentStore(), persistence.scheduleStore(), persistence.channelStore());
-        ContentReadWriteWorker worker = new ContentReadWriteWorker(legacyResolver, persistor);
+        ContentReadWriteWorker worker = new ContentReadWriteWorker(legacyResolver, persistence.contentStore());
         MessageSerializer<ResourceUpdatedMessage> serializer = 
             new EntityUpdatedLegacyMessageSerializer();
         return bootstrapQueueFactory().createConsumer(worker, serializer, contentChanges, "ContentBootstrap")
