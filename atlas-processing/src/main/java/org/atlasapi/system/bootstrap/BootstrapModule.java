@@ -10,17 +10,9 @@ import javax.annotation.PostConstruct;
 import org.atlasapi.AtlasPersistenceModule;
 import org.atlasapi.SchedulerModule;
 import org.atlasapi.content.Content;
-import org.atlasapi.content.ContentResolver;
-import org.atlasapi.content.ContentStore;
-import org.atlasapi.content.ContentWriter;
-import org.atlasapi.entity.Alias;
-import org.atlasapi.entity.Id;
-import org.atlasapi.entity.util.Resolved;
-import org.atlasapi.entity.util.WriteException;
-import org.atlasapi.entity.util.WriteResult;
 import org.atlasapi.media.entity.Publisher;
-import org.atlasapi.system.bootstrap.workers.BootstrapContentPersistor;
 import org.atlasapi.system.bootstrap.workers.BootstrapWorkersModule;
+import org.atlasapi.system.bootstrap.workers.DelegatingContentStore;
 import org.atlasapi.system.legacy.LegacyPersistenceModule;
 import org.atlasapi.topic.Topic;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,9 +22,7 @@ import org.springframework.context.annotation.Import;
 
 import com.google.common.base.Supplier;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
-import com.metabroadcast.common.collect.OptionalMap;
 import com.metabroadcast.common.scheduling.RepetitionRules;
 import com.metabroadcast.common.scheduling.UpdateProgress;
 import com.metabroadcast.common.time.DayRangeGenerator;
@@ -43,36 +33,9 @@ import com.metabroadcast.common.time.SystemClock;
     SchedulerModule.class})
 public class BootstrapModule {
 
-    private static final class DelegatingContentStore implements ContentStore {
-
-        private final ContentResolver resolver;
-        private final ContentWriter writer;
-
-        private DelegatingContentStore(ContentResolver resolver, ContentWriter writer) {
-            this.resolver = resolver;
-            this.writer = writer;
-        }
-
-        @Override
-        public OptionalMap<Alias, Content> resolveAliases(Iterable<Alias> aliases,
-                Publisher source) {
-            return resolver.resolveAliases(aliases, source);
-        }
-
-        @Override
-        public ListenableFuture<Resolved<Content>> resolveIds(Iterable<Id> ids) {
-            return resolver.resolveIds(ids);
-        }
-
-        @Override
-        public <C extends Content> WriteResult<C, Content> writeContent(C content)
-                throws WriteException {
-            return writer.writeContent(content);
-        }
-    }
-
     @Autowired private AtlasPersistenceModule persistence;
     @Autowired private LegacyPersistenceModule legacy;
+    @Autowired private BootstrapWorkersModule workers;
     @Autowired private SchedulerModule scheduler;
     
     @Bean
@@ -83,7 +46,7 @@ public class BootstrapModule {
             new BootstrapListenerFactory<Content>() {
                 @Override
                 public BootstrapListener<Content> buildWithConcurrency(int concurrencyLevel) {
-                    return new ContentWritingBootstrapListener(concurrencyLevel, persistor());
+                    return new ContentWritingBootstrapListener(concurrencyLevel, persistence.contentStore());
                 }
             }
         );
@@ -98,16 +61,9 @@ public class BootstrapModule {
         return bootstrapController;
     }
 
-    private BootstrapContentPersistor persistor() {
-        return new BootstrapContentPersistor(
-                persistence.contentStore(),
-                persistence.scheduleStore(),
-                persistence.channelStore());
-    }
-
     @Bean
     IndividualContentBootstrapController contentBootstrapController() {
-        return new IndividualContentBootstrapController(legacy.legacyContentResolver(), persistor());
+        return new IndividualContentBootstrapController(legacy.legacyContentResolver(), persistence.contentStore());
     }
 
     @Bean
@@ -117,19 +73,19 @@ public class BootstrapModule {
     
     @Bean
     ExecutorServiceScheduledTask<UpdateProgress> scheduleBootstrapTask() {
-        ChannelDayScheduleBootstrapTaskFactory taskFactory = scheduleBootstrapTaskFactory();
+        ChannelIntervalScheduleBootstrapTaskFactory taskFactory = workers.scheduleBootstrapTaskFactory();
         DayRangeGenerator dayRangeGenerator = new DayRangeGenerator().withLookAhead(7).withLookBack(7);
         Set<Publisher> sources = ImmutableSet.of(Publisher.PA);
-        Supplier<Iterable<ChannelDayScheduleBootstrapTask>> supplier = 
-            new SourceChannelDayTaskSupplier<ChannelDayScheduleBootstrapTask>(taskFactory, persistence.channelStore(), dayRangeGenerator, sources, new SystemClock());
+        Supplier<Iterable<ChannelIntervalScheduleBootstrapTask>> supplier = 
+            new SourceChannelIntervalTaskSupplier<ChannelIntervalScheduleBootstrapTask>(taskFactory, persistence.channelStore(), dayRangeGenerator, sources, new SystemClock());
         ExecutorService executor = Executors.newFixedThreadPool(10, 
             new ThreadFactoryBuilder().setDaemon(true).setNameFormat("schedule-bootstrap-%d").build());
         return new ExecutorServiceScheduledTask<UpdateProgress>(executor, supplier, 10, 1, TimeUnit.MINUTES);
     }
     
     @Bean
-    ChannelDayScheduleBootstrapTaskFactory scheduleBootstrapTaskFactory() {
-        return new ChannelDayScheduleBootstrapTaskFactory(legacy.legacyScheduleStore(), persistence.scheduleStore(), 
+    ChannelIntervalScheduleBootstrapTaskFactory scheduleBootstrapTaskFactory() {
+        return new ChannelIntervalScheduleBootstrapTaskFactory(legacy.legacyScheduleStore(), persistence.scheduleStore(), 
             new DelegatingContentStore(legacy.legacyContentResolver(), persistence.contentStore()));
     }
     
@@ -140,6 +96,6 @@ public class BootstrapModule {
     
     @Bean
     public ScheduleBootstrapController scheduleBootstrapController() {
-        return new ScheduleBootstrapController(scheduleBootstrapTaskFactory(), persistence.channelStore());
+        return new ScheduleBootstrapController(workers.scheduleBootstrapTaskFactory(), persistence.channelStore());
     }
 }

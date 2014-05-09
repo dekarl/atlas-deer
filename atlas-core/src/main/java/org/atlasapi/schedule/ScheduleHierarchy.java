@@ -47,7 +47,7 @@ public class ScheduleHierarchy {
     private final Optional<Container> primaryContainer;
     private final Optional<Series> possibleSeries;
 
-    ScheduleHierarchy(ItemAndBroadcast itemAndBroadcast, @Nullable Container primaryContainer,
+    public ScheduleHierarchy(ItemAndBroadcast itemAndBroadcast, @Nullable Container primaryContainer,
             @Nullable Series secondaryContainer) {
         this(checkNotNull(itemAndBroadcast), Optional.fromNullable(primaryContainer), Optional.fromNullable(secondaryContainer));
     }

@@ -3,25 +3,25 @@ package org.atlasapi.system.bootstrap;
 import java.util.concurrent.ThreadPoolExecutor;
 
 import org.atlasapi.content.Content;
-import org.atlasapi.system.bootstrap.workers.BootstrapContentPersistor;
+import org.atlasapi.content.ContentWriter;
 
 public class ContentWritingBootstrapListener extends AbstractMultiThreadedBootstrapListener<Content> {
 
-    private final BootstrapContentPersistor writer;
+    private final ContentWriter writer;
 
-    public ContentWritingBootstrapListener(int concurrencyLevel, BootstrapContentPersistor writer) {
+    public ContentWritingBootstrapListener(int concurrencyLevel, ContentWriter writer) {
         super(concurrencyLevel);
         this.writer = writer;
     }
 
-    public ContentWritingBootstrapListener(ThreadPoolExecutor executor, BootstrapContentPersistor contentStore) {
+    public ContentWritingBootstrapListener(ThreadPoolExecutor executor, ContentWriter contentWriter) {
         super(executor);
-        this.writer = contentStore;
+        this.writer = contentWriter;
     }
 
     @Override
     protected void onChange(Content content) throws Exception {
         content.setReadHash(null);
-        writer.fullWriteContent(content);
+        writer.writeContent(content);
     }
 }

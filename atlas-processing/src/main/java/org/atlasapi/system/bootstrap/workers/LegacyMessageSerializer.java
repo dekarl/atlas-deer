@@ -11,7 +11,6 @@ import org.atlasapi.content.SongRef;
 import org.atlasapi.entity.Id;
 import org.atlasapi.entity.ResourceRef;
 import org.atlasapi.media.entity.Publisher;
-import org.atlasapi.messaging.v3.AbstractMessage;
 import org.atlasapi.serialization.json.JsonFactory;
 import org.atlasapi.topic.TopicRef;
 import org.joda.time.DateTime;
@@ -23,6 +22,7 @@ import com.metabroadcast.common.queue.Message;
 import com.metabroadcast.common.queue.MessageDeserializationException;
 import com.metabroadcast.common.queue.MessageSerializer;
 import com.metabroadcast.common.time.DateTimeZones;
+import com.metabroadcast.common.time.Timestamp;
 
 public abstract class LegacyMessageSerializer<LM extends Message, M extends Message> implements MessageSerializer<M> {
 
@@ -54,16 +54,15 @@ public abstract class LegacyMessageSerializer<LM extends Message, M extends Mess
 
     protected abstract M transform(LM leg);
 
-    protected ResourceRef resourceRef(AbstractMessage leg) {
-        final Long lid = idCodec.decode(leg.getEntityId()).longValue();
-        final Publisher src = Publisher.fromKey(leg.getEntitySource()).requireValue();
-        final DateTime updated = new DateTime(leg.getTimestamp().millis(), DateTimeZones.UTC);
-        String type = leg.getEntityType();
+    protected final ResourceRef resourceRef(String entityId, String entitySource, String type, Timestamp ts) {
+        final Long lid = idCodec.decode(entityId).longValue();
+        final Publisher src = Publisher.fromKey(entitySource).requireValue();
+        final DateTime updated = new DateTime(ts.millis(), DateTimeZones.UTC);
         Optional<ContentType> possContentType = ContentType.fromKey(type);
         if (possContentType.isPresent()) {
             return toResourceRef(lid, src, type, updated);
         } else {
-            Publisher source = Publisher.fromKey(leg.getEntitySource()).requireValue();
+            Publisher source = Publisher.fromKey(entitySource).requireValue();
             return new TopicRef(Id.valueOf(lid), source);
         }
     }

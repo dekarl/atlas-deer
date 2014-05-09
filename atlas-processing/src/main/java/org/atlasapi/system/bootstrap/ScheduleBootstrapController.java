@@ -12,6 +12,7 @@ import org.atlasapi.media.channel.Channel;
 import org.atlasapi.media.channel.ChannelResolver;
 import org.atlasapi.media.entity.Publisher;
 import org.elasticsearch.common.base.Throwables;
+import org.joda.time.Interval;
 import org.joda.time.LocalDate;
 import org.joda.time.format.DateTimeFormatter;
 import org.joda.time.format.ISODateTimeFormat;
@@ -25,17 +26,18 @@ import com.metabroadcast.common.http.HttpStatusCode;
 import com.metabroadcast.common.ids.NumberToShortStringCodec;
 import com.metabroadcast.common.ids.SubstitutionTableNumberCodec;
 import com.metabroadcast.common.scheduling.UpdateProgress;
+import com.metabroadcast.common.time.DateTimeZones;
 
 @Controller
 public class ScheduleBootstrapController {
     
-    private final ChannelDayScheduleBootstrapTaskFactory taskFactory;
+    private final ChannelIntervalScheduleBootstrapTaskFactory taskFactory;
     private final ChannelResolver channelResvoler;
     
     private static final DateTimeFormatter dateParser = ISODateTimeFormat.date();
     private static final NumberToShortStringCodec idCodec = SubstitutionTableNumberCodec.lowerCaseOnly();
 
-    public ScheduleBootstrapController(ChannelDayScheduleBootstrapTaskFactory taskFactory, ChannelResolver channelResvoler) {
+    public ScheduleBootstrapController(ChannelIntervalScheduleBootstrapTaskFactory taskFactory, ChannelResolver channelResvoler) {
         this.taskFactory = checkNotNull(taskFactory);
         this.channelResvoler = checkNotNull(channelResvoler);
     }
@@ -63,7 +65,7 @@ public class ScheduleBootstrapController {
         }
         
         try {
-            UpdateProgress progress = taskFactory.create(source.requireValue(), channel.requireValue(), date).call();
+            UpdateProgress progress = taskFactory.create(source.requireValue(), channel.requireValue(), interval(date)).call();
             resp.setStatus(HttpStatusCode.OK.code());
             resp.getWriter().write(progress.toString());
             return null;
@@ -71,6 +73,11 @@ public class ScheduleBootstrapController {
             return failure(resp, SERVER_ERROR, Throwables.getStackTraceAsString(e));
         }
         
+    }
+
+    private Interval interval(LocalDate day) {
+        return new Interval(day.toDateTimeAtStartOfDay(DateTimeZones.UTC),
+                day.plusDays(1).toDateTimeAtStartOfDay(DateTimeZones.UTC));
     }
 
     private Maybe<Channel> resolve(String channelId) {

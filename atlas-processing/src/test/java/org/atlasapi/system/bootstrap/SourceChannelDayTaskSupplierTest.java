@@ -11,6 +11,7 @@ import java.util.Set;
 import org.atlasapi.media.channel.Channel;
 import org.atlasapi.media.channel.ChannelResolver;
 import org.atlasapi.media.entity.Publisher;
+import org.joda.time.Interval;
 import org.joda.time.LocalDate;
 import org.junit.Before;
 import org.junit.Test;
@@ -21,13 +22,14 @@ import org.mockito.runners.MockitoJUnitRunner;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.metabroadcast.common.time.Clock;
+import com.metabroadcast.common.time.DateTimeZones;
 import com.metabroadcast.common.time.DayRangeGenerator;
 import com.metabroadcast.common.time.TimeMachine;
 
 @RunWith(MockitoJUnitRunner.class)
 public class SourceChannelDayTaskSupplierTest {
 
-    @Mock private SourceChannelDayFactory<Integer> factory;
+    @Mock private SourceChannelIntervalFactory<Integer> factory;
     @Mock private ChannelResolver channelResolver;
     
     private DayRangeGenerator dayRangeGenerator = new DayRangeGenerator()
@@ -36,11 +38,11 @@ public class SourceChannelDayTaskSupplierTest {
     private Set<Publisher> srcs = ImmutableSet.of(Publisher.BBC, Publisher.PA);
     private Clock clock = new TimeMachine();
 
-    private SourceChannelDayTaskSupplier<Integer> supplier;
+    private SourceChannelIntervalTaskSupplier<Integer> supplier;
     
     @Before
     public void setup() {
-        supplier = new SourceChannelDayTaskSupplier<Integer>(factory, channelResolver, dayRangeGenerator, srcs, clock);
+        supplier = new SourceChannelIntervalTaskSupplier<Integer>(factory, channelResolver, dayRangeGenerator, srcs, clock);
     }
     
     @Test
@@ -50,22 +52,27 @@ public class SourceChannelDayTaskSupplierTest {
         Channel channel2 = Channel.builder().withUri("channel2").build();
         
         when(channelResolver.all()).thenReturn(ImmutableList.of(channel1, channel2));
-        when(factory.create(any(Publisher.class), any(Channel.class), any(LocalDate.class)))
+        when(factory.create(any(Publisher.class), any(Channel.class), any(Interval.class)))
             .thenReturn(1);
         
         ImmutableList<Integer> numbers = ImmutableList.copyOf(supplier.get());
         
         assertThat(numbers.size(), is(8));
         
-        verify(factory).create(Publisher.BBC, channel1, clock.now().toLocalDate());
-        verify(factory).create(Publisher.BBC, channel1, clock.now().toLocalDate().plusDays(1));
-        verify(factory).create(Publisher.BBC, channel2, clock.now().toLocalDate());
-        verify(factory).create(Publisher.BBC, channel2, clock.now().toLocalDate().plusDays(1));
-        verify(factory).create(Publisher.PA, channel1, clock.now().toLocalDate());
-        verify(factory).create(Publisher.PA, channel1, clock.now().toLocalDate().plusDays(1));
-        verify(factory).create(Publisher.PA, channel2, clock.now().toLocalDate());
-        verify(factory).create(Publisher.PA, channel2, clock.now().toLocalDate().plusDays(1));
+        verify(factory).create(Publisher.BBC, channel1, interval(clock.now().toLocalDate()));
+        verify(factory).create(Publisher.BBC, channel1, interval(clock.now().toLocalDate().plusDays(1)));
+        verify(factory).create(Publisher.BBC, channel2, interval(clock.now().toLocalDate()));
+        verify(factory).create(Publisher.BBC, channel2, interval(clock.now().toLocalDate().plusDays(1)));
+        verify(factory).create(Publisher.PA, channel1, interval(clock.now().toLocalDate()));
+        verify(factory).create(Publisher.PA, channel1, interval(clock.now().toLocalDate().plusDays(1)));
+        verify(factory).create(Publisher.PA, channel2, interval(clock.now().toLocalDate()));
+        verify(factory).create(Publisher.PA, channel2, interval(clock.now().toLocalDate().plusDays(1)));
         
+    }
+
+    private Interval interval(LocalDate day) {
+        return new Interval(day.toDateTimeAtStartOfDay(DateTimeZones.UTC),
+                day.plusDays(1).toDateTimeAtStartOfDay(DateTimeZones.UTC));
     }
 
 }

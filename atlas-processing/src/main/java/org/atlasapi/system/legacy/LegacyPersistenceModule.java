@@ -3,6 +3,7 @@ package org.atlasapi.system.legacy;
 import org.atlasapi.AtlasPersistenceModule;
 import org.atlasapi.content.ContentResolver;
 import org.atlasapi.content.NullContentResolver;
+import org.atlasapi.messaging.v3.ScheduleUpdateMessage;
 import org.atlasapi.persistence.content.DefaultEquivalentContentResolver;
 import org.atlasapi.persistence.content.EquivalentContentResolver;
 import org.atlasapi.persistence.content.KnownTypeContentResolver;
@@ -21,6 +22,8 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 
 import com.metabroadcast.common.persistence.mongo.DatabasedMongo;
+import com.metabroadcast.common.queue.MessageSender;
+import com.metabroadcast.common.queue.MessageSenders;
 
 @Configuration
 @Import(AtlasPersistenceModule.class)
@@ -70,7 +73,8 @@ public class LegacyPersistenceModule {
         KnownTypeContentResolver contentResolver = new MongoContentResolver(db, legacyEquivalenceStore());
         LookupResolvingContentResolver resolver = new LookupResolvingContentResolver(contentResolver, legacyEquivalenceStore());
         EquivalentContentResolver equivalentContentResolver = new DefaultEquivalentContentResolver(contentResolver, legacyEquivalenceStore());
-        return new LegacyScheduleResolver(new MongoScheduleStore(db, persistence.channelStore(), resolver, equivalentContentResolver),persistence.channelStore());
+        MessageSender<ScheduleUpdateMessage> sender = MessageSenders.noopSender();
+        return new LegacyScheduleResolver(new MongoScheduleStore(db, persistence.channelStore(), resolver, equivalentContentResolver, sender),persistence.channelStore());
     }
 
 }

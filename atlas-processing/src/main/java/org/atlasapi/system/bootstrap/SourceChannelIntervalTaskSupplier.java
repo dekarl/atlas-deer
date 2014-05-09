@@ -7,22 +7,22 @@ import java.util.Iterator;
 import org.atlasapi.media.channel.Channel;
 import org.atlasapi.media.channel.ChannelResolver;
 import org.atlasapi.media.entity.Publisher;
+import org.joda.time.Interval;
 import org.joda.time.LocalDate;
 
 import com.google.common.base.Supplier;
 import com.google.common.collect.AbstractIterator;
 import com.google.common.collect.ImmutableSet;
 import com.metabroadcast.common.time.Clock;
+import com.metabroadcast.common.time.DateTimeZones;
 import com.metabroadcast.common.time.DayRange;
 import com.metabroadcast.common.time.DayRangeGenerator;
 
-public class SourceChannelDayTaskSupplier<T> implements
-        Supplier<Iterable<T>> {
+public class SourceChannelIntervalTaskSupplier<T> implements Supplier<Iterable<T>> {
 
-    private static final class ChannelDayScheduleFactoryIterator<T> extends
-            AbstractIterator<T> {
+    private static final class ChannelDayScheduleFactoryIterator<T> extends AbstractIterator<T> {
 
-        private final SourceChannelDayFactory<? extends T> factory;
+        private final SourceChannelIntervalFactory<? extends T> factory;
         private final Iterator<Publisher> srcs;
         private final DayRange dayRange;
         private final Iterable<Channel> channels;
@@ -32,7 +32,7 @@ public class SourceChannelDayTaskSupplier<T> implements
         private Publisher src;
         private LocalDate day;
 
-        public ChannelDayScheduleFactoryIterator(SourceChannelDayFactory<? extends T> taskFactory,
+        public ChannelDayScheduleFactoryIterator(SourceChannelIntervalFactory<? extends T> taskFactory,
                 ImmutableSet<Publisher> sources, DayRange dayRange, Iterable<Channel> channels) {
             this.factory = taskFactory;
             this.srcs = sources.iterator();
@@ -53,17 +53,23 @@ public class SourceChannelDayTaskSupplier<T> implements
                 }
                 day = days.next();
             }
-            return factory.create(src, chans.next(), day);
+            return factory.create(src, chans.next(), interval(day));
         }
+        
+        private Interval interval(LocalDate day) {
+            return new Interval(day.toDateTimeAtStartOfDay(DateTimeZones.UTC),
+                    day.plusDays(1).toDateTimeAtStartOfDay(DateTimeZones.UTC));
+        }
+
     }
 
-    private final SourceChannelDayFactory<? extends T> taskFactory;
+    private final SourceChannelIntervalFactory<? extends T> taskFactory;
     private final ChannelResolver channelResolver;
     private final DayRangeGenerator dayRangeGenerator;
     private final ImmutableSet<Publisher> sources;
     private final Clock clock;
 
-    public SourceChannelDayTaskSupplier(SourceChannelDayFactory<? extends T> taskFactory,
+    public SourceChannelIntervalTaskSupplier(SourceChannelIntervalFactory<? extends T> taskFactory,
             ChannelResolver channelResolver, DayRangeGenerator dayRangeGenerator,
             Iterable<Publisher> sources, Clock clock) {
         this.taskFactory = checkNotNull(taskFactory);

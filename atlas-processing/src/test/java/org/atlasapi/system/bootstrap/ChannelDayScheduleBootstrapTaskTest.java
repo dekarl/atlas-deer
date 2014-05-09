@@ -44,16 +44,17 @@ public class ChannelDayScheduleBootstrapTaskTest {
 
     @Test
     public void testRunningTask() throws Exception {
+        Publisher src = Publisher.METABROADCAST;
+
         Channel chan = Channel.builder().build();
         chan.setId(123L);
-        LocalDate day = new LocalDate();
-        Publisher src = Publisher.METABROADCAST;
         
-        ChannelDayScheduleBootstrapTask task 
-            = new ChannelDayScheduleBootstrapTask(resolver, writer, contentStore, chan, day, src);
-
+        LocalDate day = new LocalDate();
         Interval interval = new Interval(day.toDateTimeAtStartOfDay(DateTimeZones.UTC), 
                 day.plusDays(1).toDateTimeAtStartOfDay(DateTimeZones.UTC));
+        
+        ChannelIntervalScheduleBootstrapTask task 
+            = new ChannelIntervalScheduleBootstrapTask(resolver, writer, contentStore, src, chan, interval);
         
         Brand brand1 = new Brand(Id.valueOf(11), src);
         Item item1 = new Item(Id.valueOf(1), src);
