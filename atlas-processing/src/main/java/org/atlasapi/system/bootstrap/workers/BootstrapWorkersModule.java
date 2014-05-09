@@ -10,6 +10,9 @@ import org.atlasapi.AtlasPersistenceModule;
 import org.atlasapi.content.ContentResolver;
 import org.atlasapi.messaging.KafkaMessagingModule;
 import org.atlasapi.messaging.ResourceUpdatedMessage;
+import org.atlasapi.messaging.v3.JacksonMessageSerializer;
+import org.atlasapi.messaging.v3.ScheduleUpdateMessage;
+import org.atlasapi.system.bootstrap.ChannelIntervalScheduleBootstrapTaskFactory;
 import org.atlasapi.system.legacy.LegacyPersistenceModule;
 import org.atlasapi.topic.TopicResolver;
 import org.atlasapi.topic.TopicStore;
@@ -36,6 +39,7 @@ public class BootstrapWorkersModule {
     private Integer maxConsumers = Configurer.get("messaging.bootstrap.consumers.max").toInt();
     private String contentChanges = Configurer.get("messaging.destination.content.changes").get();
     private String topicChanges = Configurer.get("messaging.destination.topics.changes").get();
+    private String scheduleChanges = Configurer.get("messaging.destination.schedule.changes").get();
 
     @Autowired private AtlasPersistenceModule persistence;
     @Autowired private LegacyPersistenceModule legacy;
@@ -64,6 +68,19 @@ public class BootstrapWorkersModule {
 
     @Bean
     @Lazy(true)
+    KafkaConsumer scheduleReadWriter() {
+        ScheduleReadWriteWorker worker = new ScheduleReadWriteWorker(scheduleBootstrapTaskFactory(), persistence.channelStore());
+        MessageSerializer<ScheduleUpdateMessage> serializer
+            = JacksonMessageSerializer.forType(ScheduleUpdateMessage.class);
+        return bootstrapQueueFactory().createConsumer(worker, serializer, scheduleChanges, "ScheduleBootstrap")
+                .withConsumerSystem(consumerSystem)
+                .withDefaultConsumers(consumers)
+                .withMaxConsumers(maxConsumers)
+                .build();
+    }
+    
+    @Bean
+    @Lazy(true)
     KafkaConsumer topicReadWriter() {
         TopicResolver legacyResolver = legacy.legacyTopicResolver();
         TopicStore writer = persistence.topicStore();
@@ -80,14 +97,21 @@ public class BootstrapWorkersModule {
     @PostConstruct
     public void start() throws TimeoutException {
         contentReadWriter().startAsync().awaitRunning(1, TimeUnit.MINUTES);
+        scheduleReadWriter().startAsync().awaitRunning(1, TimeUnit.MINUTES);
         topicReadWriter().startAsync().awaitRunning(1, TimeUnit.MINUTES);
     }
 
     @PreDestroy
     public void stop() throws TimeoutException {
        contentReadWriter().stopAsync().awaitTerminated(1, TimeUnit.MINUTES);
+       scheduleReadWriter().stopAsync().awaitTerminated(1, TimeUnit.MINUTES);
        topicReadWriter().stopAsync().awaitTerminated(1, TimeUnit.MINUTES);
     }
 
+    @Bean
+    public ChannelIntervalScheduleBootstrapTaskFactory scheduleBootstrapTaskFactory() {
+        return new ChannelIntervalScheduleBootstrapTaskFactory(legacy.legacyScheduleStore(), persistence.scheduleStore(), 
+            new DelegatingContentStore(legacy.legacyContentResolver(), persistence.contentStore()));
+    }
     
 }
