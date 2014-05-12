@@ -4,6 +4,8 @@ import java.util.Set;
 
 public interface ParameterNameProvider {
 
-    public Set<String> getParameterNames();
+    Set<String> getRequiredParameters();
+
+    Set<String> getOptionalParameters();
 
 }

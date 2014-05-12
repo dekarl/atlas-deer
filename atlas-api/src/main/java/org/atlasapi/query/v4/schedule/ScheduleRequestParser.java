@@ -46,12 +46,12 @@ class ScheduleRequestParser {
     private final ApplicationSourcesFetcher applicationStore;
 
     private final SetBasedRequestParameterValidator singleValidator = SetBasedRequestParameterValidator.builder()
-        .withRequiredParameters("from","to","source")
+        .withRequiredParameters("from","to","source","apiKey")
         .withOptionalParameters("annotations","apiKey", "callback")
         .build();
     private final SetBasedRequestParameterValidator multiValidator = SetBasedRequestParameterValidator.builder()
-            .withRequiredParameters("id", "from","to","source")
-            .withOptionalParameters("annotations","apiKey", "callback")
+            .withRequiredParameters("id", "from","to","source","apiKey")
+            .withOptionalParameters("annotations", "callback")
             .build();
     
     private final NumberToShortStringCodec idCodec;
@@ -110,6 +110,7 @@ class ScheduleRequestParser {
     private QueryContext parseContext(HttpServletRequest request, Publisher publisher)
             throws InvalidApiKeyException, InvalidAnnotationException {
         ApplicationSources appSources = getConfiguration(request);
+        
         checkArgument(appSources.isReadEnabled(publisher), "Source %s not enabled", publisher);
         
         ActiveAnnotations annotations = annotationExtractor.extractFromRequest(request);

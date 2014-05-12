@@ -30,7 +30,7 @@ public class StandardUserAwareQueryParser<T> implements UserAwareQueryParser<T> 
     public StandardUserAwareQueryParser(Resource resource, QueryAttributeParser attributeParser,
                             NumberToShortStringCodec idCodec,
                             UserAwareQueryContextParser contextParser) {
-        this.parameterValidator = new QueryRequestParameterValidator(attributeParser, contextParser.getParameterNames());
+        this.parameterValidator = new QueryRequestParameterValidator(attributeParser, contextParser);
         this.attributeParser = checkNotNull(attributeParser);
         this.contextParser = checkNotNull(contextParser);
         this.idCodec = checkNotNull(idCodec);

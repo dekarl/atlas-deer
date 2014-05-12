@@ -1,5 +1,8 @@
 package org.atlasapi.query.common;
 
+import static com.google.common.base.Predicates.in;
+import static com.google.common.base.Predicates.not;
+
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
@@ -9,30 +12,40 @@ import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 
 
 public class QueryRequestParameterValidator extends AbstractRequestParameterValidator {
 
     private final PrefixInTree<Boolean> attributeParameters;
-    private final ImmutableSet<String> contextParameters;
+    private final ImmutableSet<String> requiredParameters;
+    private final ImmutableSet<String> optionalParameters;
     private final ReplacementSuggestion replacementSuggestion;
 
+
     public QueryRequestParameterValidator(QueryAttributeParser attributeParser,
-            ImmutableSet<String> otherParameters) {
+            ParameterNameProvider paramProvider) {
+        this(attributeParser, paramProvider.getRequiredParameters(), paramProvider.getOptionalParameters());
+    }
+    
+    public QueryRequestParameterValidator(QueryAttributeParser attributeParser,
+            Set<String> requiredParameters, Set<String> optionalParameters) {
         this.attributeParameters = initAttributeParams(attributeParser);
-        this.contextParameters = ImmutableSet.copyOf(otherParameters);
+        this.requiredParameters = ImmutableSet.copyOf(requiredParameters);
+        this.optionalParameters = ImmutableSet.copyOf(optionalParameters);
         this.replacementSuggestion = new ReplacementSuggestion(allParams(), "Invalid parameters: ", " (did you mean %s?)");
     }
     
+
     private Iterable<String> allParams() {
         return ImmutableSet.copyOf(Iterables.concat(
-                attributeParameters.allKeys(), contextParameters));
+                attributeParameters.allKeys(), requiredParameters, optionalParameters));
     }
 
     private PrefixInTree<Boolean> initAttributeParams(QueryAttributeParser attributeParser) {
         PrefixInTree<Boolean> attributeParams = new PrefixInTree<Boolean>();
         Optional<Boolean> value = Optional.of(Boolean.TRUE);
-        for (String validKeyPrefix : attributeParser.getParameterNames()) {
+        for (String validKeyPrefix : attributeParser.getOptionalParameters()) {
             attributeParams.put(validKeyPrefix, value);
         }
         return attributeParams;
@@ -54,12 +67,12 @@ public class QueryRequestParameterValidator extends AbstractRequestParameterVali
     }
 
     private boolean isContextParam(String requestParam) {
-        return contextParameters.contains(requestParam);
+        return requiredParameters.contains(requestParam) || optionalParameters.contains(requestParam);
     }
 
     @Override
     protected Set<String> determineMissingParameters(Set<String> requestParams) {
-        return ImmutableSet.of();
+        return Sets.filter(requiredParameters, not(in(requestParams)));
     }
 
     @Override
