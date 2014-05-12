@@ -253,6 +253,8 @@ def get_platform_channels(platform):
   limit = 5
   offset = 0 if args.offset == None else args.offset
   channels = get_channels(platform, limit, offset)
+  if len(channels) == 0:
+    print "no channels found"
   while (len(channels) > 0):
     for chan in channels:
       yield {'v3id': chan['id'], 'v4id': v4_id(chan['aliases']), 'title': chan['title']}
@@ -310,7 +312,7 @@ source = args.source
 start = args.start
 end = args.end
 
-if (end - start <= datetime.timedelta(1) and len(channels) == 1):
+if (end - start <= datetime.timedelta(1) and platform == None):
   channel = channels[0]
   print "comparing schedules on '%s' between %s and %s" % ("/".join(channel.values()), args.start, args.end)
   req1, schedule1 = atlas1.get_schedule(source, channel, start, end)

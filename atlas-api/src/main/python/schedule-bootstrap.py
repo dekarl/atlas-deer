@@ -25,7 +25,7 @@ start = dateutil.parser.parse(args.start).date()
 end = start if args.end == None else dateutil.parser.parse(args.end).date()
 host = args.host
 
-v4_channel_prefix = "http://atlas.metabroadcast.com/4/channels/"
+v4_channel_prefix = "http://atlas.metabroadcast.com/4.0/channels/"
 
 def color(c, val):
   if sys.stdout.isatty():
@@ -96,6 +96,7 @@ if len(channels) == 0:
 while (len(channels) > 0):
   for chan in channels:
     for v3id, v4id in cids(chan):
+      print ""
       bootstrap_days(conn, v4id, v3id)
   offset = offset + limit
   channels = get_channels(platform, limit, offset)
