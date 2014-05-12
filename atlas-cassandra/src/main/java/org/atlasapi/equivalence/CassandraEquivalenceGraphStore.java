@@ -25,9 +25,9 @@ import com.datastax.driver.core.Statement;
 import com.datastax.driver.core.querybuilder.QueryBuilder;
 import com.google.common.base.Function;
 import com.google.common.base.Functions;
-import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Ordering;
@@ -132,7 +132,8 @@ public final class CassandraEquivalenceGraphStore extends AbstractEquivalenceGra
     }
 
     private Query queryForGraphIds(Iterable<Id> ids) {
-        Object[] lids = FluentIterable.from(ids).transform(Id.toLongValue()).toArray(Long.class);
+        ImmutableSet<Long> uniqueIds = ImmutableSet.copyOf(Iterables.transform(ids, Id.toLongValue()));
+        Object[] lids = Iterables.toArray(uniqueIds,Long.class);
         return QueryBuilder
             .select(RESOURCE_ID_KEY,GRAPH_ID_KEY)
             .from(EQUIVALENCE_GRAPH_INDEX_TABLE)
