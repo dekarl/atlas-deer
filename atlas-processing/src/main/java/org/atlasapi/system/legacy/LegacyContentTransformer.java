@@ -173,39 +173,49 @@ public class LegacyContentTransformer extends DescribedLegacyResourceTransformer
     }
 
     private <I extends org.atlasapi.content.Item> void transformVersions(I i, Set<org.atlasapi.media.entity.Version> versions) {
-        for (org.atlasapi.media.entity.Version version : versions) {
-            transformVersion(i, version);
-        }
+        i.setRestrictions(getRestrictions(versions));
+        i.setManifestedAs(getEncodings(versions));
+        i.setBroadcasts(getBroadcasts(versions));
+        i.setSegmentEvents(getSegmentEvents(versions));
     }
 
-    private <I extends org.atlasapi.content.Item> void transformVersion(I i, final org.atlasapi.media.entity.Version version) {
-        i.addRestriction(transformRestriction(version.getRestriction()));
-        final Boolean is3dVersion = version.is3d();
-        i.setManifestedAs(ImmutableSet.copyOf(Iterables.transform(version.getManifestedAs(),
-            new Function<org.atlasapi.media.entity.Encoding, Encoding>() {
-                @Override
-                public Encoding apply(org.atlasapi.media.entity.Encoding input) {
-                    return transformEncoding(input, version);
-                }
+    private Set<Restriction> getRestrictions(Set<Version> versions) {
+        return ImmutableSet.copyOf(Iterables.transform(versions, new Function<Version, Restriction>(){
+            @Override
+            public Restriction apply(Version version) {
+                return transformRestriction(version.getRestriction());
             }
-        )));
-        i.setBroadcasts(ImmutableSet.copyOf(Iterables.transform(broadcastsWithIds(version), 
-            new Function<org.atlasapi.media.entity.Broadcast, Broadcast>(){
-                @Override
-                public Broadcast apply(org.atlasapi.media.entity.Broadcast input) {
-                    return transformBroadcast(input, version);
-                }
-            }
-        )));
-        i.setSegmentEvents(Iterables.transform(version.getSegmentEvents(), 
-            new Function<org.atlasapi.media.segment.SegmentEvent, SegmentEvent>(){
-                @Override
-                public SegmentEvent apply(org.atlasapi.media.segment.SegmentEvent input) {
-                    return transformSegmentEvent(input, version);
-                }
+        }));
+    }
 
+    private Set<Encoding> getEncodings(Set<Version> versions) {
+        ImmutableSet.Builder<Encoding> encodings = ImmutableSet.builder();
+        for (Version version : versions) {
+            for (org.atlasapi.media.entity.Encoding encoding : version.getManifestedAs()) {
+                encodings.add(transformEncoding(encoding, version));
             }
-        ));
+        }
+        return encodings.build();
+    }
+
+    private Set<Broadcast> getBroadcasts(Set<Version> versions) {
+        ImmutableSet.Builder<Broadcast> broadcasts = ImmutableSet.builder();
+        for (Version version : versions) {
+            for (org.atlasapi.media.entity.Broadcast broadcast : broadcastsWithIds(version)) {
+                broadcasts.add(transformBroadcast(broadcast, version));
+            }
+        }
+        return broadcasts.build();
+    }
+
+    private Iterable<SegmentEvent> getSegmentEvents(Set<Version> versions) {
+        ImmutableSet.Builder<SegmentEvent> segEvents = ImmutableSet.builder();
+        for (Version version : versions) {
+            for (org.atlasapi.media.segment.SegmentEvent segementEvent : version.getSegmentEvents()) {
+                segEvents.add(transformSegmentEvent(segementEvent, version));
+            }
+        }
+        return segEvents.build();
     }
 
     private Set<org.atlasapi.media.entity.Broadcast> broadcastsWithIds(
