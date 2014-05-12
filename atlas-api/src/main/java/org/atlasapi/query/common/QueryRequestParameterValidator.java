@@ -8,6 +8,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
+import com.google.api.client.repackaged.com.google.common.base.Joiner;
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
@@ -82,7 +83,7 @@ public class QueryRequestParameterValidator extends AbstractRequestParameterVali
 
     @Override
     protected String missingParameterMessage(Collection<String> missingParams) {
-        return "";
+        return Joiner.on(",").appendTo(new StringBuilder("Missing parameters: "), missingParams).toString();
     }
 
 }
