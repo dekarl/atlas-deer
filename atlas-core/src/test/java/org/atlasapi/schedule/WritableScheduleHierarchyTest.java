@@ -4,6 +4,8 @@ import static org.hamcrest.Matchers.any;
 import static org.hamcrest.Matchers.hasItems;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -213,6 +215,36 @@ public class WritableScheduleHierarchyTest {
             assertThat(((Episode)content).getSeriesRef(), is(series.toRef()));
         }
         
+    }
+    
+    @Test
+    public void testWritingAnItemWithATopLevelSeriesRepeated() throws WriteException {
+        
+        Series series = new Series(Id.valueOf(2), Publisher.METABROADCAST);
+        ItemAndBroadcast iab1 = andBroadcast(episode(3, "three", Publisher.METABROADCAST), broadcast("three", channel));
+        
+        WritableScheduleHierarchy hierarchy = WritableScheduleHierarchy.from(ImmutableList.of(new ScheduleHierarchy(iab1, series, series)));
+        
+        hierarchy.writeTo(store);
+
+        ArgumentCaptor<Content> contentCaptor = ArgumentCaptor.forClass(Content.class);
+        verify(store, times(2)).writeContent(contentCaptor.capture());
+        assertNotNull(((Episode)contentCaptor.getAllValues().get(1)).getSeriesRef());
+    }
+    
+    @Test
+    public void testWritingAnItemWithATopLevelSeriesOnly() throws WriteException {
+        
+        Series series = new Series(Id.valueOf(2), Publisher.METABROADCAST);
+        ItemAndBroadcast iab1 = andBroadcast(episode(3, "three", Publisher.METABROADCAST), broadcast("three", channel));
+        
+        WritableScheduleHierarchy hierarchy = WritableScheduleHierarchy.from(ImmutableList.of(new ScheduleHierarchy(iab1, series, null)));
+        
+        hierarchy.writeTo(store);
+        
+        ArgumentCaptor<Content> contentCaptor = ArgumentCaptor.forClass(Content.class);
+        verify(store, times(2)).writeContent(contentCaptor.capture());
+        assertNull(((Episode)contentCaptor.getAllValues().get(1)).getSeriesRef());
     }
     
     private ItemAndBroadcast andBroadcast(Item item, Broadcast broadcast) {

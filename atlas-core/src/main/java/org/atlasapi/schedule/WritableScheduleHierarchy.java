@@ -42,9 +42,9 @@ class WritableScheduleHierarchy {
                 topLevelContainers.add(tlc.get());
             }
             Optional<Series> possibleSeries = hierarchy.getPossibleSeries();
-            if (possibleSeries.isPresent()) {
+            if (possibleSeries.isPresent() && !possibleSeries.get().equals(tlc.orNull())) {
                 series.add(possibleSeries.get());
-                if (tlc.isPresent()) {
+                if (tlc.isPresent() && tlc.get() instanceof Brand) {
                     seriesBrandIndex.put(possibleSeries.get(), (Brand) tlc.get());
                 }
             }
@@ -141,7 +141,13 @@ class WritableScheduleHierarchy {
             if (item instanceof Episode) {
                 Series series = itemSeriesIndex.get(item);
                 if (series != null) {
-                    ((Episode)item).setSeries(seriesWritten.get(series));
+                    Container writtenSeries = tlcWritten.get(series);
+                    if (writtenSeries == null) {
+                        writtenSeries = seriesWritten.get(series);
+                    }
+                    if (writtenSeries instanceof Series) {
+                        ((Episode)item).setSeries((Series)writtenSeries);
+                    }
                 }
             }
             results.add(contentStore.writeContent(item));
