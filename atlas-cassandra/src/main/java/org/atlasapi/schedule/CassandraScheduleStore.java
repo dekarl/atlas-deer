@@ -7,6 +7,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map.Entry;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 import org.atlasapi.content.Broadcast;
 import org.atlasapi.content.ContentStore;
@@ -267,7 +268,7 @@ public class CassandraScheduleStore extends AbstractScheduleStore {
     @Override
     protected List<ChannelSchedule> resolveCurrentScheduleBlocks(Publisher source, Channel channel,
             Interval interval) throws WriteException {
-        Rows<String, String> rows = Futures.get(scheduleRows(rowKeys(channel, interval, source)), 1, TimeUnit.MINUTES, WriteException.class);
+        Rows<String, String> rows = fetchRows(source, channel, interval);
         List<ChannelSchedule> channelSchedules = Lists.newArrayList();
         for (LocalDate date : new ScheduleIntervalDates(interval)) {
             DateTime start = date.toDateTimeAtStartOfDay(DateTimeZones.UTC);
@@ -275,6 +276,19 @@ public class CassandraScheduleStore extends AbstractScheduleStore {
             channelSchedules.add(schedule(channel, dayInterval, rows.getRow(keyFor(source, channel, date))));
         }
         return channelSchedules;
+    }
+
+    private Rows<String, String> fetchRows(Publisher source, Channel channel, Interval interval)
+            throws WriteException {
+        Iterable<String> keys = rowKeys(channel, interval, source);
+        int timeout = 1;
+        TimeUnit units = TimeUnit.MINUTES;
+        try {
+            return Futures.get(scheduleRows(keys), timeout, units, WriteException.class);
+        } catch (WriteException we) {
+            String msg = String.format("failed to read %s in %s %s", keys, timeout, units);
+            throw new WriteException(msg, we.getCause());
+        }
     }
 
     private ChannelSchedule schedule(Channel channel, Interval interval, Row<String, String> row) {
