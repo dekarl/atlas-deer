@@ -6,6 +6,7 @@ import java.util.UUID;
 
 import org.atlasapi.application.auth.InvalidApiKeyException;
 import org.atlasapi.query.common.InvalidAnnotationException;
+import org.atlasapi.query.common.InvalidParameterException;
 
 import com.google.common.collect.ImmutableMap;
 import com.metabroadcast.common.http.HttpStatusCode;
@@ -65,6 +66,7 @@ public class ErrorSummary {
 	    
 		return ImmutableMap.<Class<? extends Exception>, ErrorSummaryFactory<?>>builder()
 		    .put(IllegalArgumentException.class, new DefaultErrorSummaryFactory("BAD_QUERY_ATTRIBUTE", HttpStatusCode.BAD_REQUEST))
+		    .put(InvalidParameterException.class, new DefaultErrorSummaryFactory("BAD_QUERY_ATTRIBUTE", HttpStatusCode.BAD_REQUEST))
 		    .put(MalformedDateTimeException.class, new DefaultErrorSummaryFactory("BAD_DATE_TIME_VALUE", HttpStatusCode.BAD_REQUEST))
 		    .put(NotFoundException.class, new NotFoundErrorSummaryFactory())
 		    .put(NotAcceptableException.class, new DefaultErrorSummaryFactory("NOT_ACCEPTABLE", HttpStatusCode.NOT_ACCEPTABLE))
