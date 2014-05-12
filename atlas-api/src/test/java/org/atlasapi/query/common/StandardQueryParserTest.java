@@ -44,7 +44,8 @@ public class StandardQueryParserTest {
     
     @Before
     public void setUp() {
-        when(queryContextParser.getParameterNames()).thenReturn(ImmutableSet.<String>of());
+        when(queryContextParser.getRequiredParameters()).thenReturn(ImmutableSet.<String>of());
+        when(queryContextParser.getOptionalParameters()).thenReturn(ImmutableSet.<String>of());
         queryParser = new StandardQueryParser<Topic>(Resource.TOPIC, atrributes, idCodec, queryContextParser);
     }
     

@@ -36,15 +36,31 @@ public class SetBasedRequestParameterValidator extends AbstractRequestParameterV
     }
     
     public SetBasedRequestParameterValidator(ParameterNameProvider... nameProviders) {
-        this(ImmutableSet.<String>of(), ImmutableSet.copyOf(Iterables.concat(Iterables.transform(
+        this(requiredParams(nameProviders), optionalParams(nameProviders));
+    }
+
+    private static ImmutableSet<String> requiredParams(ParameterNameProvider[] nameProviders) {
+        return ImmutableSet.copyOf(Iterables.concat(Iterables.transform(
             ImmutableList.copyOf(nameProviders),
             new Function<ParameterNameProvider, Set<String>>() {
                 @Override
                 public Set<String> apply(ParameterNameProvider input) {
-                    return input.getParameterNames();
+                    return input.getRequiredParameters();
                 }
             }
-        ))));
+        )));
+    }
+
+    private static ImmutableSet<String> optionalParams(ParameterNameProvider[] nameProviders) {
+        return ImmutableSet.copyOf(Iterables.concat(Iterables.transform(
+            ImmutableList.copyOf(nameProviders),
+            new Function<ParameterNameProvider, Set<String>>() {
+                @Override
+                public Set<String> apply(ParameterNameProvider input) {
+                    return input.getOptionalParameters();
+                }
+            }
+        )));
     }
     
     private final Set<String> requiredParams;

@@ -2,6 +2,8 @@ package org.atlasapi.query.common.useraware;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
+import java.util.Set;
+
 import javax.servlet.http.HttpServletRequest;
 
 import org.atlasapi.application.ApplicationSources;
@@ -13,11 +15,13 @@ import org.atlasapi.query.annotation.AnnotationsExtractor;
 import org.atlasapi.query.common.ParameterNameProvider;
 import org.atlasapi.query.common.QueryParseException;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import com.metabroadcast.common.query.Selection;
 import com.metabroadcast.common.query.Selection.SelectionBuilder;
 
+//WHY DOES THIS EVEN NEED TO FETCH AN APPLICATION?
 public class UserAwareQueryContextParser implements ParameterNameProvider {
     
     private final ApplicationSourcesFetcher configFetcher;
@@ -51,13 +55,18 @@ public class UserAwareQueryContextParser implements ParameterNameProvider {
     }
 
     @Override
-    public ImmutableSet<String> getParameterNames() {
-        return ImmutableSet.copyOf(Iterables.concat(
-            configFetcher.getParameterNames(), 
+    public ImmutableSet<String> getOptionalParameters() {
+        return ImmutableSet.copyOf(Iterables.concat(ImmutableList.of( 
             userFetcher.getParameterNames(),
             annotationExtractor.getParameterNames(), 
             selectionBuilder.getParameterNames(),
-            ImmutableSet.of(JsonResponseWriter.CALLBACK)));
+            ImmutableSet.of(JsonResponseWriter.CALLBACK))));
     }
+    
+    @Override
+    public Set<String> getRequiredParameters() {
+        return ImmutableSet.of();
+    }
+    
     
 }

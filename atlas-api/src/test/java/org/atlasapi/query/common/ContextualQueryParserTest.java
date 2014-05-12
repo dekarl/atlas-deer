@@ -40,8 +40,9 @@ public class ContextualQueryParserTest {
     
     @Before
     public void setUp() {
-        when(queryContextParser.getParameterNames()).thenReturn(ImmutableSet.<String>of());
-        when(attributeParser.getParameterNames()).thenReturn(ImmutableSet.of("alias.namespace"));
+        when(queryContextParser.getOptionalParameters()).thenReturn(ImmutableSet.<String>of());
+        when(queryContextParser.getRequiredParameters()).thenReturn(ImmutableSet.<String>of());
+        when(attributeParser.getOptionalParameters()).thenReturn(ImmutableSet.of("alias.namespace"));
         this.parser = new ContextualQueryParser<Topic, Content>(Resource.TOPIC, Attributes.TOPIC_ID,
                 Resource.CONTENT, idCodec, attributeParser, queryContextParser);
     }

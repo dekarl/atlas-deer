@@ -1,5 +1,7 @@
 package org.atlasapi.application.auth;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import javax.servlet.http.HttpServletRequest;
 
 import org.atlasapi.application.Application;
@@ -16,7 +18,7 @@ public class ApiKeySourcesFetcher implements ApplicationSourcesFetcher {
     private final ApplicationStore reader;
 
     public ApiKeySourcesFetcher(ApplicationStore reader) {
-        this.reader = reader;
+        this.reader = checkNotNull(reader);
     }
     
     @Override

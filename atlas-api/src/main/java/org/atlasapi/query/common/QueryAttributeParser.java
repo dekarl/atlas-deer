@@ -77,8 +77,13 @@ public class QueryAttributeParser implements ParameterNameProvider {
     }
 
     @Override
-    public Set<String> getParameterNames() {
+    public Set<String> getOptionalParameters() {
         return parameterNames;
+    }
+    
+    @Override
+    public Set<String> getRequiredParameters() {
+        return ImmutableSet.of();
     }
 
 }
