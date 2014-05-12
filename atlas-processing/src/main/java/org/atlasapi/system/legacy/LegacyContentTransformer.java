@@ -180,7 +180,7 @@ public class LegacyContentTransformer extends DescribedLegacyResourceTransformer
     }
 
     private Set<Restriction> getRestrictions(Set<Version> versions) {
-        return ImmutableSet.copyOf(Iterables.transform(versions, new Function<Version, Restriction>(){
+        return Sets.newHashSet(Iterables.transform(versions, new Function<Version, Restriction>(){
             @Override
             public Restriction apply(Version version) {
                 return transformRestriction(version.getRestriction());
@@ -189,33 +189,33 @@ public class LegacyContentTransformer extends DescribedLegacyResourceTransformer
     }
 
     private Set<Encoding> getEncodings(Set<Version> versions) {
-        ImmutableSet.Builder<Encoding> encodings = ImmutableSet.builder();
+        Set<Encoding> encodings = Sets.newHashSet();
         for (Version version : versions) {
             for (org.atlasapi.media.entity.Encoding encoding : version.getManifestedAs()) {
                 encodings.add(transformEncoding(encoding, version));
             }
         }
-        return encodings.build();
+        return encodings;
     }
 
     private Set<Broadcast> getBroadcasts(Set<Version> versions) {
-        ImmutableSet.Builder<Broadcast> broadcasts = ImmutableSet.builder();
+        Set<Broadcast> broadcasts = Sets.newHashSet();
         for (Version version : versions) {
             for (org.atlasapi.media.entity.Broadcast broadcast : broadcastsWithIds(version)) {
                 broadcasts.add(transformBroadcast(broadcast, version));
             }
         }
-        return broadcasts.build();
+        return broadcasts;
     }
 
     private Iterable<SegmentEvent> getSegmentEvents(Set<Version> versions) {
-        ImmutableSet.Builder<SegmentEvent> segEvents = ImmutableSet.builder();
+        Set<SegmentEvent> segEvents = Sets.newHashSet();
         for (Version version : versions) {
             for (org.atlasapi.media.segment.SegmentEvent segementEvent : version.getSegmentEvents()) {
                 segEvents.add(transformSegmentEvent(segementEvent, version));
             }
         }
-        return segEvents.build();
+        return segEvents;
     }
 
     private Set<org.atlasapi.media.entity.Broadcast> broadcastsWithIds(
