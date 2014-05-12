@@ -141,9 +141,10 @@ class Atlas:
     for sched_entry in sched_entries:
       i = sched_entry['item']
       b = sched_entry['broadcast']
+      bid = b['aliases'][0]['value']
       start = dateutil.parser.parse(b['transmission_time'])
       end = dateutil.parser.parse(b['transmission_end_time'])
-      entries.append(SimpleEntry(i['id'],i['title'],b['id'],start, end))
+      entries.append(SimpleEntry(i['id'], i['title'], bid, start, end))
     return entries
 
   def simplify_v3(self, schedule):
@@ -153,7 +154,8 @@ class Atlas:
       b = se['broadcasts'][0]
       start = dateutil.parser.parse(b['transmission_time'])
       end = dateutil.parser.parse(b['transmission_end_time'])
-      entries.append(SimpleEntry(se['id'],se['title'],b['id'],start,end))
+      bid = b['id']
+      entries.append(SimpleEntry(se['id'],se['title'],bid[bid.index(':')+1:],start,end))
     return entries
 
 headers = ['Title', 'ID', 'BID', 'End', 'Start']
@@ -212,7 +214,7 @@ def mismatch(l, r):
   vals_or_missing = lambda e: missing_row if e == None else e.as_list()
   return vals_or_missing(l)[::-1] +["|"]+ vals_or_missing(r)
 
-v4_channel_prefix = "http://atlas.metabroadcast.com/4/channels/"
+v4_channel_prefix = "http://atlas.metabroadcast.com/4.0/channels/"
 
 def v4_id(als):
   prfx = v4_channel_prefix
