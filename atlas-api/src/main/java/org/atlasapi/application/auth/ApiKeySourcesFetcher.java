@@ -13,7 +13,7 @@ import com.google.common.collect.ImmutableSet;
 
 public class ApiKeySourcesFetcher implements ApplicationSourcesFetcher {
 
-    public static final String API_KEY_QUERY_PARAMETER = "apiKey";
+    public static final String API_KEY_QUERY_PARAMETER = "key";
     
     private final ApplicationStore reader;
 
@@ -28,16 +28,14 @@ public class ApiKeySourcesFetcher implements ApplicationSourcesFetcher {
 
     @Override
     public Optional<ApplicationSources> sourcesFor(HttpServletRequest request) throws InvalidApiKeyException  {
-            String apiKey = request.getParameter(API_KEY_QUERY_PARAMETER);
-            if (apiKey != null) {
-                Optional<Application> app = reader.applicationForKey(apiKey);
-                if (app.isPresent()) {
-                    if (app.get().isRevoked()) {
-                        throw new InvalidApiKeyException(app.get().getCredentials().getApiKey());
-                    }
-                    return Optional.of(app.get().getSources());
-                }
+        String apiKey = request.getParameter(API_KEY_QUERY_PARAMETER);
+        if (apiKey != null) {
+            Optional<Application> app = reader.applicationForKey(apiKey);
+            if (!app.isPresent() || app.get().isRevoked()) {
+                throw new InvalidApiKeyException(apiKey);
             }
+            return Optional.of(app.get().getSources());
+        }
         return Optional.absent();
     }
 }

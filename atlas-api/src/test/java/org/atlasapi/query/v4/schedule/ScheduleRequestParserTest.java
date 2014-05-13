@@ -21,6 +21,7 @@ import org.atlasapi.annotation.Annotation;
 import org.atlasapi.application.ApplicationSources;
 import org.atlasapi.application.SourceStatus;
 import org.atlasapi.application.auth.ApplicationSourcesFetcher;
+import org.atlasapi.application.auth.InvalidApiKeyException;
 import org.atlasapi.entity.Id;
 import org.atlasapi.media.channel.Channel;
 import org.atlasapi.media.entity.Publisher;
@@ -43,6 +44,7 @@ import com.google.common.base.Function;
 import com.google.common.base.Joiner;
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import com.metabroadcast.common.ids.NumberToShortStringCodec;
 import com.metabroadcast.common.ids.SubstitutionTableNumberCodec;
@@ -53,6 +55,8 @@ import com.metabroadcast.common.time.TimeMachine;
 @RunWith(MockitoJUnitRunner.class)
 public class ScheduleRequestParserTest {
 
+    private static final String KEY_PARAM = "key";
+    
     @Mock private ApplicationSourcesFetcher applicationFetcher;
     @Mock private ContextualAnnotationsExtractor annotationsExtractor;
 
@@ -67,6 +71,8 @@ public class ScheduleRequestParserTest {
     
     @Before
     public void before() throws Exception {
+        when(applicationFetcher.getParameterNames()).thenReturn(ImmutableSet.of(KEY_PARAM));
+        
         builder  = new ScheduleRequestParser(
                 applicationFetcher,
                 Duration.standardDays(1),
@@ -77,10 +83,10 @@ public class ScheduleRequestParserTest {
         
         when(annotationsExtractor.extractFromRequest(any(HttpServletRequest.class)))
             .thenReturn(ActiveAnnotations.standard());
-        when(applicationFetcher.sourcesFor(argThat(httpRequestWithParam("apiKey",is("apikey")))))
+        when(applicationFetcher.sourcesFor(argThat(httpRequestWithParam(KEY_PARAM,is("apikey")))))
             .thenReturn(Optional.of(sources));
-        when(applicationFetcher.sourcesFor(argThat(httpRequestWithParam("apiKey",not("apikey")))))
-            .thenReturn(Optional.<ApplicationSources>absent());
+        when(applicationFetcher.sourcesFor(argThat(httpRequestWithParam(KEY_PARAM,not("apikey")))))
+            .thenThrow(new InvalidApiKeyException("therequestedapikey"));
     }
     
     private Matcher<HttpServletRequest> httpRequestWithParam(final String key, final Matcher<? super String> value) {
@@ -163,7 +169,7 @@ public class ScheduleRequestParserTest {
         builder.queryFrom(request);
     }
     
-    @Test(expected=IllegalArgumentException.class)
+    @Test(expected=InvalidApiKeyException.class)
     public void testDoesntAcceptUnknownApiKey() throws Exception {
         
         DateTime from = new DateTime(2012,12,22,00,00,00,000,DateTimeZones.UTC);
@@ -241,8 +247,8 @@ public class ScheduleRequestParserTest {
         assertThat(query.getChannelIds().asList().get(1), is(Id.valueOf(channel2.getId())));
     }
     
-    @Test
-    public void testCreatesSingleQueryFromQueryWithNoApiKeyForDefaultEnabledSource() throws Exception {
+    @Test(expected=InvalidApiKeyException.class)
+    public void testDoesntAcceptRequestWithNoApiKey() throws Exception {
         
         Interval intvl = new Interval(new DateTime(DateTimeZones.UTC), new DateTime(DateTimeZones.UTC).plusHours(1));
         StubHttpServletRequest request = singleScheduleRequest(
@@ -254,13 +260,7 @@ public class ScheduleRequestParserTest {
             ""
         );
         
-        ScheduleQuery query = builder.queryFrom(request);
-        
-        assertThat(query.getChannelId(), is(Id.valueOf(channel1.getId())));
-        assertThat(query.getInterval(), is(intvl));
-        assertThat(query.getSource(), is(METABROADCAST));
-        assertThat(query.getContext().getAnnotations().forPath(ImmutableList.of(Resource.CONTENT)), is(Annotation.standard()));
-        assertThat(query.getContext().getApplicationSources(), is(sources));
+        builder.queryFrom(request);
     }
 
     private StubHttpServletRequest multiScheduleRequest(List<Channel> channels, Interval intvl,
@@ -313,7 +313,7 @@ public class ScheduleRequestParserTest {
                 .withParam("to", to.toString())
                 .withParam("source", publisher == null ? null : publisher.key())
                 .withParam("annotations", Joiner.on(',').join(Iterables.transform(annotations, Annotation.toKeyFunction())))
-                .withParam("apiKey", appKey);
+                .withParam(KEY_PARAM, appKey);
     }
 
 }

@@ -39,7 +39,7 @@ public class ApiKeySourcesFetcherTest {
             .build();
         when(appStore.applicationForKey(apiKey)).thenReturn(Optional.of(app));
         
-        Optional<ApplicationSources> srcs = fetcher.sourcesFor(new StubHttpServletRequest().withParam("apiKey", apiKey));
+        Optional<ApplicationSources> srcs = fetcher.sourcesFor(new StubHttpServletRequest().withParam("key", apiKey));
         
         assertTrue(srcs.isPresent());
         assertThat(srcs.get(), is(app.getSources()));
@@ -70,18 +70,17 @@ public class ApiKeySourcesFetcherTest {
             .build();
         when(appStore.applicationForKey(apiKey)).thenReturn(Optional.of(app));
         
-        fetcher.sourcesFor(new StubHttpServletRequest().withParam("apiKey", apiKey));
+        fetcher.sourcesFor(new StubHttpServletRequest().withParam("key", apiKey));
     }
     
-    @Test
-    public void testReturnsAbsentIfTheresNoAppForKey() throws Exception {
+    @Test(expected=InvalidApiKeyException.class)
+    public void testThrowsInvalidApiKeyExceptionIfTheresNoAppForKey() throws Exception {
         
         String apiKey = "apikey";
         when(appStore.applicationForKey(apiKey)).thenReturn(Optional.<Application>absent());
         
-        Optional<ApplicationSources> srcs = fetcher.sourcesFor(new StubHttpServletRequest().withParam("apiKey", apiKey));
+        fetcher.sourcesFor(new StubHttpServletRequest().withParam("key", apiKey));
         
-        assertFalse(srcs.isPresent());
     }
 
 }

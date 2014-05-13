@@ -125,7 +125,7 @@ class Atlas:
       }
       return "/3.0/schedule.json?%s" % self.join(params)
     if (self.version == 4):
-      params = {'source':source,'from':start.isoformat(),'to':end.isoformat(),'apiKey':self.key}
+      params = {'source':source,'from':start.isoformat(),'to':end.isoformat(),'key':self.key}
       channel_id = channel['v4id']
       return "/4/schedules/%s.json?annotations=content.description&%s" %(channel_id, self.join(params))
     raise Exception("unexpected version %s" % self.version)
@@ -283,13 +283,13 @@ def compare_params(channel, day):
   if not args.host2 == dflt("host2"):
     cmd += " -h2 " + args.host2
   if not args.port1 == dflt("port1"):
-    cmd += " -p1 " + args.port1
+    cmd += " -p1 " + str(args.port1)
   if not args.port2 == dflt("port2"):
-    cmd += " -p2 " + args.port2
+    cmd += " -p2 " + str(args.port2)
   if not args.version1 == dflt("version1"):
-    cmd += " -v1 " + args.version1
+    cmd += " -v1 " + str(args.version1)
   if not args.version2 == dflt("version2"):
-    cmd += " -v2 " + args.version2
+    cmd += " -v2 " + str(args.version2)
   if args.key:
     cmd += " -k " + args.key
   start = day.date()

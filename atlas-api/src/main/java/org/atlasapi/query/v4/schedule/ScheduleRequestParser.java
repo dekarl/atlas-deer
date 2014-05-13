@@ -43,16 +43,10 @@ class ScheduleRequestParser {
     );
     private static final Splitter commaSplitter = Splitter.on(",").omitEmptyStrings().trimResults();
     
-    private final ApplicationSourcesFetcher applicationStore;
+    private final ApplicationSourcesFetcher applicationFetcher;
 
-    private final SetBasedRequestParameterValidator singleValidator = SetBasedRequestParameterValidator.builder()
-        .withRequiredParameters("from","to","source","apiKey")
-        .withOptionalParameters("annotations","apiKey", "callback")
-        .build();
-    private final SetBasedRequestParameterValidator multiValidator = SetBasedRequestParameterValidator.builder()
-            .withRequiredParameters("id", "from","to","source","apiKey")
-            .withOptionalParameters("annotations", "callback")
-            .build();
+    private final SetBasedRequestParameterValidator singleValidator;
+    private final SetBasedRequestParameterValidator multiValidator;
     
     private final NumberToShortStringCodec idCodec;
     private final DateTimeInQueryParser dateTimeParser;
@@ -61,7 +55,7 @@ class ScheduleRequestParser {
     private final Clock clock;
 
     public ScheduleRequestParser(ApplicationSourcesFetcher appFetcher, Duration maxQueryDuration, Clock clock, ContextualAnnotationsExtractor annotationsExtractor) {
-        this.applicationStore = appFetcher;
+        this.applicationFetcher = appFetcher;
         this.maxQueryDuration = maxQueryDuration;
         this.idCodec = SubstitutionTableNumberCodec.lowerCaseOnly();
         this.dateTimeParser = queryDateTimeParser()
@@ -72,6 +66,30 @@ class ScheduleRequestParser {
                 .build();
         this.clock = clock;
         this.annotationExtractor = annotationsExtractor;
+        this.singleValidator = singleRequestValidator(applicationFetcher);
+        this.multiValidator = multiRequestValidator(applicationFetcher);
+    }
+
+    private SetBasedRequestParameterValidator singleRequestValidator(ApplicationSourcesFetcher fetcher) {
+        ImmutableList<String> required = ImmutableList.<String>builder()
+            .add("from","to","source")
+            .addAll(fetcher.getParameterNames())
+            .build();
+        return SetBasedRequestParameterValidator.builder()
+            .withRequiredParameters(required.toArray(new String[required.size()]))
+            .withOptionalParameters("annotations", "callback")
+            .build();
+    }
+
+    private SetBasedRequestParameterValidator multiRequestValidator(ApplicationSourcesFetcher fetcher) {
+        ImmutableList<String> required = ImmutableList.<String>builder()
+            .add("id", "from", "to", "source")
+            .addAll(fetcher.getParameterNames())
+            .build();
+        return SetBasedRequestParameterValidator.builder()
+            .withRequiredParameters(required.toArray(new String[required.size()]))
+            .withOptionalParameters("annotations", "callback")
+            .build();
     }
 
     public ScheduleQuery queryFrom(HttpServletRequest request) throws QueryParseException, InvalidApiKeyException {
@@ -170,17 +188,12 @@ class ScheduleRequestParser {
     }
 
     private ApplicationSources getConfiguration(HttpServletRequest request) throws InvalidApiKeyException {
-        Optional<ApplicationSources> config = applicationStore.sourcesFor(request);
+        Optional<ApplicationSources> config = applicationFetcher.sourcesFor(request);
         if (config.isPresent()) {
             return config.get();
         }
-        String apiKeyParam = request.getParameter("apiKey");
-        // request doesn't specify apiKey so use default configuration.
-        if (apiKeyParam == null) {
-            return ApplicationSources.defaults();
-        }
-        // the request has an apiKey param but no config is found.
-        throw new IllegalArgumentException("Unknown API key " + apiKeyParam);
+        // key is required parameter so we should never reach here.
+        throw new IllegalStateException("application not fetched");
     }
 
     private String getParameter(HttpServletRequest request, String param) {
