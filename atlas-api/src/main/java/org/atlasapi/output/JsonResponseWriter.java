@@ -21,8 +21,10 @@ import com.google.common.primitives.Primitives;
 import com.metabroadcast.common.media.MimeType;
 
 /**
- *
- * This class is not thread-safe.
+ * <p>A {@link ResponseWriter} that writes to the {@link OutputStream} of an
+ * {@link HttpServletResponse} in a JSON format</p>
+ * 
+ * <p>This class is not thread-safe.</p>
  */
 public final class JsonResponseWriter implements ResponseWriter {
     
@@ -149,6 +151,13 @@ public final class JsonResponseWriter implements ResponseWriter {
         printMemberSeparator = true;
     }
     
+
+    /**
+     * {@inheritDoc}
+     * 
+     * <p>This implementation ignores the {@code elem} parameter since JSON list
+     * elements are not named.</p>
+     */
     @Override
     public void writeList(String field, String elem, Iterable<?> list, OutputContext ctxt)
         throws IOException {
@@ -166,6 +175,12 @@ public final class JsonResponseWriter implements ResponseWriter {
         writer.write(END_ARRAY);
     }
 
+    /**
+     * {@inheritDoc}
+     * 
+     * <p>This implementation does not call {@link EntityListWriter#fieldName()} since JSON list
+     * elements are not named.</p>
+     */
     @Override
     public <T> void writeList(EntityListWriter<? super T> listWriter, Iterable<T> list, OutputContext ctxt) throws IOException {
         startField(listWriter.listName());
