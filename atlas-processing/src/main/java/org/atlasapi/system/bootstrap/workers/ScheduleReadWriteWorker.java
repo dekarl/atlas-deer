@@ -44,27 +44,27 @@ public class ScheduleReadWriteWorker implements Worker<ScheduleUpdateMessage> {
         
         Maybe<Publisher> source = Publisher.fromKey(msg.getSource());
         if (!source.hasValue()) {
-            log.warn(updateMsg + ": unknown source %s", msg.getSource());
+            log.warn("{}: unknown source {}", updateMsg, msg.getSource());
             return;
         }
         Publisher src = source.requireValue();
         if (ignoredSources.contains(src)) {
-            log.debug(updateMsg + ": ignoring source %s", src.key());
+            log.debug("{}: ignoring source {}", updateMsg, src.key());
             return;
         }
         
         long cid = idCodec.decode(msg.getChannel()).longValue();
         Maybe<Channel> channel = channelResolver.fromId(cid);
         if (!channel.hasValue()) {
-            log.warn(updateMsg + ": unknown channel %s (%s)", msg.getChannel(), cid);
+            log.warn("{}: unknown channel {} ({})", updateMsg, msg.getChannel(), cid);
         }
         
         Interval interval = new Interval(msg.getUpdateStart(), msg.getUpdateEnd());
         
-        log.debug(updateMsg + ": processing");
+        log.debug("{}: processing", updateMsg);
         try {
             UpdateProgress result = taskFactory.create(src, channel.requireValue(), interval).call();
-            log.debug(updateMsg + ": processed: " + result);
+            log.debug("{}: processed: {}", updateMsg, result);
         } catch (Exception e) {
             log.error("failed " + updateMsg, e);
         }
