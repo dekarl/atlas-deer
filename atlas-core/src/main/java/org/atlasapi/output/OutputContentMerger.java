@@ -1,5 +1,6 @@
 package org.atlasapi.output;
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -16,6 +17,7 @@ import org.atlasapi.content.ContentGroup;
 import org.atlasapi.content.ContentRef;
 import org.atlasapi.content.ContentVisitorAdapter;
 import org.atlasapi.content.Described;
+import org.atlasapi.content.Encoding;
 import org.atlasapi.content.Episode;
 import org.atlasapi.content.Film;
 import org.atlasapi.content.Image;
@@ -281,9 +283,12 @@ public class OutputContentMerger implements EquivalentsMergeStrategy<Content> {
                 matchAndMerge(chosenBroadcast, notChosenOrdered);
             }
         }
+        HashSet<Encoding> encodings = Sets.newHashSet(chosen.getManifestedAs());
         for (T notChosenItem : notChosen) {
             notChosenItem.setBroadcasts(Sets.<Broadcast>newHashSet());
+            encodings.addAll(notChosenItem.getManifestedAs());
         }
+        chosen.setManifestedAs(encodings);
     }
     
     private <T extends Item> void matchAndMerge(final Broadcast chosenBroadcast, List<T> notChosen) {
