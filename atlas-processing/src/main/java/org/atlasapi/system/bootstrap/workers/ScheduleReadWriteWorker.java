@@ -2,6 +2,8 @@ package org.atlasapi.system.bootstrap.workers;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
+import java.util.Set;
+
 import org.atlasapi.media.channel.Channel;
 import org.atlasapi.media.channel.ChannelResolver;
 import org.atlasapi.media.entity.Publisher;
@@ -12,11 +14,11 @@ import org.joda.time.Interval;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.collect.ImmutableSet;
 import com.metabroadcast.common.base.Maybe;
 import com.metabroadcast.common.ids.SubstitutionTableNumberCodec;
 import com.metabroadcast.common.queue.Worker;
 import com.metabroadcast.common.scheduling.UpdateProgress;
-
 
 public class ScheduleReadWriteWorker implements Worker<ScheduleUpdateMessage> {
 
@@ -26,11 +28,13 @@ public class ScheduleReadWriteWorker implements Worker<ScheduleUpdateMessage> {
 
     private final SourceChannelIntervalFactory<ChannelIntervalScheduleBootstrapTask> taskFactory;
     private final ChannelResolver channelResolver;
+    private final Set<Publisher> ignoredSources;
 
     public ScheduleReadWriteWorker(SourceChannelIntervalFactory<ChannelIntervalScheduleBootstrapTask> taskFactory, 
-            ChannelResolver channelResolver) {
+            ChannelResolver channelResolver, Iterable<Publisher> ignoredSources) {
         this.channelResolver = checkNotNull(channelResolver);
         this.taskFactory = checkNotNull(taskFactory);
+        this.ignoredSources = ImmutableSet.copyOf(ignoredSources);
     }
     
     @Override
@@ -41,6 +45,11 @@ public class ScheduleReadWriteWorker implements Worker<ScheduleUpdateMessage> {
         Maybe<Publisher> source = Publisher.fromKey(msg.getSource());
         if (!source.hasValue()) {
             log.warn(updateMsg + ": unknown source %s", msg.getSource());
+            return;
+        }
+        Publisher src = source.requireValue();
+        if (ignoredSources.contains(src)) {
+            log.debug(updateMsg + ": ignoring source %s", src.key());
             return;
         }
         
@@ -54,7 +63,7 @@ public class ScheduleReadWriteWorker implements Worker<ScheduleUpdateMessage> {
         
         log.debug(updateMsg + ": processing");
         try {
-            UpdateProgress result = taskFactory.create(source.requireValue(), channel.requireValue(), interval).call();
+            UpdateProgress result = taskFactory.create(src, channel.requireValue(), interval).call();
             log.debug(updateMsg + ": processed: " + result);
         } catch (Exception e) {
             log.error("failed " + updateMsg, e);

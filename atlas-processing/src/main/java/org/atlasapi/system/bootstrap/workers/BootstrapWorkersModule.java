@@ -1,5 +1,6 @@
 package org.atlasapi.system.bootstrap.workers;
 
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
@@ -8,6 +9,7 @@ import javax.annotation.PreDestroy;
 
 import org.atlasapi.AtlasPersistenceModule;
 import org.atlasapi.content.ContentResolver;
+import org.atlasapi.media.entity.Publisher;
 import org.atlasapi.messaging.KafkaMessagingModule;
 import org.atlasapi.messaging.ResourceUpdatedMessage;
 import org.atlasapi.messaging.v3.JacksonMessageSerializer;
@@ -23,6 +25,8 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.Lazy;
 
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Sets;
 import com.metabroadcast.common.properties.Configurer;
 import com.metabroadcast.common.queue.MessageSerializer;
 import com.metabroadcast.common.queue.kafka.KafkaConsumer;
@@ -40,6 +44,9 @@ public class BootstrapWorkersModule {
     private String contentChanges = Configurer.get("messaging.destination.content.changes").get();
     private String topicChanges = Configurer.get("messaging.destination.topics.changes").get();
     private String scheduleChanges = Configurer.get("messaging.destination.schedule.changes").get();
+    
+    private Set<Publisher> ignoredScheduleSources
+        = Sets.difference(Publisher.all(), ImmutableSet.of(Publisher.PA));
 
     @Autowired private AtlasPersistenceModule persistence;
     @Autowired private LegacyPersistenceModule legacy;
@@ -67,7 +74,8 @@ public class BootstrapWorkersModule {
     @Bean
     @Lazy(true)
     KafkaConsumer scheduleReadWriter() {
-        ScheduleReadWriteWorker worker = new ScheduleReadWriteWorker(scheduleBootstrapTaskFactory(), persistence.channelStore());
+        ScheduleReadWriteWorker worker = new ScheduleReadWriteWorker(scheduleBootstrapTaskFactory(), 
+                persistence.channelStore(), ignoredScheduleSources);
         MessageSerializer<ScheduleUpdateMessage> serializer
             = JacksonMessageSerializer.forType(ScheduleUpdateMessage.class);
         return bootstrapQueueFactory().createConsumer(worker, serializer, scheduleChanges, "ScheduleBootstrap")
