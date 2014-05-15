@@ -43,8 +43,7 @@ public final class EquivalentScheduleEntry implements Comparable<EquivalentSched
         }
         if (that instanceof EquivalentScheduleEntry) {
             EquivalentScheduleEntry other = (EquivalentScheduleEntry) that;
-            return broadcast.equals(other.broadcast)
-                && items.equals(other.items);
+            return broadcast.equals(other.broadcast);
         }
         return false;
     }
