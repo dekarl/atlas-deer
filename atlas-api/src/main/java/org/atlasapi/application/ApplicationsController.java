@@ -124,7 +124,8 @@ public class ApplicationsController {
                 // New application
                 application = applicationStore.createApplication(application);
                 // Add application to user ownership
-                userStore.store(user.copyWithAdditionalApplication(application));
+                user = user.copyWithAdditionalApplication(application);
+                userStore.store(user);
             }
             // We do not want non-admins to see admin only sources
             // So we run the application through the query executor
