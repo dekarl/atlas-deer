@@ -3,7 +3,9 @@ package org.atlasapi.system.legacy;
 import org.atlasapi.AtlasPersistenceModule;
 import org.atlasapi.content.ContentResolver;
 import org.atlasapi.content.NullContentResolver;
+import org.atlasapi.media.entity.Described;
 import org.atlasapi.messaging.v3.ScheduleUpdateMessage;
+import org.atlasapi.persistence.audit.PersistenceAuditLog;
 import org.atlasapi.persistence.content.DefaultEquivalentContentResolver;
 import org.atlasapi.persistence.content.EquivalentContentResolver;
 import org.atlasapi.persistence.content.KnownTypeContentResolver;
@@ -59,7 +61,16 @@ public class LegacyPersistenceModule {
     
     @Bean @Qualifier("legacy")
     public MongoTopicStore legacyTopicStore() {
-        return new MongoTopicStore(persistence.databasedMongo());
+        return new MongoTopicStore(persistence.databasedMongo(), new PersistenceAuditLog() {
+            
+            @Override
+            public void logWrite(Described arg0) {
+            }
+            
+            @Override
+            public void logNoWrite(Described arg0) {
+            }
+        });
     }
     
     @Bean @Qualifier("legacy")
