@@ -53,6 +53,7 @@ public class ContentReadWriteWorker implements Worker<ResourceUpdatedMessage> {
             public void onSuccess(Resolved<Content> result) {
                 for (Content content : result.getResources()) {
                     try {
+                        log.trace("writing content " + content);
                         writer.writeContent(content);
                     } catch (MissingResourceException mre) {
                         log.warn("missing {} for {}, re-attempting", mre.getMissingId(), content);
