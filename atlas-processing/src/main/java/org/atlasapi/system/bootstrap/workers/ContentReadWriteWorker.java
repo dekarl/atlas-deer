@@ -46,6 +46,7 @@ public class ContentReadWriteWorker implements Worker<ResourceUpdatedMessage> {
             throw new RuntimeException(String.format("Failed to write %s in %s attempts", id, maxAttempts));
         }
         ImmutableList<Id> ids = ImmutableList.of(id);
+        log.trace("Attempt to read and write {}", id.toString());
         ListenableFuture<Resolved<Content>> resolved = contentResolver.resolveIds(ids);
         Futures.addCallback(resolved, new FutureCallback<Resolved<Content>>() {
 
