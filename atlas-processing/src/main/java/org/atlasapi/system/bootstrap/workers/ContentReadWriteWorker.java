@@ -69,7 +69,7 @@ public class ContentReadWriteWorker implements Worker<ResourceUpdatedMessage> {
 
             @Override
             public void onFailure(Throwable t) {
-                throw Throwables.propagate(t);
+            	log.error("Failed to resolve id" + id);
             }
         });
     }
