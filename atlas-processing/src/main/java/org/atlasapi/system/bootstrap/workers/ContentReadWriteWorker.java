@@ -56,19 +56,20 @@ public class ContentReadWriteWorker implements Worker<ResourceUpdatedMessage> {
                     try {
                         log.trace("writing content " + content);
                         writer.writeContent(content);
+                        log.trace("Finished writing content " + content);
                     } catch (MissingResourceException mre) {
                         log.warn("missing {} for {}, re-attempting", mre.getMissingId(), content);
                         readAndWrite(mre.getMissingId());
                         readAndWrite(id, attempt+1);
                     } catch (WriteException we) {
-                        log.error("failed to write " + content, we);
+                        log.error("failed to write " + id + "-" + content, we);
                     }
                 }
             }
 
             @Override
             public void onFailure(Throwable t) {
-                throw Throwables.propagate(t);
+            	log.error("Failed to resolve id" + id);
             }
         });
     }
