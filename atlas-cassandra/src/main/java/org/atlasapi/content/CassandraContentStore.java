@@ -57,13 +57,13 @@ import com.netflix.astyanax.serializers.StringSerializer;
 
 public final class CassandraContentStore extends AbstractContentStore {
     
-	protected final Logger log = LoggerFactory.getLogger(getClass());
+    protected final Logger log = LoggerFactory.getLogger(getClass());
 	
     public static final Builder builder(AstyanaxContext<Keyspace> context, 
             String name, ContentHasher hasher, MessageSender<ResourceUpdatedMessage> sender, IdGenerator idGenerator) {
         return new Builder(context, name, hasher, sender, idGenerator);
     }
-    
+
     public static final class Builder {
 
         private final AstyanaxContext<Keyspace> context;
