@@ -18,6 +18,8 @@ import org.atlasapi.entity.util.Resolved;
 import org.atlasapi.media.entity.Publisher;
 import org.atlasapi.messaging.ResourceUpdatedMessage;
 import org.atlasapi.util.CassandraUtil;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Function;
 import com.google.common.base.Functions;
@@ -55,11 +57,13 @@ import com.netflix.astyanax.serializers.StringSerializer;
 
 public final class CassandraContentStore extends AbstractContentStore {
     
+    protected final Logger log = LoggerFactory.getLogger(getClass());
+	
     public static final Builder builder(AstyanaxContext<Keyspace> context, 
             String name, ContentHasher hasher, MessageSender<ResourceUpdatedMessage> sender, IdGenerator idGenerator) {
         return new Builder(context, name, hasher, sender, idGenerator);
     }
-    
+
     public static final class Builder {
 
         private final AstyanaxContext<Keyspace> context;
@@ -192,6 +196,7 @@ public final class CassandraContentStore extends AbstractContentStore {
             marshaller.marshallInto(batch.withRow(mainCf, id), content);
             batch.mergeShallow(aliasIndex.mutateAliases(content, previous));
             batch.execute();
+            log.trace("Written content id" + id);
         } catch (Exception e) {
             throw new CassandraPersistenceException(content.toString(), e);
         }

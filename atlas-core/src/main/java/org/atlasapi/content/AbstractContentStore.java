@@ -306,7 +306,7 @@ public abstract class AbstractContentStore implements ContentStore {
         try {
             sender.sendMessage(message);
         } catch (Exception e) {
-            log.error(message.getUpdatedResource().toString(), e);
+            log.error("Failed to send message " + message.getUpdatedResource().toString(), e);
         }
     }
     
