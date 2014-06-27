@@ -196,7 +196,7 @@ public final class CassandraContentStore extends AbstractContentStore {
             marshaller.marshallInto(batch.withRow(mainCf, id), content);
             batch.mergeShallow(aliasIndex.mutateAliases(content, previous));
             batch.execute();
-            log.trace("Written content id" + id);
+            log.trace("Written content id " + id);
         } catch (Exception e) {
             throw new CassandraPersistenceException(content.toString(), e);
         }
@@ -208,9 +208,7 @@ public final class CassandraContentStore extends AbstractContentStore {
         Content previous = null;
         if (id != null) {
             previous = resolve(id.longValue(), null);
-        }
-        
-        if (previous == null) {
+        } else {
             try {
                 Set<Long> ids = aliasIndex.readAliases(source, aliases);
                 Long aliasId = Iterables.getFirst(ids, null);
