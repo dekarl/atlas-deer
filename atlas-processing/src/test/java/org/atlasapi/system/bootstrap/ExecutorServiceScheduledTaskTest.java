@@ -68,7 +68,7 @@ public class ExecutorServiceScheduledTaskTest {
                 @Override
                 public UpdateProgress call() throws Exception {
                     try {
-                        Thread.sleep(300);
+                        Thread.sleep(500);
                     } catch (InterruptedException ie) {
                         taskInterrupted.set(true);
                     }
