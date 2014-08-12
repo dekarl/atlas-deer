@@ -26,7 +26,7 @@
             <configuration>
               <executable>sh</executable>
               <commandlineArgs>-c "mkdir -p ${project.build.directory}/generated-sources/protoc &amp;&amp;
-               protoc -I ./ -I /usr/include --java_out=${project.build.directory}/generated-sources/protoc *.proto"</commandlineArgs>
+               protoc -I ./ -I `dirname $(which protoc)`/../include --java_out=${project.build.directory}/generated-sources/protoc *.proto"</commandlineArgs>
               <sourceRoot>${project.build.directory}/generated-sources/protoc</sourceRoot>
               <workingDirectory>${basedir}/src/main/protobuf</workingDirectory>
             </configuration>
@@ -77,7 +77,7 @@
     <dependency>
       <groupId>com.google.protobuf</groupId>
       <artifactId>protobuf-java</artifactId>
-      <version>2.4.1</version>
+      <version>2.5.0</version>
     </dependency>
     <dependency>
       <groupId>com.datastax.cassandra</groupId>
