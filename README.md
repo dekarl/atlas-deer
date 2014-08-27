@@ -21,7 +21,7 @@ You will need:
   * The current version of the 2.0.x release of Cassandra (http://planetcassandra.org/cassandra/) and latest cqlsh
   * The latest version of MongoDB (http://www.mongodb.org/)
 
-* Make sure the protobuf library version specified in the atlas-cassandra/pom.xml matches the output of protoc —version
+* Make sure the protobuf library version specified in the atlas-cassandra/pom.xml matches the output of protoc —-version
 * Start Cassandra locally on the standard port
 * Start ElasticSearch
 * Run mvn package in the project directory
