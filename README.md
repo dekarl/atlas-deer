@@ -23,6 +23,7 @@ You will need:
 
 * Make sure the protobuf library version specified in the atlas-cassandra/pom.xml matches the output of protoc —-version
 * Make sure the elasticsearch version specified in the atlas-elasticsearch/pom.xml matches the the version you install.
+* Make sure the elasticsearch cluster name specified in elasticsearch.yml matches your elasticsearch.cluster (default in atlas-api/src/main/resources/config/environments/dev.properties is atlas_deer_dev)
 * Start Cassandra locally on the standard port
 * Start ElasticSearch
 * Run mvn package in the project directory
